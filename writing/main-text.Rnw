@@ -35,6 +35,17 @@ We build on the work of Refs.~\cite{lemey2014,magee2014}.
 
 \section*{Methods}
 
+\subsection*{Tree building}
+
+We obtained a set of nucleotide sequences by searching NCBI's
+Nucleotide database with the query \texttt{"Porcine epidemic diarrhea
+  virus[Organism] AND (country=USA OR country=Mexico OR
+  country=Canada)"}. We refined these results to sequences that had
+both \texttt{collection_date} and \texttt{country} features in their
+GenBank records.
+
+formed a set of sequences 
+
 \section*{Results}
 
 <<load-results,include=FALSE>>=
