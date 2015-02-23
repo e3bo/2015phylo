@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
   mafft \
   openssh-server \
   python-biopython \
-  raxml \
   r-cran-rcurl \
   r-cran-xml
 
@@ -20,6 +19,7 @@ EXPOSE 22
 
 RUN install2.r --error \
   ape \
+  lubridate \
   rentrez \
   && rm -rf /tmp/download_packages/ /tmp/*.rds
 
