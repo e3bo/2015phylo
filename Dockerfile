@@ -4,6 +4,7 @@ MAINTAINER Eamon O'Dea <odea35@gmail.com>
 RUN apt-get update && apt-get install -y -q --no-install-recommends \
   curl \
   mafft \
+  openjdk-8-jre-headless \
   openssh-server \
   python-biopython \
   r-cran-rcurl \
@@ -11,7 +12,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
 
 RUN curl -SL http://molevol.cmima.csic.es/castresana/Gblocks/Gblocks_Linux64_0.91b.tar.Z \
   | tar -xzC /opt \
-  ln -s /opt/Gblocks_0.91b/Gblocks /usr/bin/Gblocks
+  && ln -s /opt/Gblocks_0.91b/Gblocks /usr/bin/Gblocks
 RUN curl -SL "http://tree.bio.ed.ac.uk/download.php?id=91&num=3" \
   | tar -xzC /opt \
   && for script in beast treeannotator; \
