@@ -2,14 +2,14 @@ RS = /usr/bin/Rscript
 MAFFT = /usr/bin/mafft
 GBLOCKS = /usr/bin/Gblocks
 BEAST = /usr/bin/beast
-TREANN = /usr/bin/treeannotator
+TREEANN = /usr/bin/treeannotator
 WD = /root/work
 SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
 
-mcc-median.tree: pedv.trees
-	$(TREEANN) -heights median -burnin 1000 $< $@ >treean-stdout 2>treean-stderr
+mcc.tree: pedv.trees
+	$(TREEANN) -heights keep -burninTrees 7000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
 
 pedv.trees: pedv.xml 
 	$(BEAST) -beagle_off $< >beast-stdout 2>beast-stderr

@@ -9,15 +9,366 @@
 <beast>
 
 	<!-- The list of taxa to be analysed (can also include dates/ages).          -->
+	<!-- ntax=86                                                                 -->
 	<taxa id="taxa">
+		<taxon id="Mexico_03-Nov-2013_1_KJ645708.1">
+			<date value="2013.8383561643836" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_03-Dec-2013_1_KJ645707.1">
+			<date value="2013.9205479452055" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_25-Nov-2013_1_KJ645706.1">
+			<date value="2013.8986301369864" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_18-Nov-2013_1_KJ645705.1">
+			<date value="2013.8794520547945" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_26-Jun-2013_1_KJ645704.1">
+			<date value="2013.482191780822" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_02-Feb-2014_1_KJ645703.1">
+			<date value="2014.0876712328768" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_29-Jan-2014_1_KJ645702.1">
+			<date value="2014.0767123287671" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="KS_27-Jan-2014_1_KJ645701.1">
+			<date value="2014.0712328767124" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="Mexico_22-Jan-2014_1_KJ645700.1">
+			<date value="2014.0575342465754" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_15-Dec-2013_1_KJ645699.1">
+			<date value="2013.9534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_01-Jan-2014_1_KJ645698.1">
+			<date value="2014.0" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="TX_12-Nov-2013_1_KJ645697.1">
+			<date value="2013.86301369863" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_29-Dec-2013_1_KJ645696.1">
+			<date value="2013.9917808219177" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_29-Dec-2013_1_KJ645695.1">
+			<date value="2013.9917808219177" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_15-Dec-2013_1_KJ645694.1">
+			<date value="2013.9534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MO_15-Dec-2013_1_KJ645693.1">
+			<date value="2013.9534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MO_15-Dec-2013_1_KJ645692.1">
+			<date value="2013.9534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_14-Dec-2013_1_KJ645691.1">
+			<date value="2013.9506849315069" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_11-Dec-2013_1_KJ645690.1">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_11-Dec-2013_1_KJ645689.1">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_11-Dec-2013_1_KJ645688.1">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_10-Dec-2013_1_KJ645687.1">
+			<date value="2013.9397260273972" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_10-Dec-2013_1_KJ645686.1">
+			<date value="2013.9397260273972" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MO_11-Dec-2013_1_KJ645685.1">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MO_11-Dec-2013_1_KJ645684.1">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="NC_08-Dec-2013_1_KJ645683.1">
+			<date value="2013.9342465753425" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_04-Dec-2013_1_KJ645682.1">
+			<date value="2013.9232876712329" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_04-Dec-2013_1_KJ645681.1">
+			<date value="2013.9232876712329" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_04-Dec-2013_1_KJ645680.1">
+			<date value="2013.9232876712329" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_07-Dec-2013_1_KJ645679.1">
+			<date value="2013.9315068493152" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_04-Dec-2013_1_KJ645678.1">
+			<date value="2013.9232876712329" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_02-Dec-2013_1_KJ645677.1">
+			<date value="2013.9178082191781" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_02-Dec-2013_1_KJ645676.1">
+			<date value="2013.9178082191781" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_03-Dec-2013_1_KJ645675.1">
+			<date value="2013.9205479452055" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_30-Nov-2013_1_KJ645674.1">
+			<date value="2013.9123287671232" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_28-Nov-2013_1_KJ645673.1">
+			<date value="2013.9068493150685" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_28-Nov-2013_1_KJ645672.1">
+			<date value="2013.9068493150685" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_30-Nov-2013_1_KJ645671.1">
+			<date value="2013.9123287671232" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_27-Nov-2013_1_KJ645670.1">
+			<date value="2013.9041095890411" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="WI_27-Nov-2013_1_KJ645669.1">
+			<date value="2013.9041095890411" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_25-Nov-2013_1_KJ645668.1">
+			<date value="2013.8986301369864" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_28-Nov-2013_1_KJ645667.1">
+			<date value="2013.9068493150685" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_24-Nov-2013_1_KJ645666.1">
+			<date value="2013.8958904109588" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_24-Nov-2013_1_KJ645665.1">
+			<date value="2013.8958904109588" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_24-Nov-2013_1_KJ645664.1">
+			<date value="2013.8958904109588" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_23-Nov-2013_1_KJ645663.1">
+			<date value="2013.8931506849315" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="NC_23-Nov-2013_1_KJ645662.1">
+			<date value="2013.8931506849315" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_20-Nov-2013_1_KJ645661.1">
+			<date value="2013.8849315068494" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_19-Nov-2013_1_KJ645660.1">
+			<date value="2013.8821917808218" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_19-Nov-2013_1_KJ645659.1">
+			<date value="2013.8821917808218" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_18-Nov-2013_1_KJ645658.1">
+			<date value="2013.8794520547945" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_12-Nov-2013_1_KJ645657.1">
+			<date value="2013.86301369863" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_11-Nov-2013_1_KJ645656.1">
+			<date value="2013.8602739726027" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_05-Nov-2013_1_KJ645655.1">
+			<date value="2013.8438356164384" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="TN_04-Nov-2013_1_KJ645654.1">
+			<date value="2013.841095890411" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="WI_03-Nov-2013_1_KJ645653.1">
+			<date value="2013.8383561643836" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_02-Nov-2013_1_KJ645652.1">
+			<date value="2013.835616438356" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="CO_23-Oct-2013_1_KJ645651.1">
+			<date value="2013.8082191780823" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="KS_23-Oct-2013_1_KJ645650.1">
+			<date value="2013.8082191780823" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_20-Oct-2013_1_KJ645649.1">
+			<date value="2013.8" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_20-Oct-2013_1_KJ645648.1">
+			<date value="2013.8" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_14-Oct-2013_1_KJ645647.1">
+			<date value="2013.7835616438356" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="NC_05-Oct-2013_1_KJ645646.1">
+			<date value="2013.7589041095891" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="TX_28-Sep-2013_1_KJ645645.1">
+			<date value="2013.7397260273972" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OK_07-Sep-2013_1_KJ645644.1">
+			<date value="2013.682191780822" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="KS_01-Sep-2013_1_KJ645643.1">
+			<date value="2013.6657534246576" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OK_26-Aug-2013_1_KJ645642.1">
+			<date value="2013.6493150684933" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IN_21-Aug-2013_1_KJ645641.1">
+			<date value="2013.6356164383562" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OK_24-Jul-2013_1_KJ645640.1">
+			<date value="2013.558904109589" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="TX_22-Jul-2013_1_KJ645639.1">
+			<date value="2013.5534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="CO_22-Jul-2013_1_KJ645638.1">
+			<date value="2013.5534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="KS_15-Jul-2013_1_KJ645637.1">
+			<date value="2013.5342465753424" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_14-Jul-2013_1_KJ645636.1">
+			<date value="2013.531506849315" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IN_08-Jun-2013_1_KJ645635.1">
+			<date value="2013.4328767123288" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_01-Dec-2013_30_KM392230.1">
+			<date value="2013.9150684931508" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_01-Dec-2013_30_KM392229.1">
+			<date value="2013.9150684931508" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_01-Dec-2013_30_KM392228.1">
+			<date value="2013.9150684931508" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_01-Nov-2013_30_KM392227.1">
+			<date value="2013.8328767123287" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_01-Jun-2013_30_KM392225.1">
+			<date value="2013.4136986301369" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_01-Dec-2013_30_KM392232.1">
+			<date value="2013.9150684931508" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_01-Dec-2013_30_KM392231.1">
+			<date value="2013.9150684931508" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_01-Nov-2013_30_KM392226.1">
+			<date value="2013.8328767123287" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_01-Jun-2013_30_KM392224.1">
+			<date value="2013.4136986301369" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="KS_01-May-2013_244_KJ184549.1">
+			<date value="2013.3287671232877" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="USA_15-May-2013_1_KM052365.1">
+			<date value="2013.3671232876711" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_22-Jan-2014_1_KM077139.1">
+			<date value="2014.0575342465754" direction="forwards" units="years"/>
+		</taxon>
+	</taxa>
+	<taxa id="INDEL strains">
+		<taxon idref="IA_20-Oct-2013_1_KJ645649.1"/>
+		<taxon idref="IA_29-Dec-2013_1_KJ645695.1"/>
+		<taxon idref="IA_29-Dec-2013_1_KJ645696.1"/>
+		<taxon idref="IN_08-Jun-2013_1_KJ645635.1"/>
+		<taxon idref="MN_05-Nov-2013_1_KJ645655.1"/>
+		<taxon idref="MN_26-Jun-2013_1_KJ645704.1"/>
+		<taxon idref="OH_29-Jan-2014_1_KJ645702.1"/>
+		<taxon idref="USA_01-Dec-2013_30_KM392232.1"/>
+	</taxa>
+	<taxa id="non-INDEL strains">
+		<taxon idref="CO_22-Jul-2013_1_KJ645638.1"/>
+		<taxon idref="CO_23-Oct-2013_1_KJ645651.1"/>
+		<taxon idref="IA_11-Dec-2013_1_KJ645688.1"/>
+		<taxon idref="IA_14-Jul-2013_1_KJ645636.1"/>
+		<taxon idref="IA_15-Dec-2013_1_KJ645694.1"/>
+		<taxon idref="IA_24-Nov-2013_1_KJ645666.1"/>
+		<taxon idref="IL_03-Dec-2013_1_KJ645675.1"/>
+		<taxon idref="IL_04-Dec-2013_1_KJ645680.1"/>
+		<taxon idref="IL_11-Dec-2013_1_KJ645689.1"/>
+		<taxon idref="IL_11-Dec-2013_1_KJ645690.1"/>
+		<taxon idref="IL_19-Nov-2013_1_KJ645659.1"/>
+		<taxon idref="IN_21-Aug-2013_1_KJ645641.1"/>
+		<taxon idref="KS_01-May-2013_244_KJ184549.1"/>
+		<taxon idref="KS_01-Sep-2013_1_KJ645643.1"/>
+		<taxon idref="KS_15-Jul-2013_1_KJ645637.1"/>
+		<taxon idref="KS_23-Oct-2013_1_KJ645650.1"/>
+		<taxon idref="KS_27-Jan-2014_1_KJ645701.1"/>
+		<taxon idref="MN_02-Dec-2013_1_KJ645676.1"/>
+		<taxon idref="MN_02-Dec-2013_1_KJ645677.1"/>
+		<taxon idref="MN_02-Feb-2014_1_KJ645703.1"/>
+		<taxon idref="MN_02-Nov-2013_1_KJ645652.1"/>
+		<taxon idref="MN_03-Dec-2013_1_KJ645707.1"/>
+		<taxon idref="MN_04-Dec-2013_1_KJ645678.1"/>
+		<taxon idref="MN_04-Dec-2013_1_KJ645681.1"/>
+		<taxon idref="MN_04-Dec-2013_1_KJ645682.1"/>
+		<taxon idref="MN_07-Dec-2013_1_KJ645679.1"/>
+		<taxon idref="MN_10-Dec-2013_1_KJ645686.1"/>
+		<taxon idref="MN_10-Dec-2013_1_KJ645687.1"/>
+		<taxon idref="MN_11-Nov-2013_1_KJ645656.1"/>
+		<taxon idref="MN_14-Dec-2013_1_KJ645691.1"/>
+		<taxon idref="MN_14-Oct-2013_1_KJ645647.1"/>
+		<taxon idref="MN_18-Nov-2013_1_KJ645658.1"/>
+		<taxon idref="MN_18-Nov-2013_1_KJ645705.1"/>
+		<taxon idref="MN_19-Nov-2013_1_KJ645660.1"/>
+		<taxon idref="MN_20-Nov-2013_1_KJ645661.1"/>
+		<taxon idref="MN_20-Oct-2013_1_KJ645648.1"/>
+		<taxon idref="MN_22-Jan-2014_1_KM077139.1"/>
+		<taxon idref="MN_23-Nov-2013_1_KJ645663.1"/>
+		<taxon idref="MN_25-Nov-2013_1_KJ645668.1"/>
+		<taxon idref="MN_25-Nov-2013_1_KJ645706.1"/>
+		<taxon idref="MN_28-Nov-2013_1_KJ645667.1"/>
+		<taxon idref="MN_28-Nov-2013_1_KJ645672.1"/>
+		<taxon idref="MN_28-Nov-2013_1_KJ645673.1"/>
+		<taxon idref="MN_30-Nov-2013_1_KJ645671.1"/>
+		<taxon idref="MN_30-Nov-2013_1_KJ645674.1"/>
+		<taxon idref="MO_11-Dec-2013_1_KJ645684.1"/>
+		<taxon idref="MO_11-Dec-2013_1_KJ645685.1"/>
+		<taxon idref="MO_15-Dec-2013_1_KJ645692.1"/>
+		<taxon idref="MO_15-Dec-2013_1_KJ645693.1"/>
+		<taxon idref="Mexico_03-Nov-2013_1_KJ645708.1"/>
+		<taxon idref="Mexico_22-Jan-2014_1_KJ645700.1"/>
+		<taxon idref="NC_05-Oct-2013_1_KJ645646.1"/>
+		<taxon idref="NC_08-Dec-2013_1_KJ645683.1"/>
+		<taxon idref="NC_23-Nov-2013_1_KJ645662.1"/>
+		<taxon idref="OH_01-Jan-2014_1_KJ645698.1"/>
+		<taxon idref="OH_12-Nov-2013_1_KJ645657.1"/>
+		<taxon idref="OH_15-Dec-2013_1_KJ645699.1"/>
+		<taxon idref="OH_24-Nov-2013_1_KJ645664.1"/>
+		<taxon idref="OH_24-Nov-2013_1_KJ645665.1"/>
+		<taxon idref="OH_27-Nov-2013_1_KJ645670.1"/>
+		<taxon idref="OK_07-Sep-2013_1_KJ645644.1"/>
+		<taxon idref="OK_24-Jul-2013_1_KJ645640.1"/>
+		<taxon idref="OK_26-Aug-2013_1_KJ645642.1"/>
+		<taxon idref="TN_04-Nov-2013_1_KJ645654.1"/>
+		<taxon idref="TX_12-Nov-2013_1_KJ645697.1"/>
+		<taxon idref="TX_22-Jul-2013_1_KJ645639.1"/>
+		<taxon idref="TX_28-Sep-2013_1_KJ645645.1"/>
+		<taxon idref="USA_01-Dec-2013_30_KM392228.1"/>
+		<taxon idref="USA_01-Dec-2013_30_KM392229.1"/>
+		<taxon idref="USA_01-Dec-2013_30_KM392230.1"/>
+		<taxon idref="USA_01-Dec-2013_30_KM392231.1"/>
+		<taxon idref="USA_01-Jun-2013_30_KM392224.1"/>
+		<taxon idref="USA_01-Jun-2013_30_KM392225.1"/>
+		<taxon idref="USA_01-Nov-2013_30_KM392226.1"/>
+		<taxon idref="USA_01-Nov-2013_30_KM392227.1"/>
+		<taxon idref="USA_15-May-2013_1_KM052365.1"/>
+		<taxon idref="WI_03-Nov-2013_1_KJ645653.1"/>
+		<taxon idref="WI_27-Nov-2013_1_KJ645669.1"/>
 	</taxa>
 
 	<!-- The sequence alignment (each sequence refers to a taxon above).         -->
+	<!-- ntax=86 nchar=27998                                                     -->
 	<alignment id="alignment" dataType="nucleotide">
 
 	</alignment>
 
 	<!-- The unique patterns from 1 to end                                       -->
+	<!-- npatterns=446                                                           -->
 	<patterns id="patterns" from="1" strip="false">
 		<alignment idref="alignment"/>
 	</patterns>
@@ -35,6 +386,10 @@
 
 	<!-- Generate a random starting tree under the coalescent process            -->
 	<coalescentSimulator id="startingTree">
+		<coalescentSimulator>
+			<taxa idref="INDEL strains"/>
+			<exponentialGrowth idref="exponential"/>
+		</coalescentSimulator>
 		<taxa idref="taxa"/>
 		<exponentialGrowth idref="exponential"/>
 	</coalescentSimulator>
@@ -52,6 +407,26 @@
 			<parameter id="treeModel.allInternalNodeHeights"/>
 		</nodeHeights>
 	</treeModel>
+
+	<!-- Taxon Sets                                                              -->
+	<tmrcaStatistic id="tmrca(INDEL strains)" includeStem="false">
+		<mrca>
+			<taxa idref="INDEL strains"/>
+		</mrca>
+		<treeModel idref="treeModel"/>
+	</tmrcaStatistic>
+	<monophylyStatistic id="monophyly(INDEL strains)">
+		<mrca>
+			<taxa idref="INDEL strains"/>
+		</mrca>
+		<treeModel idref="treeModel"/>
+	</monophylyStatistic>
+	<tmrcaStatistic id="tmrca(non-INDEL strains)" includeStem="false">
+		<mrca>
+			<taxa idref="non-INDEL strains"/>
+		</mrca>
+		<treeModel idref="treeModel"/>
+	</tmrcaStatistic>
 
 	<!-- Generate a coalescent likelihood                                        -->
 	<coalescentLikelihood id="coalescent">
@@ -210,6 +585,9 @@
 	<mcmc id="mcmc" chainLength="20000000" autoOptimize="true" operatorAnalysis="aligned.fasta-gb.ops">
 		<posterior id="posterior">
 			<prior id="prior">
+				<booleanLikelihood>
+					<monophylyStatistic idref="monophyly(INDEL strains)"/>
+				</booleanLikelihood>
 				<gammaPrior shape="0.05" scale="10.0" offset="0.0">
 					<parameter idref="ac"/>
 				</gammaPrior>
@@ -276,6 +654,8 @@
 			<prior idref="prior"/>
 			<likelihood idref="likelihood"/>
 			<parameter idref="treeModel.rootHeight"/>
+			<tmrcaStatistic idref="tmrca(INDEL strains)"/>
+			<tmrcaStatistic idref="tmrca(non-INDEL strains)"/>
 			<parameter idref="exponential.popSize"/>
 			<parameter idref="exponential.doublingTime"/>
 			<parameter idref="ac"/>

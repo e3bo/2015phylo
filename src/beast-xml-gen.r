@@ -7,8 +7,8 @@ library(XML)
 xmlTemplatePath <- file.path("beast-template.xml")
 outputBasename <- "pedv"
 alignmentPath <- file.path("aligned.fasta-gb")
-chainLength <- 1e7
-logEvery <- 1e3
+chainLength <- 7e7
+logEvery <- 7e3
 
 aln <- read.dna(alignmentPath, format='fasta')
 taxaNames <- rownames(aln)
