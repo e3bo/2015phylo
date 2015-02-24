@@ -38,13 +38,22 @@ We build on the work of Refs.~\cite{lemey2014,magee2014}.
 \subsection*{Tree building}
 
 We obtained a set of nucleotide sequences by searching NCBI's
-Nucleotide database with the query \texttt{"Porcine epidemic diarrhea
-  virus[Organism] AND (country=USA OR country=Mexico OR
-  country=Canada)"}. We refined these results to sequences that had
-both \texttt{collection_date} and \texttt{country} features in their
-GenBank records.
-
-formed a set of sequences 
+Nucleotide database with the query ``Porcine epidemic diarrhea
+virus[Organism] AND (country=USA OR country=Mexico OR
+country=Canada)''. We refined these results to whole genome sequences
+that had both ``collection\_date'' and ``country'' features in their
+GenBank records. These sequences were aligned using
+mafft~\cite{katoh2013}. The alignment was run through
+Gblocks~\cite{castresana2000} to identify any very poorly conserved,
+potentially misleading segments. Gblocks removed only regions with
+many gaps such as the ends of the alignment and indels. These regions
+contained no shared derived characters beyond the indels in the spike
+gene, which have described
+previously~\cite{wang_new_2014}. Information about these indels was
+incorporated by enforcing monophyly of the set of sequences containing
+them when searching for the best-fitting tree. The alignments were
+also checked visually for evidence of alignment errors using
+CLUSTAL~X~\cite{thompson1997}.
 
 \section*{Results}
 
