@@ -10,7 +10,13 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
   r-cran-xml
 
 RUN curl -SL http://molevol.cmima.csic.es/castresana/Gblocks/Gblocks_Linux64_0.91b.tar.Z \
-  | tar -xzC /opt
+  | tar -xzC /opt \
+  ln -s /opt/Gblocks_0.91b/Gblocks /usr/bin/Gblocks
+RUN curl -SL "http://tree.bio.ed.ac.uk/download.php?id=91&num=3" \
+  | tar -xzC /opt \
+  && for script in beast treeannotator; \
+  do ln -s /opt/BEASTv1.8.1/bin/$script /usr/bin/$script; \
+  done
 
 RUN mkdir /var/run/sshd && echo 'root:screencast' | chpasswd \
   && sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config \

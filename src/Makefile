@@ -1,10 +1,24 @@
-RS = '/usr/bin/Rscript'
-MAFFT = '/usr/bin/mafft'
-GBLOCKS = '/opt/Gblocks_0.91b/Gblocks'
+RS = /usr/bin/Rscript
+MAFFT = /usr/bin/mafft
+GBLOCKS = /usr/bin/Gblocks
+BEAST = /usr/bin/beast
+TREANN = /usr/bin/treeannotator
 WD = /root/work
 SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
+
+mcc-median.tree: pedv.trees
+	$(TREEANN) -heights median -burnin 1000 $< $@ >treean-stdout 2>treean-stderr
+
+pedv.trees: pedv.xml 
+	$(BEAST) -no_beagle $< >beast-stdout 2>beast-stderr
+
+pedv.xml: beast-xml-gen.r flagData aligned.fasta-gb
+	$<
+
+flagData:
+	cp -p $(DD)/* . && touch $@
 
 aligned.fasta-gb: aligned.fasta
 	$(GBLOCKS) $< -t=d -b5=h >gblocks-stdout 2>gblocks-stderr || [ $$? -eq 1 ]
