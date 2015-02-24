@@ -12,7 +12,7 @@ mcc-median.tree: pedv.trees
 	$(TREEANN) -heights median -burnin 1000 $< $@ >treean-stdout 2>treean-stderr
 
 pedv.trees: pedv.xml 
-	$(BEAST) -no_beagle $< >beast-stdout 2>beast-stderr
+	$(BEAST) -beagle_off $< >beast-stdout 2>beast-stderr
 
 pedv.xml: beast-xml-gen.r flagData aligned.fasta-gb
 	$<
