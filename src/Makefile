@@ -8,8 +8,8 @@ SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
 
-designMat: make-regression-inputs.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv
-	$<
+flagRegressionInputs: make-regression-inputs.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData
+	$< && cp template.mod init.mod && echo -n "TREE: " | cat - mcc.nh >> init.mod && touch $@
 
 shipment-flows-origins-on-rows-dests-on-columns.csv: clean-shipment-matrix.r flagData
 	$<
@@ -23,7 +23,7 @@ pedv.trees: pedv.xml
 pedv.xml: beast-xml-gen.r flagData aligned.fasta-gb
 	$<
 
-flagData:
+flagData: $(shell find $(DD)/*)
 	cp -p $(DD)/* . && touch $@
 
 aligned.fasta-gb: aligned.fasta
