@@ -8,6 +8,12 @@ SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
 
+designMat: make-regression-inputs.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv
+	$<
+
+shipment-flows-origins-on-rows-dests-on-columns.csv: clean-shipment-matrix.r flagData
+	$<
+
 mcc.tree: pedv.trees
 	$(TREEANN) -heights keep -burninTrees 7000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
 
