@@ -3,6 +3,10 @@
 library(ape)
 
 trRegion <- function(x) {
+    regF <- factor(x)
+    alphabetSize <- length(levels(regF))
+    ind <- seq_len(alphabetSize)
+    levels(regF) <- LETTERS[ind]
     ind <- match(x, state.abb)
     reg <- state.region[ind]
     regF <- factor(reg,
@@ -16,33 +20,51 @@ trRegion <- function(x) {
 }
 
 tree <- read.nexus('mcc.tree')
+flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
+write.tree(tree, file='mcc.nh')
+
 nms <- tree$tip.label
 abs <- sapply(strsplit(nms, '_'), '[[', 1)
+absF <- factor(abs)
+levs <- levels(absF)
 
-regDNA <- trRegion(abs)
-regDNA <- as.list(regDNA)
+alph <- LETTERS[seq_along(levs)]
+levels(absF) <- alph
+
+regDNA <- lapply(absF, as.character)
 names(regDNA) <- nms
 
-write.dna(regDNA, file='loc.aln', format='fasta')
-write.tree(tree, file='mcc.nh')
+write.dna(regDNA, file='sim.fasta', format='fasta')
 save(regDNA, file='regDNA.RData')
 
-flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
-                                        #TCGA
-regRow <- trRegion(rownames(flows))
-regCol <- trRegion(colnames(flows))
-
-alphOrd <- c('T', 'C', 'G', 'A')
-pairs <- expand.grid(to=alphOrd, from=alphOrd)
+pairs <- expand.grid(to=levs, from=levs)
 test <- pairs$from != pairs$to
 pairs <- pairs[test,]
 pairs <- pairs[, c('from', 'to')]
 
-aggFlow <- function(from, to){
-    rowTest <- regRow==from
-    colTest <- regCol==to
-    log10(sum(flows[rowTest, colTest]) + 1)
+test <- abs %in% state.abb
+pmf <- table(abs[test])
+pmf <- pmf/sum(pmf)
+pnms <- names(pmf)
+
+usaRow <- colSums(flows[pnms, ] * as.numeric(pmf))
+usaCol <- rowSums(t(t(flows[, pnms]) * as.numeric(pmf)))
+
+M <- cbind(flows, 'USA'=usaCol)
+M <- rbind(M, 'USA'=c(usaRow, 0))
+
+aggFlow <- function(from, to, sym=TRUE){
+    tot <- M[from, to]
+    if(sym){
+        tot <- tot + M[to, from]
+    }
+    log10(tot + 1)
 }
+
 pairFlows <- mapply(aggFlow, from=pairs$from, to=pairs$to)
 Z <- cbind("(Intercept)"=1, pairFlows)
 cat(t(Z), file='designMat2')
+
+
+
+
