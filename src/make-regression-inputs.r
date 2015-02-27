@@ -53,9 +53,9 @@ modFile <- 'init.mod'
 cat("ALPHABET:", alph, "\n", file=modFile)
 cat("ORDER: 0", "\n", file=modFile, append=TRUE)
 cat("SUBST_MOD: UNREST", "\n", file=modFile, append=TRUE)
-cat("TRAINING_LNL: 0", "\n", file=modFile, append=TRUE) ## not sure all of these tags are needed
+cat("TRAINING_LNL: 0", "\n", file=modFile, append=TRUE) ## Not sure all of these tags are needed
 cat("BACKGROUND:", rep(1, times=n)/n, "\n", file=modFile, append=TRUE)
-cat("RATE_MAT:", "\n")
+cat("RATE_MAT:", "\n", file=modFile, append=TRUE)
 M <- matrix(1/(n-1), nrow=n, ncol=n)
 diag(M) <- -1L
 for(i in 1:n){
