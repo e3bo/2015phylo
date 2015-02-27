@@ -2,23 +2,6 @@
 
 library(ape)
 
-trRegion <- function(x) {
-    regF <- factor(x)
-    alphabetSize <- length(levels(regF))
-    ind <- seq_len(alphabetSize)
-    levels(regF) <- LETTERS[ind]
-    ind <- match(x, state.abb)
-    reg <- state.region[ind]
-    regF <- factor(reg,
-                   levels=c("Northeast", "South", "North Central", "West"),
-                   labels=c('A', 'T', 'C', 'G'))
-    regF <- as.character(regF)
-    regF[is.na(regF)] <- 'N'
-    regF[regF=='A'] <- 'N'
-    regF[x=='Mexico'] <- 'A' ## let mexico have northeast label since no northeast sequences
-    regF
-}
-
 tree <- read.nexus('mcc.tree')
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
 write.tree(tree, file='mcc.nh')
@@ -65,6 +48,20 @@ pairFlows <- mapply(aggFlow, from=pairs$from, to=pairs$to)
 Z <- cbind("(Intercept)"=1, pairFlows)
 cat(t(Z), file='designMat2')
 
-
+n <- length(alph)
+modFile <- 'init.mod'
+cat("ALPHABET:", alph, "\n", file=modFile)
+cat("ORDER: 0", "\n", file=modFile, append=TRUE)
+cat("SUBST_MOD: UNREST", "\n", file=modFile, append=TRUE)
+cat("TRAINING_LNL: 0", "\n", file=modFile, append=TRUE) ## not sure all of these tags are needed
+cat("BACKGROUND:", rep(1, times=n)/n, "\n", file=modFile, append=TRUE)
+cat("RATE_MAT:", "\n")
+M <- matrix(1/(n-1), nrow=n, ncol=n)
+diag(M) <- -1L
+for(i in 1:n){
+    cat(M[i,], sep="\t", file=modFile, append=TRUE)
+    cat("\n", file=modFile, append=TRUE)
+}
+cat("TREE:", write.tree(tree), "\n", file=modFile, append=TRUE)
 
 
