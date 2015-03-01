@@ -3,6 +3,7 @@ MAINTAINER Eamon O'Dea <odea35@gmail.com>
 
 RUN apt-get update && apt-get install -y -q --no-install-recommends \
   curl \
+  git \
   mafft \
   openjdk-8-jre-headless \
   openssh-server \
@@ -18,6 +19,10 @@ RUN curl -SL "http://tree.bio.ed.ac.uk/download.php?id=91&num=3" \
   && for script in beast treeannotator; \
   do ln -s /opt/BEASTv1.8.1/bin/$script /usr/bin/$script; \
   done
+RUN git clone --depth 1 --branch regression git://github.com/e3bo/phast-regression.git /tmp/phast \
+  && cd /tmp/phast \
+  && R CMD build rPackage \
+  && R CMD INSTALL rPackage
 
 RUN mkdir /var/run/sshd && echo 'root:screencast' | chpasswd \
   && sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
@@ -26,6 +31,8 @@ EXPOSE 22
 
 RUN install2.r --error \
   ape \
+  knitr \
+  ggplot2 \
   lubridate \
   rentrez \
   && rm -rf /tmp/download_packages/ /tmp/*.rds

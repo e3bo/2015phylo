@@ -8,8 +8,11 @@ SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
 
-flagMleReport: mle.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData
+flagMleReport: mle.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData flagInstallRphast
 	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr && touch $@
+
+flagInstallRphast:
+	$(RS) -e "library(devtools); install_github(\"e3bo/phast-regression/rPackage@regression\")" && touch $@
 
 shipment-flows-origins-on-rows-dests-on-columns.csv: clean-shipment-matrix.r flagData
 	$<
