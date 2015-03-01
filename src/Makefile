@@ -8,8 +8,8 @@ SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
 
-flagRegressionInputs: make-regression-inputs.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData
-	$< && cp template.mod init.mod && echo -n "TREE: " | cat - mcc.nh >> init.mod && touch $@
+flagMleReport: mle.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData
+	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr && touch $@
 
 shipment-flows-origins-on-rows-dests-on-columns.csv: clean-shipment-matrix.r flagData
 	$<

@@ -2,7 +2,7 @@ library(ape)
 library(rphastRegression)
 library(ggplot2)
 
-tree <- read.tree('mcc.nh')
+tree <- read.nexus('mcc.tree')
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
 
 nms <- tree$tip.label
@@ -42,11 +42,10 @@ aggFlow <- function(from, to, sym=TRUE){
     log10(tot + 1)
 }
 
-pairFlows <- mapply(aggFlow, from=pairs$from, to=pairs$to)
+pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to))
 designMatrix <- cbind("(Intercept)"=1, pairFlows)
 
-bg <- pmf[levs]
-bg[is.na(bg)] <- 0
+bg <- rep(1, n)/n
 
 mod <- tm(treeChar, "UNREST", alphabet=alph, backgd=bg)
 mod$rate.matrix <- matrix(NA, nrow=n, ncol=n)
@@ -66,22 +65,31 @@ obj <- function(w){
         }
         mod$rate.matrix[i,i] <- -rowSum        
     }
-    mod$rate.matrix
     likelihood.msa(pedvMSA, tm=mod)
 }
-obj(c(.001,.002))
 
-ans <- optim.rphast(obj, c(.001,.002), lower=c(-2,-2), upper=c(2,2))
-D <- expand.grid(x=seq(from=-1.5, to=-.5, length.out=20),
-                 y=seq(from=-1, to=0.1, length.out=20))
+ans <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2))
+objNull <- function(x) obj(c(x, 0))
+ansNull <- optimize(objNull, interval=c(-4,2), maximum=TRUE)
+D <- -2*ansNull$objective + 2*-ans$value
+
+#' A chi squared test does not allow for rejection of the null hypothesis
+pchisq(q=D, df=1, lower.tail=FALSE)
+
+D <- expand.grid(x=seq(from=-5.5, to=1.5, length.out=41),
+                 y=seq(from=-1., to=1., length.out=31))
 D$z <- apply(D, 1, obj)
 
+#' Though the point estimated is positive, there is a strong correlation with the intercept
 g <- ggplot(data=D, aes(x=x, y=y, z=z))
 g <- g + geom_tile(aes(fill=z))
 g <- g + stat_contour() + geom_point(x=ans$par[1], y=ans$par[2])
-ggsave(g, 'mle.pdf')
+g
 
-q('no')
+#' The likelihood is not convex far from the optimum
+plot(z~y, data=D[abs(D$x-0.1) < .001,], type='l')
+
+if(FALSE) {
 
 root.seq <- NucleotideSequence(length=10)
 p<-GTR(rate.params=list("a"=1, "b"=1, "c"=3,"d"=2, "e"=1, "f"=1), base.freqs=c(1,1,1,1)/4)
@@ -93,4 +101,4 @@ sim$phylo <- tree
 sim$rootSeq <- root.seq
 Simulate(sim)
 saveAlignment(sim,file="sim10.fas", skip.internal=TRUE)
-
+}
