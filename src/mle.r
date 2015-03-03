@@ -40,7 +40,7 @@ mod <- tm(treeChar, "UNREST", alphabet=alph, backgd=bg)
 mod$rate.matrix <- matrix(NA, nrow=n, ncol=n)
 mod$design.matrix <- designMatrix
 
-obj <- function(w){
+setRateMatrix <- function(mod, w){
     eta <- exp(mod$design.matrix %*% w)
     pos <- 1
     for(i in seq_len(n)){
@@ -54,6 +54,11 @@ obj <- function(w){
         }
         mod$rate.matrix[i,i] <- -rowSum        
     }
+    mod
+}
+
+obj <- function(w){
+    mod <- setRateMatrix(mod, w)
     likelihood.msa(pedvMSA, tm=mod)
 }
 
@@ -80,16 +85,25 @@ g
 #' The log likelihood is not convex far from the optimum
 plot(logLikelihood~Flows, data=D[abs(D$Intercept-0.1) < .001,], type='l')
 
-if(FALSE) {
+#' Now check consistency with simulation
+#'
+alphav <- strsplit(alph, split=NULL)[[1]]
+a <- Alphabet(alphav)
 
-root.seq <- NucleotideSequence(length=10)
-p<-GTR(rate.params=list("a"=1, "b"=1, "c"=3,"d"=2, "e"=1, "f"=1), base.freqs=c(1,1,1,1)/4)
-attachProcess(root.seq,p)
+rm <- setRateMatrix(mod, ans$par)$rate.matrix
+rateNames <- outer(alphav,alphav, paste, sep="->")
+rates <- as.numeric(rm)
+names(rates) <- as.character(rateNames)
+isDiag <- grepl("([A-Z])->\\1", names(rates))
+rates <- rates[!isDiag]
+gs <- GeneralSubstitution(name="geoSubs", alphabet=a, rate.list=as.list(rates))
+
+root.seq <- Sequence(length=1, alphabets=list(a))
+attachProcess(root.seq,gs)
 sampleStates(root.seq)
 
 sim <- PhyloSim()
 sim$phylo <- tree
 sim$rootSeq <- root.seq
 Simulate(sim)
-saveAlignment(sim,file="sim10.fas", skip.internal=TRUE)
-}
+saveAlignment(sim,file="sim.fasta", skip.internal=TRUE)
