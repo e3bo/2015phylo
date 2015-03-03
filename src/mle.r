@@ -57,9 +57,9 @@ setRateMatrix <- function(mod, w){
     mod
 }
 
-obj <- function(w){
+obj <- function(w, msa=pedvMSA){
     mod <- setRateMatrix(mod, w)
-    likelihood.msa(pedvMSA, tm=mod)
+    likelihood.msa(msa, tm=mod)
 }
 
 ans <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2))
@@ -98,7 +98,7 @@ isDiag <- grepl("([A-Z])->\\1", names(rates))
 rates <- rates[!isDiag]
 gs <- GeneralSubstitution(name="geoSubs", alphabet=a, rate.list=as.list(rates))
 
-root.seq <- Sequence(length=1, alphabets=list(a))
+root.seq <- Sequence(length=100, alphabets=list(a))
 attachProcess(root.seq,gs)
 sampleStates(root.seq)
 
@@ -107,3 +107,6 @@ sim$phylo <- tree
 sim$rootSeq <- root.seq
 Simulate(sim)
 saveAlignment(sim,file="sim.fasta", skip.internal=TRUE)
+
+simMsa <- read.msa('sim.fasta', alphabet=alph)
+ansSim <- optim.rphast(obj, params=ans$par, lower=c(-4,-20), upper=c(2,2), msa=simMsa)
