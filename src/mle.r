@@ -23,18 +23,7 @@ test <- pairs$from != pairs$to
 pairs <- pairs[test,]
 pairs <- pairs[, c('from', 'to')]
 
-test <- abs %in% state.abb
-pmf <- table(abs[test])
-pmf <- pmf/sum(pmf)
-pnms <- names(pmf)
-
-usaRow <- colSums(flows[pnms, ] * as.numeric(pmf))
-usaCol <- rowSums(t(t(flows[, pnms]) * as.numeric(pmf)))
-
-M <- cbind(flows, 'USA'=usaCol)
-M <- rbind(M, 'USA'=c(usaRow, 0))
-
-aggFlow <- function(from, to, sym=TRUE){
+aggFlow <- function(from, to, sym=TRUE, M=flows){
     tot <- M[from, to]
     if(sym){
         tot <- tot + M[to, from]
@@ -76,18 +65,20 @@ D <- -2*ansNull$objective + 2*-ans$value
 #' A chi squared test does not allow for rejection of the null hypothesis
 pchisq(q=D, df=1, lower.tail=FALSE)
 
-D <- expand.grid(x=seq(from=-5.5, to=1.5, length.out=41),
-                 y=seq(from=-1., to=1., length.out=31))
-D$z <- apply(D, 1, obj)
+D <- expand.grid(Intercept=seq(from=-5.5, to=1.5, length.out=41),
+                 Flows=seq(from=-1., to=1., length.out=31))
+D$logLikelihood <- apply(D, 1, obj)
 
 #' Though the point estimated is positive, there is a strong correlation with the intercept
-g <- ggplot(data=D, aes(x=x, y=y, z=z))
-g <- g + geom_tile(aes(fill=z))
+theme_set(theme_classic())
+g <- ggplot(data=D, aes(x=Intercept, y=Flows, z=logLikelihood))
+g <- g + geom_tile(aes(fill=logLikelihood))
 g <- g + stat_contour() + geom_point(x=ans$par[1], y=ans$par[2])
+g <- g + xlab('Intercept') + ylab('Flow effect')
 g
 
-#' The likelihood is not convex far from the optimum
-plot(z~y, data=D[abs(D$x-0.1) < .001,], type='l')
+#' The log likelihood is not convex far from the optimum
+plot(logLikelihood~Flows, data=D[abs(D$Intercept-0.1) < .001,], type='l')
 
 if(FALSE) {
 

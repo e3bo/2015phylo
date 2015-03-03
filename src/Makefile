@@ -15,7 +15,7 @@ shipment-flows-origins-on-rows-dests-on-columns.csv: clean-shipment-matrix.r fla
 	$<
 
 mcc.tree: pedv.trees
-	$(TREEANN) -heights keep -burninTrees 7000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
+	$(TREEANN) -heights keep -burninTrees 10000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
 
 pedv.trees: pedv.xml 
 	$(BEAST) -beagle_off $< >beast-stdout 2>beast-stderr

@@ -1,6 +1,6 @@
 \documentclass{article}
 \usepackage[sc]{mathpazo}
-\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
 \usepackage{cite}
 \usepackage{geometry}
 \geometry{verbose,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2.5cm}
@@ -17,7 +17,7 @@
 
 \usepackage{setspace}
 \usepackage{relsize}
-
+\frenchspacing
 \bibliographystyle{plos2009}
 
 \begin{document}
@@ -42,18 +42,29 @@ Nucleotide database with the query ``Porcine epidemic diarrhea
 virus[Organism] AND (country=USA OR country=Mexico OR
 country=Canada)''. We refined these results to whole genome sequences
 that had both ``collection\_date'' and ``country'' features in their
-GenBank records. These sequences were aligned using
-mafft~\cite{katoh2013}. The alignment was run through
-Gblocks~\cite{castresana2000} to identify any very poorly conserved,
-potentially misleading segments. Gblocks removed only regions with
-many gaps such as the ends of the alignment and indels. These regions
-contained no shared derived characters beyond the indels in the spike
-gene, which have described
+GenBank records. Further, we checked that the sequences were from
+field
+strains. Refs.~\cite{marthaler_complete_2013,hoang2013,huang2013,chen_isolation_2013,stevenson2013,vlasova2014,oka2014,wang_new_2014}
+were used in this regard, and for sequence with accession KJ584361 we
+relied on a comment in the GenBank record to verify that it was a
+field strain. Those references and other fields in the GenBank records
+were also used to determine the U.S. state of collection for some
+sequences.
+
+These sequences were aligned using mafft~\cite{katoh2013}. The
+alignment was run through Gblocks~\cite{castresana2000} to identify
+any very poorly conserved, potentially misleading segments. Gblocks
+removed only regions with many gaps such as the ends of the alignment
+and indels. These regions contained no shared derived characters
+beyond the indels in the spike gene, which have described
 previously~\cite{wang_new_2014}. Information about these indels was
 incorporated by enforcing monophyly of the set of sequences containing
 them when searching for the best-fitting tree. The alignments were
 also checked visually for evidence of alignment errors using
 CLUSTAL~X~\cite{thompson1997}.
+
+We used Beast~\cite{drummond2012} to obtain a sample of evolutionary
+trees from the sequences in the alignment.
 
 \section*{Results}
 
