@@ -95,6 +95,39 @@ plot(logLikelihood~Flows, data=D[abs(D$Intercept-0.1) < .001,], type='l')
 
 #' Now check consistency with simulation
 #'
+
+simPars <- ansAsym$par
+msim <- setRateMatrix(modAsym, w=simPars)
+nsim <- 100
+simMsa <- simulate.msa(object=msim, nsim=nsim)
+
+ran.gen <- function(data, pars){
+    msim <- setRateMatrix(modAsym, w=pars)
+    simulate.msa(object=msim, nsim=1)
+}
+
+get.stat <- function(data) {
+    ans <- optim.rphast(obj, params=simPars, lower=c(-5,-5), upper=c(2,2), msa=data)
+    ans$par
+}
+
+bs <- boot(data=pedvMSA, get.stat, R=100, sim='parametric', ran.gen=ran.gen, mle=simPars,
+           parallel='multicore', ncpus=parallel::detectCores())
+
+tmpf <- function(x) {
+    cols <- seq_len(x)
+    msa <- simMsa[, cols]
+    ans <- optim.rphast(obj, params=simPars, lower=c(-5,-5), upper=c(2,2), msa=msa)
+    ans$par
+}
+
+parSeq <- sapply(seq_len(nsim), tmpf)
+
+
+ansSim <- optim.rphast(obj, params=simPars, lower=c(-5,-5), upper=c(2,2), msa=simMsa)
+
+
+
 alphav <- strsplit(alph, split=NULL)[[1]]
 a <- Alphabet(alphav)
 
