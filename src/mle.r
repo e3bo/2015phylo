@@ -1,6 +1,7 @@
 library(ape)
 library(rphastRegression)
 library(ggplot2)
+library(phylosim)
 
 tree <- read.nexus('mcc.tree')
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
@@ -31,14 +32,19 @@ aggFlow <- function(from, to, sym=TRUE, M=flows){
     log10(tot + 1)
 }
 
-pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to))
-designMatrix <- cbind("(Intercept)"=1, pairFlows)
+pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=TRUE)
+designMatrixSym <- cbind("(Intercept)"=1, pairFlows)
+
+pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=FALSE)
+designMatrixAsym <- cbind("(Intercept)"=1, pairFlows)
 
 bg <- rep(1, n)/n
 
 mod <- tm(treeChar, "UNREST", alphabet=alph, backgd=bg)
 mod$rate.matrix <- matrix(NA, nrow=n, ncol=n)
-mod$design.matrix <- designMatrix
+modSym <- modAsym <- mod
+modSym$design.matrix <- designMatrixSym
+modAsym$design.matrix <- designMatrixAsym
 
 setRateMatrix <- function(mod, w){
     eta <- exp(mod$design.matrix %*% w)
@@ -57,28 +63,30 @@ setRateMatrix <- function(mod, w){
     mod
 }
 
-obj <- function(w, msa=pedvMSA){
+obj <- function(w, msa=pedvMSA, mod=modAsym){
     mod <- setRateMatrix(mod, w)
     likelihood.msa(msa, tm=mod)
 }
 
-ans <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2))
+ansAsym <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2))
+ansSym <- optim.rphast(obj, mod=modSym, c(-1,.4), lower=c(-4,-2), upper=c(2,2))
 objNull <- function(x) obj(c(x, 0))
 ansNull <- optimize(objNull, interval=c(-4,2), maximum=TRUE)
-D <- -2*ansNull$objective + 2*-ans$value
+Dsym <- -2*ansNull$objective + 2*-ansSym$value
+Dasym <- -2*ansNull$objective + 2*-ansAsym$value
 
-#' A chi squared test does not allow for rejection of the null hypothesis
-pchisq(q=D, df=1, lower.tail=FALSE)
+#' A chi squared test supports rejection of the null for the directed model
+pchisq(q=c(Dsym, Dasym), df=1, lower.tail=FALSE)
 
 D <- expand.grid(Intercept=seq(from=-5.5, to=1.5, length.out=41),
                  Flows=seq(from=-1., to=1., length.out=31))
 D$logLikelihood <- apply(D, 1, obj)
 
-#' Though the point estimated is positive, there is a strong correlation with the intercept
+#' There is a strong correlation with the intercept
 theme_set(theme_classic())
 g <- ggplot(data=D, aes(x=Intercept, y=Flows, z=logLikelihood))
 g <- g + geom_tile(aes(fill=logLikelihood))
-g <- g + stat_contour() + geom_point(x=ans$par[1], y=ans$par[2])
+g <- g + stat_contour() + geom_point(x=ansAsym$par[1], y=ansAsym$par[2])
 g <- g + xlab('Intercept') + ylab('Flow effect')
 g
 
@@ -92,9 +100,9 @@ a <- Alphabet(alphav)
 
 PSIM_FAST <- TRUE
 
-simPars <- ans$par
-rm <- setRateMatrix(mod, simPars)$rate.matrix
-expectedSubsPerTime <- -min(eigen(rm)$values)
+simPars <- ansAsym$par
+rm <- setRateMatrix(modAsym, simPars)$rate.matrix
+expectedSubsPerTime <- -min(as.numeric(eigen(rm)$values))
 
 rateNames <- outer(alphav,alphav, paste, sep="->")
 rates <- as.numeric(rm)
@@ -116,7 +124,7 @@ Simulate(sim)
 saveAlignment(sim,file="sim.fasta", skip.internal=TRUE)
 
 simMsa <- read.msa('sim.fasta', alphabet=alph)
-ansSim <- optim.rphast(obj, params=ans$par, lower=c(-4,-20), upper=c(2,2), msa=simMsa)
+ansSim <- optim.rphast(obj, params=simPars, lower=c(-4,-20), upper=c(2,2), msa=simMsa)
 
 D$simLogLikelihood <- apply(D[, c('Intercept', 'Flows')], 1, obj, msa=simMsa)
 
