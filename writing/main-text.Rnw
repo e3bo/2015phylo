@@ -63,8 +63,16 @@ them when searching for the best-fitting tree. The alignments were
 also checked visually for evidence of alignment errors using
 CLUSTAL~X~\cite{thompson1997}.
 
-We used Beast~\cite{drummond2012} to obtain a sample of evolutionary
-trees from the sequences in the alignment.
+We used BEAST~\cite{drummond2012} to obtain a sample of evolutionary
+trees from the sequences in the alignment. Because PEDV in North
+America is believed to have spread rapidly following its
+introduction~\cite{lowe2014}, we evaluated the likelihood of
+coalescent trees according to the exponential growth
+model~\cite{griffiths1994,drummond2002} of effective population
+size. We used a log-normal, relaxed molecular clock model
+\cite{drummond2006} to allow for variation in substitution rates among
+branches.
+
 
 \section*{Results}
 
