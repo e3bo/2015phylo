@@ -90,7 +90,12 @@ plot(logLikelihood~Flows, data=D[abs(D$Intercept-0.1) < .001,], type='l')
 alphav <- strsplit(alph, split=NULL)[[1]]
 a <- Alphabet(alphav)
 
-rm <- setRateMatrix(mod, ans$par)$rate.matrix
+PSIM_FAST <- TRUE
+
+simPars <- ans$par
+rm <- setRateMatrix(mod, simPars)$rate.matrix
+expectedSubsPerTime <- -min(eigen(rm)$values)
+
 rateNames <- outer(alphav,alphav, paste, sep="->")
 rates <- as.numeric(rm)
 names(rates) <- as.character(rateNames)
@@ -98,15 +103,28 @@ isDiag <- grepl("([A-Z])->\\1", names(rates))
 rates <- rates[!isDiag]
 gs <- GeneralSubstitution(name="geoSubs", alphabet=a, rate.list=as.list(rates))
 
-root.seq <- Sequence(length=100, alphabets=list(a))
+root.seq <- Sequence(length=10, alphabets=list(a))
 attachProcess(root.seq,gs)
 sampleStates(root.seq)
 
 sim <- PhyloSim()
 sim$phylo <- tree
+scaleTree(sim, expectedSubsPerTime)
+
 sim$rootSeq <- root.seq
 Simulate(sim)
 saveAlignment(sim,file="sim.fasta", skip.internal=TRUE)
 
 simMsa <- read.msa('sim.fasta', alphabet=alph)
 ansSim <- optim.rphast(obj, params=ans$par, lower=c(-4,-20), upper=c(2,2), msa=simMsa)
+
+D$simLogLikelihood <- apply(D[, c('Intercept', 'Flows')], 1, obj, msa=simMsa)
+
+#' The simulated data has a likelihood function that looks similar to that of the real data
+theme_set(theme_classic())
+g <- ggplot(data=D, aes(x=Intercept, y=Flows, z=simLogLikelihood))
+g <- g + geom_tile(aes(fill=simLogLikelihood))
+g <- g + stat_contour() + geom_point(x=ans$par[1], y=ans$par[2])
+g <- g + xlab('Intercept') + ylab('Flow effect')
+g
+
