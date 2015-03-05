@@ -1,7 +1,6 @@
 library(ape)
 library(rphastRegression)
 library(ggplot2)
-library(phylosim)
 
 tree <- read.nexus('mcc.tree')
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
@@ -72,34 +71,23 @@ ansAsym <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2))
 ansSym <- optim.rphast(obj, mod=modSym, c(-1,.4), lower=c(-4,-2), upper=c(2,2))
 objNull <- function(x) obj(c(x, 0))
 ansNull <- optimize(objNull, interval=c(-4,2), maximum=TRUE)
-Dsym <- -2*ansNull$objective + 2*-ansSym$value
-Dasym <- -2*ansNull$objective + 2*-ansAsym$value
+(Dsym <- -2*ansNull$objective + 2*-ansSym$value)
+(Dasym <- -2*ansNull$objective + 2*-ansAsym$value)
 
 #' A chi squared test supports rejection of the null for the directed model
 pchisq(q=c(Dsym, Dasym), df=1, lower.tail=FALSE)
 
-D <- expand.grid(Intercept=seq(from=-5.5, to=1.5, length.out=41),
-                 Flows=seq(from=-1., to=1., length.out=31))
-D$logLikelihood <- apply(D, 1, obj)
 
-#' There is a strong correlation with the intercept
-theme_set(theme_classic())
-g <- ggplot(data=D, aes(x=Intercept, y=Flows, z=logLikelihood))
-g <- g + geom_tile(aes(fill=logLikelihood))
-g <- g + stat_contour() + geom_point(x=ansAsym$par[1], y=ansAsym$par[2])
-g <- g + xlab('Intercept') + ylab('Flow effect')
-g
+#' The log likelihood is not convex far from the optimum, which
+#' illustrates the importance of starting the search in the convex
+#' region around the optimum. I guess this is probably generally true
+#' for optimization of likelihoods.
 
-#' The log likelihood is not convex far from the optimum
 plot(logLikelihood~Flows, data=D[abs(D$Intercept-0.1) < .001,], type='l')
 
-#' Now check consistency with simulation
-#'
+#' Parametric bootstrap for confidence intervals and bias
 
 simPars <- ansAsym$par
-msim <- setRateMatrix(modAsym, w=simPars)
-nsim <- 100
-simMsa <- simulate.msa(object=msim, nsim=nsim)
 
 ran.gen <- function(data, pars){
     msim <- setRateMatrix(modAsym, w=pars)
@@ -111,61 +99,74 @@ get.stat <- function(data) {
     ans$par
 }
 
-bs <- boot(data=pedvMSA, get.stat, R=100, sim='parametric', ran.gen=ran.gen, mle=simPars,
-           parallel='multicore', ncpus=parallel::detectCores())
+system.time(bs <- boot(data=pedvMSA, get.stat, R=1e4, sim='parametric',
+                       ran.gen=ran.gen, mle=simPars, parallel='multicore',
+                       ncpus=parallel::detectCores()))
+
+# The distribution of estimates appears close to normal, without any discontinuities
+plot(bs, index=1)
+plot(bs, index=2)
+
+(ciInt <- boot.ci(bs, index=1, type=c('perc', 'norm')))
+(ciFlo <- boot.ci(bs, index=2, type=c('perc', 'norm')))
+
+#' Make a nice plot of the point estimates, confidence intervals, and likelihood surface
+
+est <- data.frame(int=ciInt$percent[4:5], flo=ciFlo$percent[4:5], row.names=c('lower', 'upper'))
+est['point', ] <- ansAsym$par
+est['width', ] <- est['upper', ] - est['lower',]
+est['plotMin', ] <- est['point', ] - est['width', ]/2*1.5
+est['plotMax', ] <- est['point', ] + est['width', ]/2*1.5 
+
+xlim <- est[c('plotMin', 'plotMax'), 'int']
+ylim <- est[c('plotMin', 'plotMax'), 'flo']
+
+D <- expand.grid(Intercept=seq(from=xlim[1], to=xlim[2], length.out=41),
+                 Flows=seq(from=ylim[1], to=ylim[2], length.out=31))
+D[, 'Log likelihood'] <- apply(D, 1, obj)
+
+estCol <- "#CC6677"
+theme_set(theme_classic())
+g <- ggplot(data=D, aes(x=Intercept, y=Flows, z=`Log likelihood`))
+g <- g + geom_tile(aes(fill=`Log likelihood`))
+g <- g + stat_contour(colour="#DDCC77", alpha=0.5)
+g <- g + geom_point(x=est['point', 'int'], y=est['point', 'flo'], size=5, colour=estCol)
+g <- g + xlab('\nIntercept') + ylab('Flow effect\n')
+g <- g + geom_segment(x=est['point', 'int'], xend=est['point', 'int'],
+                      y=est['lower', 'flo'], yend=est['upper', 'flo'],
+                      color=estCol, arrow=grid::arrow(angle=90, ends='both'),
+                      lineend='round', size=1.25)
+g <- g + geom_segment(x=est['lower', 'int'], xend=est['upper', 'int'],
+                      y=est['point', 'flo'], yend=est['point', 'flo'],
+                      colour=estCol, arrow=grid::arrow(angle=90, ends='both'),
+                      lineend='round', size=1.25)
+#g <- g + theme(legend.position='top')
+ggsave('ll-surface.pdf', width=7, height=5, pointsize=12)
+
+# Illustrate consistency
+
+msim <- setRateMatrix(modAsym, w=simPars)
+nsim <- 1e3
+simMsa <- simulate.msa(object=msim, nsim=nsim)
 
 tmpf <- function(x) {
+    x <- floor(10^x)
     cols <- seq_len(x)
     msa <- simMsa[, cols]
     ans <- optim.rphast(obj, params=simPars, lower=c(-5,-5), upper=c(2,2), msa=msa)
     ans$par
 }
 
-parSeq <- sapply(seq_len(nsim), tmpf)
+inds <- seq(from=0, to=log10(nsim), length.out=20)
+system.time(parSeq <- sapply(inds, tmpf))
 
+par(mfrow=c(2,1))
+par(mar=c(5,5,4,2) + .1)
+plot(inds, parSeq[1, ], xlab='log10(Fold increase in information)',
+     ylab='Intercept\n( log {interstate movements} / year)', type='b')
+abline(h=simPars[1])
+plot(inds, parSeq[2, ], xlab='log10(Fold increase in information)',
+     ylab='Flow effect\n(log{rate multiplier} / log {flow})', type='b')
+abline(h=simPars[2])
 
-ansSim <- optim.rphast(obj, params=simPars, lower=c(-5,-5), upper=c(2,2), msa=simMsa)
-
-
-
-alphav <- strsplit(alph, split=NULL)[[1]]
-a <- Alphabet(alphav)
-
-PSIM_FAST <- TRUE
-
-simPars <- ansAsym$par
-rm <- setRateMatrix(modAsym, simPars)$rate.matrix
-expectedSubsPerTime <- -min(as.numeric(eigen(rm)$values))
-
-rateNames <- outer(alphav,alphav, paste, sep="->")
-rates <- as.numeric(rm)
-names(rates) <- as.character(rateNames)
-isDiag <- grepl("([A-Z])->\\1", names(rates))
-rates <- rates[!isDiag]
-gs <- GeneralSubstitution(name="geoSubs", alphabet=a, rate.list=as.list(rates))
-
-root.seq <- Sequence(length=10, alphabets=list(a))
-attachProcess(root.seq,gs)
-sampleStates(root.seq)
-
-sim <- PhyloSim()
-sim$phylo <- tree
-scaleTree(sim, expectedSubsPerTime)
-
-sim$rootSeq <- root.seq
-Simulate(sim)
-saveAlignment(sim,file="sim.fasta", skip.internal=TRUE)
-
-simMsa <- read.msa('sim.fasta', alphabet=alph)
-ansSim <- optim.rphast(obj, params=simPars, lower=c(-4,-20), upper=c(2,2), msa=simMsa)
-
-D$simLogLikelihood <- apply(D[, c('Intercept', 'Flows')], 1, obj, msa=simMsa)
-
-#' The simulated data has a likelihood function that looks similar to that of the real data
-theme_set(theme_classic())
-g <- ggplot(data=D, aes(x=Intercept, y=Flows, z=simLogLikelihood))
-g <- g + geom_tile(aes(fill=simLogLikelihood))
-g <- g + stat_contour() + geom_point(x=ans$par[1], y=ans$par[2])
-g <- g + xlab('Intercept') + ylab('Flow effect')
-g
-
+save.image('mle.RData')
