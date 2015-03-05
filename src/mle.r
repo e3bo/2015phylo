@@ -1,6 +1,8 @@
 library(ape)
-library(rphastRegression)
+library(boot)
 library(ggplot2)
+library(rphastRegression)
+
 
 tree <- read.nexus('mcc.tree')
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
@@ -99,7 +101,7 @@ get.stat <- function(data) {
     ans$par
 }
 
-system.time(bs <- boot(data=pedvMSA, get.stat, R=1e4, sim='parametric',
+system.time(bs <- boot(data=pedvMSA, get.stat, R=1e3, sim='parametric',
                        ran.gen=ran.gen, mle=simPars, parallel='multicore',
                        ncpus=parallel::detectCores()))
 
