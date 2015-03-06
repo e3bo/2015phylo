@@ -63,22 +63,30 @@ them when searching for the best-fitting tree. The alignments were
 also checked visually for evidence of alignment errors using
 CLUSTAL~X~\cite{thompson1997}.
 
-We used BEAST~\cite{drummond2012} to obtain a sample of evolutionary
-trees from the sequences in the alignment. Because PEDV in North
-America is believed to have spread rapidly following its
-introduction~\cite{lowe2014}, we evaluated the likelihood of
-coalescent trees according to the exponential growth
-model~\cite{griffiths1994,drummond2002} of effective population
-size. We used a log-normal, relaxed molecular clock model
-\cite{drummond2006} to allow for variation in substitution rates among
-branches.
+We used BEAST~\cite{drummond2012} to obtain from our alignment of
+sequences a posterior sample of evolutionary trees with branch lengths
+measured in calendar years. Because PEDV in North America is believed
+to have spread rapidly in 2013~\cite{lowe2014}, we used an exponential
+growth coalescent model~\cite{griffiths1994,drummond2002} as a prior
+density for the times of ancestral nodes of the tree. To allow for
+random variation in substitution rates among lineages, we used a
+relaxed molecular clock model~\cite{drummond2006} in which the
+substitution rates of branches were lognormaly distributed. To allow
+for random variation in substitution rates among sites, we assume the
+rates are sampled from an approximation to the
+gamma-distribution~\cite{yang1994}, with four discrete rate categories
+in our approximation. To allow for variation in substitution rates
+among all unique pairs of nucleotide bases, we used the general
+time-reversible model of nucleotide
+substitutions~\cite{rodriguez1990}.
+
 
 
 \section*{Results}
 
 <<load-results,include=FALSE>>=
 
-# load("../work/results.RData")
+load("../work-sshd/mle.RData")
 
 answer <- 7
 
