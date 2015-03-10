@@ -80,7 +80,23 @@ among all unique pairs of nucleotide bases, we used the general
 time-reversible model of nucleotide
 substitutions~\cite{rodriguez1990}.
 
+In setting up our BEAST analysis, we generally deemed the default
+priors in the configuration generator BEAUTi~\cite{drummond2012}
+acceptable with one notable exception. We chose the doubling time
+parameterization of the exponential growth model rather than the
+growth rate parameterization, which had the effect of preventing
+models with negative growth rates from being proposed. We have placed
+code to reproduce our input files in a web archive (TODO make sure
+full build is working, make archive, add citation).
 
+We discarded the first 10 percent of samples as burn-in, and we
+performed the following checks for signs that the remaining samples
+had failed to adequately sample the true posterior distribution. Using
+Tracer~\cite{tracer}, we confirmed visually that all marginal
+distributions seemed fairly smooth, traces appeared to have constant
+means and variances. We increased the length of the chains until all
+effective sample sizes exceeded 200, and ended up with a chain 100
+million states in which the minimum effective sample size was 408.
 
 \section*{Results}
 
