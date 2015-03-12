@@ -8,11 +8,17 @@ SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
 
+
+all: mcc.nh
+
 flagMleReport: mle.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData
 	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr && touch $@
 
 shipment-flows-origins-on-rows-dests-on-columns.csv: clean-shipment-matrix.r flagData
 	$<
+
+mcc.nh: mcc.tree
+	$(RS) -e "library(ape); tree <- read.nexus(\"$<\"); write.tree(tree, file=\"mcc.nh\");"
 
 mcc.tree: pedv.trees
 	$(TREEANN) -heights keep -burninTrees 10000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
