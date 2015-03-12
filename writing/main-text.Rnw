@@ -31,6 +31,21 @@
 
 \section*{Introduction}
 
+Genomic analyses
+~\cite{huang2013,chen_isolation_2013,marthaler_complete_2013,wang_new_2014,vlasova2014,marthaler2014}
+have shown that several strains of PEDV are circulating in the United
+States, raising the prospect of a phylogeographic assessment of
+transmission routes, as in
+Refs.~\cite{nelson2011,lemey2014,magee2014}. Molecular work thus far,
+however, has not provided evidence regarding the large-scale spread of
+PEDV beyond a possible origin in China.
+
+There is some evidence that one strain leads to infection with milder
+severity and could serve as a vaccine candidate~\cite{wang_new_2014},
+but work to develop effective vaccines for the related TGEV
+(transmissible gastroenteritis virus) has had limited success
+~\cite[p. 513]{zimmerman_diseases_2012}.
+
 We build on the work of Refs.~\cite{lemey2014,magee2014}.
 
 \section*{Methods}
