@@ -22,8 +22,7 @@
 
 \begin{document}
 
-\title{Identification of variables associated with geographic
-  movements of PEDV with a novel regularized regression approach}
+\title{Phylogeographic analysis of porcine epidemic diarrhea virus}
 
 \author{Eamon O'Dea}
 
@@ -50,7 +49,7 @@ We build on the work of Refs.~\cite{lemey2014,magee2014}.
 
 \section*{Methods}
 
-\subsection*{Tree building}
+\subsection*{Tree fitting}
 
 We obtained a set of nucleotide sequences by searching NCBI's
 Nucleotide database with the query ``Porcine epidemic diarrhea
@@ -108,12 +107,27 @@ We discarded the first 10 percent of samples as burn-in, and we
 performed the following checks for signs that the remaining samples
 had failed to adequately sample the true posterior distribution. Using
 Tracer~\cite{tracer}, we confirmed visually that all marginal
-distributions seemed fairly smooth, traces appeared to have constant
-means and variances. We increased the length of the chains until all
-effective sample sizes exceeded 200, and ended up with a chain 100
-million states in which the minimum effective sample size was 408.
+distributions seemed fairly smooth and that all traces appeared to
+have constant means and variances. We increased the length of the
+chains until all effective sample sizes exceeded 200, and ended up
+with a chain of 100 million states in which the minimum effective
+sample size was 408.
+
+We obtained a one-tree summary of our posterior sample of trees using
+the treeanotator progam that is distributed with BEAST. This tree was
+one of our posterior trees having the maximum clade credibility
+topology, which is the topology with the highest geometric mean of
+posterior probabilities for all of its clades.
 
 \section*{Results}
+
+
+\begin{figure}[h]
+\begin{adjustwidth}{-2.25in}{0in}
+%  \includegraphics{fig1}
+\caption{{\bf.} }\label{llsurface}
+\end{adjustwidth}
+\end{figure}
 
 <<load-results,include=FALSE>>=
 
