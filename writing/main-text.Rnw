@@ -121,17 +121,18 @@ posterior probabilities for all of its clades.
 
 \section*{Results}
 
-
 \begin{figure}[h]
-\begin{adjustwidth}{-2.25in}{0in}
-%  \includegraphics{fig1}
-\caption{{\bf.} }\label{llsurface}
-\end{adjustwidth}
+\includegraphics{fig1}
+\caption{{\bf Flows have a positive effect on geographic transition
+    rates.} The red point indicates maximum likelihood estimate for
+  regression coefficients in our linear predictor of geographic
+  transition rates and the error bars represent 95\% parametric
+  bootstrap percentile confidence intervals.}\label{llsurface}
 \end{figure}
 
 <<load-results,include=FALSE>>=
 
-load("../work-sshd/mle.RData")
+load("mle.RData")
 
 answer <- 7
 
