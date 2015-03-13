@@ -152,7 +152,7 @@ mechanisms. Let $x_{i,j,w}$ be the value for predictor $w$ that
 corresponds to $\lambda_{i,j}$, and let $\beta_w$ be the regression
 coefficient for predictor $w$. Then our regression model is
 \begin{equation}
-  \log \Lambda_{i,j} = \sum_{w=1}^P \beta_i x_{i,j,w}.
+  \log \Lambda_{i,j} = \sum_{w=1}^P x_{i,j,w} \beta_j.
 \end{equation}
 
 
