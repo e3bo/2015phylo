@@ -49,7 +49,7 @@ We build on the work of Refs.~\cite{lemey2014,magee2014}.
 
 \section*{Methods}
 
-\subsection*{Tree fitting}
+\subsection*{Estimation of the phylogeny}
 
 We obtained a set of nucleotide sequences by searching NCBI's
 Nucleotide database with the query ``Porcine epidemic diarrhea
@@ -119,6 +119,43 @@ one of our posterior trees having the maximum clade credibility
 topology, which is the topology with the highest geometric mean of
 posterior probabilities for all of its clades.
 
+\subsection*{Estimation of effects of predictors on geographic transition rates}
+
+In the next few paragraphs, we describe our approach to fitting the
+sequence location data. It is a maximum-likelihood variant of the
+fully Bayesian approach introduced in Ref.~\cite{lemey2014}.
+
+We assume that our tree estimated from the molecular data accurately
+represents the genealogy of our sampled sequences in time. Then we
+assume that the virus' location at points along each of the branches
+in the genealogy is determined by a continuous-time Markov chain with
+$K$ discrete states. The infinitesimal rates of change for transition
+probabilities in this Markov chain are collected in a $K \times K$
+matrix $\mathbf{\Lambda}$, where $\Lambda_{i,j}$ gives the rate of
+change from state $i$ to state $j$. We assume these infinitesimals are
+independent of time. The diagonal elements are determined by the
+mathematical requirement that each row sums to zero but the
+off-diagonal elements may vary freely. For a given setting of
+$\Lambda$, the likelihood of the observed data may be efficiently
+calculated with the same dynamic programming algorithm used to
+calculate the likelihood of a column in a sequence alignment for a
+given substitution model.
+
+For many data sets, ours included, there is not enough information to
+reliably estimate all estimate pairwise transition rates
+$\Lambda_{i,j}$. Further we are less interested in these rates than in
+how they may depend on other variables related to mechanisms of spread
+or data collection. Thus we employ a linear model to scale the space
+of all pairwise transition rates down to the space spanned by a set of
+$P$ predictive variables that we derived based on hypotheses of such
+mechanisms. Let $x_{i,j,w}$ be the value for predictor $w$ that
+corresponds to $\lambda_{i,j}$, and let $\beta_w$ be the regression
+coefficient for predictor $w$. Then our regression model is
+\begin{equation}
+  \log \Lambda_{i,j} = \sum_{w=1}^P \beta_i x_{i,j,w}.
+\end{equation}
+
+
 \section*{Results}
 
 \begin{figure}[h]
@@ -132,7 +169,7 @@ posterior probabilities for all of its clades.
 
 <<load-results,include=FALSE>>=
 
-load("mle.RData")
+#load("mle.RData")
 
 answer <- 7
 
