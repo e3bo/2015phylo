@@ -85,7 +85,7 @@ pchisq(q=c(Dsym, Dasym), df=1, lower.tail=FALSE)
 #' region around the optimum. I guess this is probably generally true
 #' for optimization of likelihoods.
 
-plot(logLikelihood~Flows, data=D[abs(D$Intercept-0.1) < .001,], type='l')
+plot(logLikelihood~Flows, data=D[abs(Dasym$Intercept-0.1) < .001,], type='l')
 
 #' Parametric bootstrap for confidence intervals and bias
 
