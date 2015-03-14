@@ -9,7 +9,10 @@ DD = /root/data
 VPATH = $(SD):$(WD)
 
 
-all: mcc.nh
+all: convergence-check.html
+
+convergence-check.html: convergence-check.r
+	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr
 
 flagMleReport: mle.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData
 	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr && touch $@
