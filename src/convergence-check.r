@@ -1,3 +1,4 @@
+library(ape)
 library(coda)
 
 burnin <- 0.5
@@ -10,12 +11,13 @@ tmpf <- function(x) {
     diff(x$state[1:2])
 }
 thin <- sapply(runs, tmpf)
-stopifnot(all.equal(thin, rep(thin[1], length.out=length(thin))))
+all.elements.equal <- function(x) all.equal(x, rep(x[1], length.out=length(x)))
+stopifnot(isTRUE(all.elements.equal(thin)))
 thin <- thin[1]
 
 tmpf <- function(x) {
     x[, 'state'] <- NULL
-    x[, 'clock.rate'] <- NULL
+#    x[, 'clock.rate'] <- NULL
 #    x[, 'posterior'] <- NULL
 #    x[, 'coalescent'] <- NULL
 #    x[, 'treeLikelihood'] <- NULL
@@ -27,7 +29,6 @@ runsp <- lapply(runs, tmpf)
 mobs <- lapply(runsp, mcmc, thin=thin)
 ml <- mcmc.list(mobs)
 wstart <- burnin*end(ml)
-
 wml <- window(ml, start=wstart)
 
 plot(wml)
@@ -111,4 +112,17 @@ my.gelman.plot(wml, ylim=c(1, 1.1))
 save.image('convergence-check.RData')
 
 
+tfiles <- paste(runstems, '.trees', sep='')
+truns <- lapply(tfiles, read.nexus)
 
+ntrees <- sapply(truns, length)
+stopifnot(isTRUE(all.elements.equal(ntrees)))
+ntrees <- ntrees[1]
+
+brn <- seq_len(ceiling(ntrees*burnin))
+tmpf <- function(x) {
+    x[-brn]
+}
+wtrns <- lapply(truns, tmpf)
+
+prt <- lapply(wtrns, prop.part)
