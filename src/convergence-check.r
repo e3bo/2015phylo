@@ -1,7 +1,7 @@
 library(coda)
 
 burnin <- 0.5
-runstems <- paste0('simpler', 1:2)
+runstems <- paste0('simplest/run', 1:4, '/simplest')
 
 files <- paste(runstems, '.log', sep='')
 runs <- lapply(files, read.table, header=TRUE, sep="\t")
@@ -15,7 +15,7 @@ thin <- thin[1]
 
 tmpf <- function(x) {
     x[, 'state'] <- NULL
-#    x[, 'likelihood'] <- NULL
+    x[, 'clock.rate'] <- NULL
 #    x[, 'posterior'] <- NULL
 #    x[, 'coalescent'] <- NULL
 #    x[, 'treeLikelihood'] <- NULL
@@ -34,6 +34,7 @@ plot(wml)
 (essl <- lapply(wml, effectiveSize))
 (ess <- effectiveSize(wml))
 (gd <- gelman.diag(wml, multivariate=FALSE))
+gelman.diag(wml, transform=TRUE, multivariate=FALSE)
 
 my.gelman.preplot <- function (x, bin.width = bin.width, max.bins = max.bins, confidence = confidence, 
     transform = transform, autoburnin = autoburnin) 
@@ -43,7 +44,7 @@ my.gelman.preplot <- function (x, bin.width = bin.width, max.bins = max.bins, co
     x <- as.mcmc.list(x)
     if (niter(x) <= 50) 
         stop("Less than 50 iterations in chain")
-    nbin <- min(floor((niter(x) - 50)/thin(x)), max.bins)
+    nbin <- min(floor((niter(x) - 50)*thin(x)/bin.width), max.bins)
     binw <- floor((niter(x) - 50)/nbin)
     last.iter <- c(seq(from = start(x) + 50 * thin(x), by = binw * 
         thin(x), length = nbin), end(x))
@@ -105,8 +106,8 @@ my.gelman.plot <- function (x, bin.width = 10, max.bins = 50, confidence = 0.95,
         }
     return(invisible(y))
 }
-
 my.gelman.plot(wml, ylim=c(1, 1.1))
+
 save.image('convergence-check.RData')
 
 

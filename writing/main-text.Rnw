@@ -182,7 +182,36 @@ by the middle 95\% of these bootstrap estimates.
 
 \subsection*{Predictors and geographic states}
 
+In our application, we matched the states of the geographic model to
+the unique collection locations of sequences. This choice gave us a
+total of $K =\Sexpr{nchar(modAsym$alphabet)}$ unique model states,
+each of which corresponded to an area governed by either a U.S. state
+or the nation of Mexico.
+
+For a predictor of movement from one state to another, we used the
+logarithm of the estimated annual flow of swine transported for
+feeding or breeding purposes. These estimates came from year 2001
+government records of interstate livestock movements~\cite{ers2003}.
+
+\subsection*{Reproducibility}
+
+We have scripted the main steps of our analysis to promote
+reproducibility. The Docker framework~\cite{boettiger2015} has been
+used to script and package a setup of the required software
+environment as well. These scripts have been archived on the web (TODO
+add zenodo citation).
+
 \section*{Results}
+
+To gain insight into drivers of the geographic spread of PEDV, we fit
+a regression model of geographic transition rates. As described in the
+Methods, the regression model parameters were optimized to fit with
+the observed collection locations and the estimated genealogy of a set
+of virus sequences. We found that the log of transport flows had a
+positive effect on transition rates (Fig.~\ref{llsurface}). A
+likelihood ratio test supported rejection of the hypothesis that flows
+had no effect $(\chi^2_1 = \Sexpr{signif(Dasym, 3)}, p<\Sexpr{10^ceiling(log10(1 -
+  pchisq(Dasym, df=1)))})$.
 
 \begin{figure}[h]
 \includegraphics{fig1}
