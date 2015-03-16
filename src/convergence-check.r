@@ -121,42 +121,70 @@ tmpf <- function(x) {
     x[-brn]
 }
 wtrns <- lapply(truns, tmpf)
-niter <- length(wtrns[[1]])
 
-prt <- lapply(wtrns, prop.part)
-labs <- lapply(prt, attr, 'labels')
-allSame <- function(v) all(sapply( v[-1], FUN=function(z) {identical(z, v[[1]])}))
-stopifnot(allSame(labs))
-
-tmpf <- function(x) {
-    count <- attr(x, 'number')
-    tmpf <- function(x){
-        stopifnot(!is.unsorted(x, strictly=TRUE))
-        paste(x, collapse=',')
+getSDSF <- function(x, minCladeFz=0.1){
+    niter <- length(x[[1]])
+    prt <- lapply(x, prop.part)
+    labs <- lapply(prt, attr, 'labels')
+    allSame <- function(v) all(sapply( v[-1], FUN=function(z) {identical(z, v[[1]])}))
+    stopifnot(allSame(labs))
+    tmpf <- function(x) {
+        count <- attr(x, 'number')
+        tmpf <- function(x){
+            stopifnot(!is.unsorted(x, strictly=TRUE))
+            paste(x, collapse=',')
+        }
+        clade <- sapply(x, tmpf)
+        data.frame(clade=clade, count=count, stringsAsFactors=FALSE)
     }
-    clade <- sapply(x, tmpf)
-    data.frame(clade=clade, count=count, stringsAsFactors=FALSE)
+    foo <- lapply(prt, tmpf)
+    tmpf <- function(x, y) {
+        n <- ncol(x)
+        suff <- as.character(c(n-1, n))
+        merge(x, y, by='clade', all=TRUE, suffixes=suff)
+    }
+    mg <- Reduce(f=tmpf, x=foo)
+    cols <- grep('count', colnames(mg))
+    counts <- mg[, cols]
+    rownames(counts) <- mg$clade
+    counts[is.na(counts)] <- 0
+    fz <- counts/niter
+    test <- apply(fz, 1, function(x) max(x) > minCladFz)
+    fz <- fz[test,]
+    sdcf <- apply(fz, 1, sd)
+    sdcf
 }
-foo <- lapply(prt, tmpf)
 
-tmpf <- function(x, y) {
-    n <- ncol(x)
-    suff <- as.character(c(n-1, n))
-    merge(x, y, by='clade', all=TRUE, suffixes=suff)
+asdsf.preplot <- function(x, nbin){
+    niter <- length(x[[1]])
+    if(niter<=50){
+        stop("Less than 50 iterations in chain")
+    }
+    binw <- floor((niter - 50)/nbin)
+    last.iter <- c(seq(from=50, by=binw, length=nbin), niter)
+    tmpf <- function(y) {
+        z <- lapply(x, '[', 1:y)
+        getSDSF(z)
+    }
+    sdsf <- lapply(last.iter, tmpf)
+    return(list(sdsfl=sdsf, last.iter=last.iter))
 }
-mg <- Reduce(f=tmpf, x=foo)
-counts <- mg[, grep('count', colnames(mg))]
-rownames(counts) <- mg$clade
 
-counts[is.na(counts)] <- 0
+asdf.plot <- function(...){
+    ans <- asdf.preplot(...)
+    means <- sapply(ans$sdsfl, mean)
+    plot(c(ans$last.iter[1], ans$last.iter), c(0, means), type='n',
+         xlab='Last iteration', ylab='ASDF')
+    lines(ans$last.iter, means)
+    abline(h=0, col='grey')
+    abline(h=0.01, col='blue', lty=2)
+    return(invisible(ans))
+}
 
-fz <- counts/niter
 
-minCladFz <- 0.1
-test <- apply(fz, 1, function(x) max(x) > minCladFz)
-fz <- fz[test,]
-sdcf <- apply(fz, 1, sd)
-(asdcf <- mean(sdcf))
-hist(log10(sdcf))
+
+nbin <- 8
+system.time(ans <- asdsf.plot(wtrns, nbin=nbin))
+hist(log10(ans$sdsfl[[nbin]]))
 
 save.image('convergence-check.RData')
