@@ -130,7 +130,11 @@ stopifnot(allSame(labs))
 
 tmpf <- function(x) {
     count <- attr(x, 'number')
-    clade <- sapply(x, paste, collapse=',')
+    tmpf <- function(x){
+        stopifnot(!is.unsorted(x, strictly=TRUE))
+        paste(x, collapse=',')
+    }
+    clade <- sapply(x, tmpf)
     data.frame(clade=clade, count=count, stringsAsFactors=FALSE)
 }
 foo <- lapply(prt, tmpf)

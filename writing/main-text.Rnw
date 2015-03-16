@@ -53,8 +53,6 @@ We build on the work of Refs.~\cite{lemey2014,magee2014}.
 
 load("mle.RData")
 
-answer <- 7
-
 @
 
 \subsection*{Estimation of the phylogeny}
@@ -86,13 +84,13 @@ also checked visually for evidence of alignment errors using
 CLUSTAL~X~\cite{thompson1997}.
 
 We used BEAST~\cite{drummond2012} to obtain from our alignment of
-sequences a posterior sample of rooted evolutionary trees with branch
-lengths measured in calendar years. Because PEDV in North America is
-believed to have spread rapidly in 2013~\cite{lowe2014}, we used an
-exponential growth coalescent model~\cite{griffiths1994,drummond2002}
-as a prior density for the times of ancestral nodes of the tree. To
-allow for random variation in substitution rates among lineages, we
-used a relaxed molecular clock model~\cite{drummond2006} in which the
+sequences a posterior sample of rooted trees with branch lengths
+measured in calendar years. Because PEDV in North America is believed
+to have spread rapidly in 2013~\cite{lowe2014}, we used an exponential
+growth coalescent model~\cite{griffiths1994,drummond2002} as a prior
+density for the times of ancestral nodes of the tree. To allow for
+random variation in substitution rates among lineages, we used a
+relaxed molecular clock model~\cite{drummond2006} in which the
 substitution rates of branches were lognormaly distributed. To allow
 for random variation in substitution rates among sites, we assume the
 rates are sampled from an approximation to the
@@ -125,7 +123,9 @@ We obtained a one-tree summary of our posterior sample of trees using
 the treeanotator progam that is distributed with BEAST. This tree was
 one of our posterior trees having the maximum clade credibility
 topology, which is the topology with the highest geometric mean of
-posterior probabilities for all of its clades.
+posterior probabilities for all of its clades. We used
+DensiTree~\cite{bouckaert2010} to plot the full sample of trees and
+thus illustrate the degree to which the tree was resolved.
 
 \subsection*{Estimation of effects of predictors on geographic transition rates}
 
@@ -203,18 +203,36 @@ add zenodo citation).
 
 \section*{Results}
 
+As a prerequisite to fitting our geographic model, we obtained a
+posterior samples of evolutionary trees from a set of PEDV sequences
+collected from outbreaks. See the Methods for
+details. Figure~\ref{densitree} displays these trees. Although the
+tree is not fully resolved, several deep and shallow parts of it are
+and permit further analysis.
+
+\begin{figure}[h]
+  \includegraphics[width=\textwidth]{fig1}
+  \caption{{\bf The resolution of clades and clade ages for the PEDV
+      sequences was variable.}  All trees in the posterior sample are
+    plotted with a transparent color to illustrate the probability
+    densities of all clades and node ages. At intermediate depths of
+    the tree, several conflicting clades have moderate levels of
+    support producing a blurred image of webs and
+    multifurcations.}\label{densitree}
+\end{figure}
+
 To gain insight into drivers of the geographic spread of PEDV, we fit
 a regression model of geographic transition rates. As described in the
 Methods, the regression model parameters were optimized to fit with
 the observed collection locations and the estimated genealogy of a set
-of virus sequences. We found that the log of transport flows had a
-positive effect on transition rates (Fig.~\ref{llsurface}). A
+of virus sequences. We found that the logarithm of transport flows had
+a positive effect on transition rates (Fig.~\ref{llsurface}). A
 likelihood ratio test supported rejection of the hypothesis that flows
-had no effect $(\chi^2_1 = \Sexpr{signif(Dasym, 3)}, p<\Sexpr{10^ceiling(log10(1 -
-  pchisq(Dasym, df=1)))})$.
+had no effect $(\chi^2_1 = \Sexpr{signif(Dasym, 3)},
+p<\Sexpr{10^ceiling(log10(1 - pchisq(Dasym, df=1)))})$.
 
 \begin{figure}[h]
-\includegraphics{fig1}
+\includegraphics{fig2}
 \caption{{\bf Flows have a positive effect on geographic transition
     rates.} The red point indicates maximum likelihood estimate for
   regression coefficients in our linear predictor of geographic
@@ -225,7 +243,7 @@ had no effect $(\chi^2_1 = \Sexpr{signif(Dasym, 3)}, p<\Sexpr{10^ceiling(log10(1
 \section*{Discussion}
 
 
-\bibliography{pedv}
 
+\bibliography{pedv}
 
 \end{document}
