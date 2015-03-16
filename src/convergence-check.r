@@ -311,7 +311,7 @@ asdsf.plot <- function(...){
     ans <- asdsf.preplot(...)
     means <- sapply(ans$sdsfl, mean)
     plot(c(ans$last.iter[1], ans$last.iter), c(0, means), type='n',
-         xlab='Last iteration', ylab='ASDF')
+         xlab='Last iteration', ylab='ASDCF')
     lines(ans$last.iter, means)
     abline(h=0, col='grey')
     abline(h=0.01, col='blue', lty=2)
@@ -323,7 +323,7 @@ asdsf.plot <- function(...){
 tfiles <- paste(runstems, '.trees', sep='')
 truns <- lapply(tfiles, read.nexus)
 tmobs <- lapply(truns, phymcmc)
-tml <- phymcmc.list(bar)
+tml <- phymcmc.list(tmobs)
 
 wstart <- burnin*end(tml)
 wtml <- window(tml, start=wstart)
