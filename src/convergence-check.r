@@ -109,9 +109,6 @@ my.gelman.plot <- function (x, bin.width = 10, max.bins = 50, confidence = 0.95,
 }
 my.gelman.plot(wml, ylim=c(1, 1.1))
 
-save.image('convergence-check.RData')
-
-
 tfiles <- paste(runstems, '.trees', sep='')
 truns <- lapply(tfiles, read.nexus)
 
@@ -124,5 +121,38 @@ tmpf <- function(x) {
     x[-brn]
 }
 wtrns <- lapply(truns, tmpf)
+niter <- length(wtrns[[1]])
 
 prt <- lapply(wtrns, prop.part)
+labs <- lapply(prt, attr, 'labels')
+allSame <- function(v) all(sapply( v[-1], FUN=function(z) {identical(z, v[[1]])}))
+stopifnot(allSame(labs))
+
+tmpf <- function(x) {
+    count <- attr(x, 'number')
+    clade <- sapply(x, paste, collapse=',')
+    data.frame(clade=clade, count=count, stringsAsFactors=FALSE)
+}
+foo <- lapply(prt, tmpf)
+
+tmpf <- function(x, y) {
+    n <- ncol(x)
+    suff <- as.character(c(n-1, n))
+    merge(x, y, by='clade', all=TRUE, suffixes=suff)
+}
+mg <- Reduce(f=tmpf, x=foo)
+counts <- mg[, grep('count', colnames(mg))]
+rownames(counts) <- mg$clade
+
+counts[is.na(counts)] <- 0
+
+fz <- counts/niter
+
+minCladFz <- 0.1
+test <- apply(fz, 1, function(x) max(x) > minCladFz)
+fz <- fz[test,]
+sdcf <- apply(fz, 1, sd)
+(asdcf <- mean(sdcf))
+hist(log10(sdcf))
+
+save.image('convergence-check.RData')
