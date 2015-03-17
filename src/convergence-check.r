@@ -1,42 +1,6 @@
 library(ape)
 library(coda)
 
-burnin <- 0.5
-runstems <- paste0('simplest/run', 1:4, '/simplest')
-
-files <- paste(runstems, '.log', sep='')
-runs <- lapply(files, read.table, header=TRUE, sep="\t")
-
-tmpf <- function(x) {
-    diff(x$state[1:2])
-}
-thin <- sapply(runs, tmpf)
-all.elements.equal <- function(x) all.equal(x, rep(x[1], length.out=length(x)))
-stopifnot(isTRUE(all.elements.equal(thin)))
-thin <- thin[1]
-
-tmpf <- function(x) {
-    x[, 'state'] <- NULL
-#    x[, 'clock.rate'] <- NULL
-#    x[, 'posterior'] <- NULL
-#    x[, 'coalescent'] <- NULL
-#    x[, 'treeLikelihood'] <- NULL
-#    x[, 'prior'] <- NULL
-    x
-}
-runsp <- lapply(runs, tmpf)
-
-mobs <- lapply(runsp, mcmc, thin=thin)
-ml <- mcmc.list(mobs)
-wstart <- burnin*end(ml)
-wml <- window(ml, start=wstart)
-
-plot(wml)
-(essl <- lapply(wml, effectiveSize))
-(ess <- effectiveSize(wml))
-(gd <- gelman.diag(wml, multivariate=FALSE))
-gelman.diag(wml, transform=TRUE, multivariate=FALSE)
-
 my.gelman.preplot <- function (x, bin.width = bin.width, max.bins = max.bins, confidence = confidence, 
     transform = transform, autoburnin = autoburnin) 
 {
@@ -107,9 +71,54 @@ my.gelman.plot <- function (x, bin.width = 10, max.bins = 50, confidence = 0.95,
         }
     return(invisible(y))
 }
+
+burnin <- 0.5
+runstems <- paste0('simplest/run', 1:4, '/simplest')
+
+files <- paste(runstems, '.log', sep='')
+runs <- lapply(files, read.table, header=TRUE, sep="\t")
+
+tmpf <- function(x) {
+    diff(x$state[1:2])
+}
+thin <- sapply(runs, tmpf)
+all.elements.equal <- function(x) all.equal(x, rep(x[1], length.out=length(x)))
+stopifnot(isTRUE(all.elements.equal(thin)))
+thin <- thin[1]
+
+tmpf <- function(x) {
+    x[, 'state'] <- NULL
+#    x[, 'clock.rate'] <- NULL
+#    x[, 'posterior'] <- NULL
+#    x[, 'coalescent'] <- NULL
+#    x[, 'treeLikelihood'] <- NULL
+#    x[, 'prior'] <- NULL
+    x
+}
+runsp <- lapply(runs, tmpf)
+
+mobs <- lapply(runsp, mcmc, thin=thin)
+ml <- mcmc.list(mobs)
+wstart <- burnin*end(ml)
+wml <- window(ml, start=wstart)
+
+plot(wml)
+
+(essl <- lapply(wml, effectiveSize))
+(ess <- effectiveSize(wml))
+
+heidel.diag(wml)
+
+(gd <- gelman.diag(wml, multivariate=FALSE))
+gelman.diag(wml, transform=TRUE, multivariate=FALSE)
+
+#' ## Gelman plots
 my.gelman.plot(wml, ylim=c(1, 1.1))
 
-## Now for the trees
+#' ## Geweke plots
+geweke.plot(wml)
+
+#' ##Now for the trees
 
 phymcmc <- function(x, start=1, end=numeric(0), thin=1){
     ## extension of mcmc to multiPhylo objects, based on code in coda 
