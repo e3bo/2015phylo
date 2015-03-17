@@ -79,11 +79,10 @@ obj <- function(w, msa=pedvMSA, tmlist=M[['asym']]){
 }
 
 ans <- list()
-ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2))
-ans[['sym']] <- optim.rphast(obj, tmlist=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2))
-
+system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
+system.time(ans[['sym']] <- optim.rphast(obj, tmlist=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
 objNull <- function(x) obj(c(x, 0))
-ans[['null']] <- optimize(objNull, interval=c(-4,2), maximum=TRUE)
+system.time(ans[['null']] <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
 
 (Dsym <- -2*ans[['null']]$objective + 2*-ans[['sym']]$value)
 (Dasym <- -2*ans[['null']]$objective + 2*-ans[['asym']]$value)

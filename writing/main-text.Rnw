@@ -55,7 +55,7 @@ load("mle.RData")
 
 @
 
-\subsection*{Estimation of the phylogeny}
+\subsection*{Phylogenetic estimation}
 
 We obtained a set of nucleotide sequences by searching NCBI's
 Nucleotide database with the query ``Porcine epidemic diarrhea
@@ -127,7 +127,7 @@ posterior probabilities for all of its clades. We used
 DensiTree~\cite{bouckaert2010} to plot the full sample of trees and
 thus illustrate the degree to which the tree was resolved.
 
-\subsection*{Estimation of effects of predictors on geographic transition rates}
+\subsection*{Regression modeling of geographic transition rates}
 
 In the next few paragraphs, we describe our approach to fitting the
 sequence location data. It is a maximum-likelihood variant of the
@@ -180,7 +180,7 @@ likelihood estimates of the regression coefficients. Confidence
 intervals for each coefficient were calculated as the interval spanned
 by the middle 95\% of these bootstrap estimates.
 
-\subsection*{Predictors and geographic states}
+\subsection*{Choice of predictors and geographic states}
 
 In our application, we matched the states of the geographic model to
 the unique collection locations of sequences. This choice gave us a
@@ -208,7 +208,10 @@ posterior samples of evolutionary trees from a set of PEDV sequences
 collected from outbreaks. See the Methods for
 details. Figure~\ref{densitree} displays these trees. Although the
 tree is not fully resolved, several deep and shallow parts of it are
-and permit further analysis.
+and permit further analysis. The trees are generally consistent with
+previous work~\cite{vlasova2014} in placing the common ancestor of the
+S INDEL and non-S INDEL strains before April 2013, the current upper
+bound on the importation date of these strains to the country.
 
 \begin{figure}[h]
   \includegraphics[width=\textwidth]{fig1}
@@ -217,8 +220,13 @@ and permit further analysis.
     plotted with a transparent color to illustrate the probability
     densities of all clades and node ages. At intermediate depths of
     the tree, several conflicting clades have moderate levels of
-    support producing a blurred image of webs and
-    multifurcations.}\label{densitree}
+    support producing a blurred image of webs and multifurcations. The
+    node positions on the $x$ axis represent their occurrence in
+    calendar time. The time interval between the oldest and newest
+    tree tip is about 9 months, which provides an indication of the
+    time scale. The S INDEL sequences form the monophyletic group at the
+    bottom that diverges from the rest of the sequences at the root of
+    the tree.}\label{densitree}
 \end{figure}
 
 To gain insight into drivers of the geographic spread of PEDV, we fit
