@@ -341,4 +341,9 @@ nbin <- 8
 system.time(ans <- asdsf.plot(wtml, nbin=nbin))
 hist(log10(ans$sdsfl[[nbin]]))
 
+tsamp <- window(wtml, thin=thin(wtml)*1000)
+tsamp <- Reduce('c', x=tsamp)
+class(tsamp) <- 'multiPhylo'
+write.nexus(tsamp, file='sampled.trees')
+
 save.image('convergence-check.RData')

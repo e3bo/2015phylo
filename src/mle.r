@@ -3,11 +3,10 @@ library(boot)
 library(ggplot2)
 library(rphastRegression)
 
-
-tree <- read.nexus('mcc.tree')
+trees <- read.nexus('sampled.trees')
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
 
-nms <- tree$tip.label
+nms <- attr(trees, 'TipLabel')
 abs <- sapply(strsplit(nms, '_'), '[[', 1)
 absF <- factor(abs)
 levs <- levels(absF)
@@ -18,7 +17,7 @@ levels(absF) <- alph
 alph <- paste(alph, collapse='')
 seqs <- lapply(absF, as.character)
 pedvMSA <- msa(seqs=seqs, names=nms, alphabet=alph)
-treeChar <- write.tree(tree)
+treeChar <- unname(lapply(trees, write.tree))
 
 pairs <- expand.grid(to=levs, from=levs)
 test <- pairs$from != pairs$to
@@ -41,40 +40,53 @@ designMatrixAsym <- cbind("(Intercept)"=1, pairFlows)
 
 bg <- rep(1, n)/n
 
-mod <- tm(treeChar, "UNREST", alphabet=alph, backgd=bg)
-mod$rate.matrix <- matrix(NA, nrow=n, ncol=n)
-modSym <- modAsym <- mod
-modSym$design.matrix <- designMatrixSym
-modAsym$design.matrix <- designMatrixAsym
+mods <- lapply(treeChar, tm, subst.mod="UNREST", alphabet=alph, backgd=bg)
 
-setRateMatrix <- function(mod, w){
-    eta <- exp(mod$design.matrix %*% w)
+assignElement <- function(x, nam, val) {
+    x[[nam]] <- val
+    x
+}
+mods <- lapply(mods, assignElement, nam='rate.matrix', val=matrix(NA, nrow=n, ncol=n))
+
+M <- list()
+M[['sym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixSym)
+M[['asym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixAsym)
+
+getRateMatrix <- function(design.matrix, w){
+    eta <- exp(design.matrix %*% w)
     pos <- 1
+    rate.matrix <- matrix(nrow=n, ncol=n)
     for(i in seq_len(n)){
         rowSum <- 0
         for(j in seq_len(n)){            
             if (i != j) {
-                mod$rate.matrix[i,j] <- eta[pos]
+                rate.matrix[i,j] <- eta[pos]
                 rowSum <- rowSum + eta[pos]
                 pos <- pos + 1
             }            
         }
-        mod$rate.matrix[i,i] <- -rowSum        
+        rate.matrix[i,i] <- -rowSum        
     }
-    mod
+    rate.matrix
 }
 
-obj <- function(w, msa=pedvMSA, mod=modAsym){
-    mod <- setRateMatrix(mod, w)
-    likelihood.msa(msa, tm=mod)
+obj <- function(w, msa=pedvMSA, tmlist=M[['asym']]){
+    design.matrix <- tmlist[[1]][['design.matrix']]
+    rate.matrix <- getRateMatrix(design.matrix, w)
+    tmlist <- lapply(tmlist, assignElement, nam='rate.matrix', val=rate.matrix)
+    tmpf <- function(x) likelihood.msa(x=msa, tm=x)
+    mean(sapply(tmlist, tmpf))
 }
 
-ansAsym <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2))
-ansSym <- optim.rphast(obj, mod=modSym, c(-1,.4), lower=c(-4,-2), upper=c(2,2))
+ans <- list()
+ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2))
+ans[['sym']] <- optim.rphast(obj, tmlist=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2))
+
 objNull <- function(x) obj(c(x, 0))
-ansNull <- optimize(objNull, interval=c(-4,2), maximum=TRUE)
-(Dsym <- -2*ansNull$objective + 2*-ansSym$value)
-(Dasym <- -2*ansNull$objective + 2*-ansAsym$value)
+ans[['null']] <- optimize(objNull, interval=c(-4,2), maximum=TRUE)
+
+(Dsym <- -2*ans[['null']]$objective + 2*-ans[['sym']]$value)
+(Dasym <- -2*ans[['null']]$objective + 2*-ans[['asym']]$value)
 
 #' A chi squared test supports rejection of the null for the directed model
 pchisq(q=c(Dsym, Dasym), df=1, lower.tail=FALSE)
