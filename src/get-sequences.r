@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 
 library(ape)
-library('rentrez')
+library(rentrez)
 library(lubridate)
 
 ## sets of accessions based on information in papers
