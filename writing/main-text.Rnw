@@ -22,7 +22,8 @@
 
 \begin{document}
 
-\title{Phylogeographic analysis of porcine epidemic diarrhea virus}
+\title{Phylogeographic analysis of porcine epidemic diarrhea virus in
+  North America}
 
 \author{Eamon O'Dea}
 
@@ -217,7 +218,7 @@ S INDEL and non-S INDEL strains before April 2013, the current upper
 bound on the importation date of these strains to the country.
 
 \begin{figure}[h]
-  \includegraphics[width=\textwidth]{fig1}
+%  \includegraphics[width=\textwidth]{fig1}
   \caption{{\bf The resolution of clades and clade ages for the PEDV
       sequences was variable.}  All trees in the posterior sample are
     plotted with a transparent color to illustrate the probability
@@ -232,15 +233,16 @@ bound on the importation date of these strains to the country.
     the tree.}\label{densitree}
 \end{figure}
 
-To gain insight into drivers of the geographic spread of PEDV, we fit
-a regression model of geographic transition rates. As described in the
-Methods, the regression model parameters were optimized to fit with
-the observed collection locations and the estimated genealogy of a set
-of virus sequences. We found that the logarithm of transport flows had
-a positive effect on transition rates (Fig.~\ref{llsurface}). A
-likelihood ratio test supported rejection of the hypothesis that flows
-had no effect $(\chi^2_1 = \Sexpr{signif(Dasym, 3)},
-p<\Sexpr{10^ceiling(log10(1 - pchisq(Dasym, df=1)))})$.
+To gain insight into drivers of the geographic spread of PEDV, we
+fitted a regression model of geographic transition rates. As described
+in the Methods, the regression model parameters were optimized to fit
+with the observed collection locations and the estimated genealogy of
+a set of virus sequences. We found that the logarithm of transport
+flows had a positive effect on transition rates
+(Fig.~\ref{llsurface}). A likelihood ratio test supported rejection of
+the hypothesis that flows had no effect $(\chi^2_1 =
+\Sexpr{signif(Dasym, 3)}, p<\Sexpr{10^ceiling(log10(1 - pchisq(Dasym,
+  df=1)))})$.
 
 \begin{figure}[h]
 \includegraphics{fig2}
@@ -252,6 +254,29 @@ p<\Sexpr{10^ceiling(log10(1 - pchisq(Dasym, df=1)))})$.
 \end{figure}
 
 \section*{Discussion}
+
+Using time- and location-tagged sequences, we have fitted a simple
+linear model to rates of interstate migration of PEDV. We found that
+interstate shipment flows were a statistically significant predictor
+of these migration rates. Simulations were used to generate confidence
+intervals for the regression coefficient and also served to verify the
+accuracy of the method for these data.
+
+The previous work introducing the model we
+used~\cite{lemey2014,magee2014}, did not include such a
+verification. Although the reliability of likelihood-based estimation
+of transition rates is well-established for molecular data, it was not
+clear that they could perform well with the comparatively smaller
+amounts of geographic information in current field data. Thus the
+finding that these methods are reasonably accurate with simulated data
+sets of a similar size and shape to a real data set supports the
+continued development and application of these methods.
+
+benefits of speed
+
+regression for molecular substitution rates useful?
+
+
 
 
 
