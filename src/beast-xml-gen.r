@@ -66,6 +66,14 @@ q('no')
 ## Rest is all about allowing variable tip dates, which seems to lead
 ## to negativel coalescent for some reason
 
+#'  | reference | doi | gene | estimate | HPD |
+#'  |-----------------------------------------|
+#'  | Vijgen et al. 2006 | 10.1128/JVI.02675-05 | PHEV, BCoV, HCoV-OC43 | spike | 6.1E-4 | 2.1E-4 | 10E-4 |
+#'  |                    |                      |                       | nucleocapsid | 3.6e-4 | 1.1e-4 | 6.3e-4 |
+#'  | Vijgen et al. 2005 | 10.1128/JVI.79.3.1595-1604.2005 | BCoV, HCoV-OC43 | spike | 4.3e-4 | 2.7e-4 | 6e-4 |
+#'  | Sanchez et al. 1992 |                     |  TGEV |  not in abstract, probably spike |  7e-4 | 5e-4 | 9e-4 |
+
+
 tmpf <- function(x){
     parmid <- paste0(x, ".height")
     xmlNode("leafHeight", attrs=c(taxon=x), xmlNode("parameter", attrs=c(id=parmid)))
