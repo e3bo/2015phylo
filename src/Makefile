@@ -8,7 +8,6 @@ SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
 
-
 all: convergence-check.html
 
 convergence-check.html: convergence-check.r
