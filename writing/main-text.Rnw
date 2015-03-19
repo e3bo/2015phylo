@@ -270,13 +270,31 @@ clear that they could perform well with the comparatively smaller
 amounts of geographic information in current field data. Thus the
 finding that these methods are reasonably accurate with simulated data
 sets of a similar size and shape to a real data set supports the
-continued development and application of these methods.
+continued development and application of these methods for
+phylogeographic data sets.
 
-benefits of speed
+Our methods diverged from Refs.~\cite{lemey2014,magee2014} in finding
+maximum likelihood estimates for regression coefficients rather than
+posterior distributions. The maximum likelihood estimates are not as
+informative as the posterior distributions, but they may be sufficient
+for many analyses and have the advantage of being faster to
+calculate. That advantage allowed us to generate bootstrap confidence
+intervals from many simulations in a relatively short period of
+time. Also, speed may be essential in shortening the often numerous
+rounds of model fitting that occur when analyzing large and complex
+data sets.
 
-regression for molecular substitution rates useful?
-
-
+The finding that flows have a positive effect on geographic transition
+rates is consistent with the finding of Ref.~\cite{nelson2011}. They
+used the same flow data and found it to provide the best model for
+migration rates of H1 influenza A virus among swine. Together, these
+results provide empirical evidence that data on animal movements may
+be useful in general for setting parameters for mathematical models of
+large-scale disease spread for multiple pathogens. Further, the
+estimates from these studies may be useful for setting transmission
+parameters for such models. At present, such parameters are often
+highly uncertain and based on expert
+opinion~\cite{mcreynolds2014,martinez-lopez2014}.
 
 
 
