@@ -91,6 +91,18 @@ test <- feats$isFieldSample %in% TRUE & feats$isWholeGenome
 sel <- rownames(feats)[test]
 
 dna <- dna[sel]
+
 names(dna) <- feats[sel, 'tname']
 
-write.dna(dna, file='pedv-renamed.fasta', format='fasta')
+sIndels <- c("IA_20-Oct-2013_1_KJ645649.1_unpassaged",
+             "IA_29-Dec-2013_1_KJ645695.1_unpassaged",
+             "IA_29-Dec-2013_1_KJ645696.1_unpassaged",
+             "IN_08-Jun-2013_1_KJ645635.1_unpassaged",
+             "MN_05-Nov-2013_1_KJ645655.1_unpassaged",
+             "MN_26-Jun-2013_1_KJ645704.1_unpassaged",
+             "OH_29-Jan-2014_1_KJ645702.1_unpassaged",
+             "OH_15-Jan-2014_1_KJ399978.1_unpassaged")
+
+write.dna(dna[sIndels], file='sIndels-renamed', format='fasta')
+test <- !names(dna) %in% sIndels
+write.dna(dna[test], file='nonsIndels.fasta', format='fasta')
