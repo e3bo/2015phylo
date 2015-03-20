@@ -103,6 +103,6 @@ sIndels <- c("IA_20-Oct-2013_1_KJ645649.1_unpassaged",
              "OH_29-Jan-2014_1_KJ645702.1_unpassaged",
              "OH_15-Jan-2014_1_KJ399978.1_unpassaged")
 
-write.dna(dna[sIndels], file='sIndels-renamed', format='fasta')
+write.dna(dna[sIndels], file='sIndel.fasta', format='fasta')
 test <- !names(dna) %in% sIndels
-write.dna(dna[test], file='nonsIndels.fasta', format='fasta')
+write.dna(dna[test], file='nonsIndel.fasta', format='fasta')

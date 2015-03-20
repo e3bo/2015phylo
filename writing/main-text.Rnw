@@ -104,9 +104,14 @@ substitutions~\cite{rodriguez1990}.
 TODO describe source of clock rate prior, cite maybe woo et al to
 explain why unlinking clock for S and rest.
 
-In setting up our BEAST analysis, we generally deemed the default
-priors in the configuration generator BEAUTi~\cite{drummond2012}
-acceptable with one notable exception. We chose the doubling time
+In setting up our BEAST analysis, we deemed the default priors in the
+configuration generator BEAUTi~\cite{drummond2012} acceptable for the
+substitution model parameters, previous estimates from the SARS
+coronavirus~\cite{salemi2002} were in relatively high density
+locations of the priors.
+
+
+with one notable exception. We chose the doubling time
 parameterization of the exponential growth model rather than the
 growth rate parameterization, which had the effect of preventing
 models with negative growth rates from being proposed. We have placed
