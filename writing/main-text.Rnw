@@ -301,7 +301,20 @@ parameters for such models. At present, such parameters are often
 highly uncertain and based on expert
 opinion~\cite{mcreynolds2014,martinez-lopez2014}.
 
-
+Of course, we cannot from this analysis conclude that the association
+of shipment flows with migration rates is a necessary, causal
+one. Unequal sampling efforts among states could be biasing our
+estimates, for example. Another limitation to this analysis is the
+simplicity of the model we used to estimate the tree, which may not be
+taking full advantage of the information of the data. We opted for a
+relatively simple model that would allow us more confidence that our
+Markov chain sampler had converged to the posterior distribution of
+trees, as diagnosing lack of convergence to the posterior distribution
+of trees is still an active area of research~\cite{whidden2015}. In
+sum, improvements in estimation of the tree, additional data
+collection, the development of predictive variables relevant to
+sampling and transmission mechanism could all improve the accuracy of
+our estimates and the predictive performance of our model.
 
 \bibliography{pedv}
 
