@@ -72,20 +72,21 @@ field strain. Those references and other fields in the GenBank records
 were also used to determine the U.S. state of collection for some
 sequences.
 
-These sequences were aligned using mafft~\cite{katoh2013}. The
-alignment was run through Gblocks~\cite{castresana2000} to identify
+Several of these sequences had a characteristic indel in their spike
+gene. These are referred to as S INDEL sequences, and they are
+divergent enough from the strains lacking the indel that it is likely
+that their most recent common ancestor predates their introduction to
+North America~\cite{vlasova}. Thus we generated separate alignments
+for S INDEL and non-S INDEL sequences and estimate separate trees for
+them.  We used mafft to generate the alignments.~\cite{katoh2013}. The
+alignments were run through Gblocks~\cite{castresana2000} to identify
 any very poorly conserved, potentially misleading segments. Gblocks
 removed only regions with many gaps such as the ends of the alignment
-and indels. These regions contained no shared derived characters
-beyond the indels in the spike gene, which have described
-previously~\cite{wang_new_2014}. Information about these indels was
-incorporated by enforcing monophyly of the set of sequences containing
-them when searching for the best-fitting tree. The alignments were
-also checked visually for evidence of alignment errors using
-CLUSTAL~X~\cite{thompson1997}.
+and indels. The alignments were also checked visually for evidence of
+alignment errors using CLUSTAL~X~\cite{thompson1997}.
 
-We used BEAST~\cite{drummond2012} to obtain from our alignment of
-sequences a posterior sample of rooted trees with branch lengths
+We used BEAST~\cite{drummond2012} to obtain from our sequence
+alignments a posterior sample of rooted trees with branch lengths
 measured in calendar years. Because PEDV in North America is believed
 to have spread rapidly in 2013~\cite{lowe2014}, we used an exponential
 growth coalescent model~\cite{griffiths1994,drummond2002} as a prior
@@ -106,9 +107,10 @@ explain why unlinking clock for S and rest.
 
 In setting up our BEAST analysis, we deemed the default priors in the
 configuration generator BEAUTi~\cite{drummond2012} acceptable for the
-substitution model parameters, previous estimates from the SARS
+substitution model parameters, as previous estimates from the SARS
 coronavirus~\cite{salemi2002} were in relatively high density
 locations of the priors.
+
 
 
 with one notable exception. We chose the doubling time
@@ -233,9 +235,13 @@ bound on the importation date of these strains to the country.
     node positions on the $x$ axis represent their occurrence in
     calendar time. The time interval between the oldest and newest
     tree tip is about 9 months, which provides an indication of the
-    time scale. The S INDEL sequences form the monophyletic group at the
-    bottom that diverges from the rest of the sequences at the root of
-    the tree.}\label{densitree}
+    time scale. The S INDEL sequences form the monophyletic group at
+    the bottom that diverges from the rest of the sequences at the
+    root of the tree. These trees were based on
+    \Sexpr{uniquePatterns[sIndel]} unique columns in the alignment of
+    S INDEL sequences and \Sexpr{uniquePatterns[nonsIndel]} in the
+    alignment of the other sequences.
+  }\label{densitree}
 \end{figure}
 
 To gain insight into drivers of the geographic spread of PEDV, we

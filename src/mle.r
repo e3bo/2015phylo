@@ -3,6 +3,14 @@ library(boot)
 library(ggplot2)
 library(rphastRegression)
 
+tmpf <- function(){
+    tmNames <- system("grep ^TreeLikelihood beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
+    uniquePatterns <- system("grep \"unique pattern count\" beast-stdout | cut -d\' \' -f7", inter=TRUE)
+    names(uniquePatterns) <- tmNames
+    uniquePatterns
+}
+uniqePatterns <- tmpf()
+
 trees <- read.nexus('sampled.trees')
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
 
