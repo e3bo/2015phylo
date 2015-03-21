@@ -4,14 +4,19 @@ library(ape)
 library(lubridate)
 library(XML)
 
-xmlTemplatePath <- file.path("beast-template.xml")
-outputBasename <- "pedv"
-alignmentPath <- file.path("aligned.fasta-gb")
-chainLength <- 1e8
-logEvery <- 1e4
+xmlTemplatePath <- file.path("../data/beast-template.xml")
 
-aln <- read.dna(alignmentPath, format='fasta')
-taxaNames <- rownames(aln)
+outputBasename <- "pedv"
+alignStems <- 'aligned.fasta-gb'
+prefixes <- c('sIndel', 'nonsIndel')
+alignmentPaths <- alignmentNames <- paste(prefixes, alignStems, sep='-')
+alignmentNames <- paste(alignmentNames, 'taxa', sep='.')
+
+chainLength <- 5e7
+logEvery <- 5e3
+
+alns <- lapply(alignmentPaths, read.dna, format='fasta')
+taxaNames <- lapply(alns, rownames)
 
 xmlTree <- xmlTreeParse(xmlTemplatePath, getDTD=F)
 root <- xmlRoot(xmlTree)
@@ -28,9 +33,23 @@ tmpf <- function(x) {
                                 precision=as.character(windowLength)))
             )
 }
-taxaNodeList <- lapply(taxaNames, tmpf)
+allTaxaNodeList <- lapply(unlist(taxaNames), tmpf)
 taxaNode <- xmlNode("taxa", attrs=c(id="taxa"))
-root[["taxa"]] <- addChildren(taxaNode, kids=taxaNodeList)
+root[["taxa"]] <- addChildren(taxaNode, kids=allTaxaNodeList)
+
+tmpf <- function(x) {
+    tmpff <- function(xx) xmlNode("taxon", attrs=c(idref=xx))
+    lapply(x, tmpff)
+}
+taxaNodes <- lapply(taxaNames, tmpf)
+
+tmpf <- function(x, y) {
+    ret <- xmlNode("taxa", attrs=c(id=x))
+    addChildren(ret, kids=y)
+}
+
+mapply(tmpf, x=alignmentNames, y=taxaNodes)
+
 
 tmpf <- function(x) {
     seq <- toupper(paste(as.character(x)[1,], collapse=''))
@@ -38,7 +57,7 @@ tmpf <- function(x) {
     xmlNode("sequence", xmlNode("taxon", attrs=c(idref=idref)), xmlTextNode(seq))
 }
 
-sequenceNodeList <- lapply(aln, tmpf)
+sequenceNodeList <- lapply(alns[[1]], tmpf)
 alignmentNode <- xmlNode("alignment", attrs=c(id="alignment", dataType="nucleotide"))
 root[["alignment"]] <- addChildren(alignmentNode, kids=sequenceNodeList)
 
@@ -80,7 +99,11 @@ tmpf <- function(x){
 }
 
 leafHeightList <- lapply(taxaNames, tmpf)
-root[['treeModel']] <- addChildren(root[['treeModel']], kids=leafHeightList)
+
+root[["nonsIndel-aligned.fasta-gb.treeModel"]] <- addChildren(root[['nonsIndel-aligned.fasta-gb.treeModel']], kids=leafHeightList)
+root[["sIndel-aligned.fasta-gb.treeModel"]] <- addChildren(root[['sIndel-aligned.fasta-gb.treeModel']], kids=leafHeightList)
+
+
 
 tmpf <- function(x){
     parmid <- paste0(x, ".height")

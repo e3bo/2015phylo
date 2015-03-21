@@ -9,10 +9,380 @@
 <beast>
 
 	<!-- The list of taxa to be analysed (can also include dates/ages).          -->
-	<!-- ntax=86                                                                 -->
+	<!-- ntax=93                                                                 -->
 	<taxa id="taxa">
+		<taxon id="Mexico_03-Nov-2013_1_KJ645708.1_unpassaged">
+			<date value="2013.8383561643836" direction="forwards" units="years" precision="0.0027"/>
+		</taxon>
+		<taxon id="MN_03-Dec-2013_1_KJ645707.1_unpassaged">
+			<date value="2013.9205479452055" direction="forwards" units="years" precision="0.0027"/>
+		</taxon>
+		<taxon id="MN_25-Nov-2013_1_KJ645706.1_unpassaged">
+			<date value="2013.8986301369864" direction="forwards" units="years" precision="0.0027"/>
+		</taxon>
+		<taxon id="MN_18-Nov-2013_1_KJ645705.1_unpassaged">
+			<date value="2013.8794520547945" direction="forwards" units="years" precision="0.0027"/>
+		</taxon>
+		<taxon id="MN_02-Feb-2014_1_KJ645703.1_unpassaged">
+			<date value="2014.0876712328768" direction="forwards" units="years" precision="0.0027"/>
+		</taxon>
+		<taxon id="KS_27-Jan-2014_1_KJ645701.1_unpassaged">
+			<date value="2014.0712328767124" direction="forwards" units="years" precision="0.0027"/>
+		</taxon>
+		<taxon id="Mexico_22-Jan-2014_1_KJ645700.1_unpassaged">
+			<date value="2014.0575342465754" direction="forwards" units="years" precision="0.0027"/>
+		</taxon>
+		<taxon id="OH_15-Dec-2013_1_KJ645699.1_unpassaged">
+			<date value="2013.9534246575342" direction="forwards" units="years" precision="0.0027"/>
+		</taxon>
+		<taxon id="OH_01-Jan-2014_1_KJ645698.1_unpassaged">
+			<date value="2014.0" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="TX_12-Nov-2013_1_KJ645697.1_unpassaged">
+			<date value="2013.86301369863" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_15-Dec-2013_1_KJ645694.1_unpassaged">
+			<date value="2013.9534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MO_15-Dec-2013_1_KJ645693.1_unpassaged">
+			<date value="2013.9534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MO_15-Dec-2013_1_KJ645692.1_unpassaged">
+			<date value="2013.9534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_14-Dec-2013_1_KJ645691.1_unpassaged">
+			<date value="2013.9506849315069" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_11-Dec-2013_1_KJ645690.1_unpassaged">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_11-Dec-2013_1_KJ645689.1_unpassaged">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_11-Dec-2013_1_KJ645688.1_unpassaged">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_10-Dec-2013_1_KJ645687.1_unpassaged">
+			<date value="2013.9397260273972" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_10-Dec-2013_1_KJ645686.1_unpassaged">
+			<date value="2013.9397260273972" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MO_11-Dec-2013_1_KJ645685.1_unpassaged">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MO_11-Dec-2013_1_KJ645684.1_unpassaged">
+			<date value="2013.9424657534246" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="NC_08-Dec-2013_1_KJ645683.1_unpassaged">
+			<date value="2013.9342465753425" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_04-Dec-2013_1_KJ645682.1_unpassaged">
+			<date value="2013.9232876712329" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_04-Dec-2013_1_KJ645681.1_unpassaged">
+			<date value="2013.9232876712329" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_04-Dec-2013_1_KJ645680.1_unpassaged">
+			<date value="2013.9232876712329" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_07-Dec-2013_1_KJ645679.1_unpassaged">
+			<date value="2013.9315068493152" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_04-Dec-2013_1_KJ645678.1_unpassaged">
+			<date value="2013.9232876712329" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_02-Dec-2013_1_KJ645677.1_unpassaged">
+			<date value="2013.9178082191781" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_02-Dec-2013_1_KJ645676.1_unpassaged">
+			<date value="2013.9178082191781" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_03-Dec-2013_1_KJ645675.1_unpassaged">
+			<date value="2013.9205479452055" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_30-Nov-2013_1_KJ645674.1_unpassaged">
+			<date value="2013.9123287671232" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_28-Nov-2013_1_KJ645673.1_unpassaged">
+			<date value="2013.9068493150685" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_28-Nov-2013_1_KJ645672.1_unpassaged">
+			<date value="2013.9068493150685" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_30-Nov-2013_1_KJ645671.1_unpassaged">
+			<date value="2013.9123287671232" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_27-Nov-2013_1_KJ645670.1_unpassaged">
+			<date value="2013.9041095890411" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="WI_27-Nov-2013_1_KJ645669.1_unpassaged">
+			<date value="2013.9041095890411" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_25-Nov-2013_1_KJ645668.1_unpassaged">
+			<date value="2013.8986301369864" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_28-Nov-2013_1_KJ645667.1_unpassaged">
+			<date value="2013.9068493150685" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_24-Nov-2013_1_KJ645666.1_unpassaged">
+			<date value="2013.8958904109588" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_24-Nov-2013_1_KJ645665.1_unpassaged">
+			<date value="2013.8958904109588" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_24-Nov-2013_1_KJ645664.1_unpassaged">
+			<date value="2013.8958904109588" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_23-Nov-2013_1_KJ645663.1_unpassaged">
+			<date value="2013.8931506849315" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="NC_23-Nov-2013_1_KJ645662.1_unpassaged">
+			<date value="2013.8931506849315" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_20-Nov-2013_1_KJ645661.1_unpassaged">
+			<date value="2013.8849315068494" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_19-Nov-2013_1_KJ645660.1_unpassaged">
+			<date value="2013.8821917808218" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IL_19-Nov-2013_1_KJ645659.1_unpassaged">
+			<date value="2013.8821917808218" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_18-Nov-2013_1_KJ645658.1_unpassaged">
+			<date value="2013.8794520547945" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_12-Nov-2013_1_KJ645657.1_unpassaged">
+			<date value="2013.86301369863" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_11-Nov-2013_1_KJ645656.1_unpassaged">
+			<date value="2013.8602739726027" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="TN_04-Nov-2013_1_KJ645654.1_unpassaged">
+			<date value="2013.841095890411" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="WI_03-Nov-2013_1_KJ645653.1_unpassaged">
+			<date value="2013.8383561643836" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_02-Nov-2013_1_KJ645652.1_unpassaged">
+			<date value="2013.835616438356" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="CO_23-Oct-2013_1_KJ645651.1_unpassaged">
+			<date value="2013.8082191780823" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="KS_23-Oct-2013_1_KJ645650.1_unpassaged">
+			<date value="2013.8082191780823" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_20-Oct-2013_1_KJ645648.1_unpassaged">
+			<date value="2013.8" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_14-Oct-2013_1_KJ645647.1_unpassaged">
+			<date value="2013.7835616438356" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="NC_05-Oct-2013_1_KJ645646.1_unpassaged">
+			<date value="2013.7589041095891" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="TX_28-Sep-2013_1_KJ645645.1_unpassaged">
+			<date value="2013.7397260273972" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OK_07-Sep-2013_1_KJ645644.1_unpassaged">
+			<date value="2013.682191780822" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="KS_01-Sep-2013_1_KJ645643.1_unpassaged">
+			<date value="2013.6657534246576" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OK_26-Aug-2013_1_KJ645642.1_unpassaged">
+			<date value="2013.6493150684933" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IN_21-Aug-2013_1_KJ645641.1_unpassaged">
+			<date value="2013.6356164383562" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OK_24-Jul-2013_1_KJ645640.1_unpassaged">
+			<date value="2013.558904109589" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="TX_22-Jul-2013_1_KJ645639.1_unpassaged">
+			<date value="2013.5534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="CO_22-Jul-2013_1_KJ645638.1_unpassaged">
+			<date value="2013.5534246575342" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="KS_15-Jul-2013_1_KJ645637.1_unpassaged">
+			<date value="2013.5342465753424" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_14-Jul-2013_1_KJ645636.1_unpassaged">
+			<date value="2013.531506849315" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_01-Dec-2013_30_KM392230.1_passaged">
+			<date value="2013.9150684931508" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_01-Dec-2013_30_KM392229.1_passaged">
+			<date value="2013.9150684931508" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_01-Dec-2013_30_KM392228.1_passaged">
+			<date value="2013.9150684931508" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MI_01-Nov-2013_30_KM392227.1_passaged">
+			<date value="2013.8328767123287" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_01-Dec-2013_30_KM392231.1_passaged">
+			<date value="2013.9150684931508" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MI_01-Nov-2013_30_KM392226.1_passaged">
+			<date value="2013.8328767123287" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_22-Jan-2014_1_KM077139.1_unpassaged">
+			<date value="2014.0575342465754" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_14-Jun-2013_1_KJ584361.1_unpassaged">
+			<date value="2013.4493150684932" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_23-Jan-2014_1_KJ408801.1_unpassaged">
+			<date value="2014.0602739726028" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_16-May-2013_1_KF804028.1_passaged">
+			<date value="2013.3698630136987" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_06-Jun-2013_1_KF650373.1_unpassaged">
+			<date value="2013.427397260274" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IN_16-May-2013_1_KF650370.1_unpassaged">
+			<date value="2013.3698630136987" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IN_07-May-2013_1_KF452323.1_unpassaged">
+			<date value="2013.345205479452" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_29-Apr-2013_1_KF452322.1_unpassaged">
+			<date value="2013.323287671233" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_19-Jun-2013_1_KF468752.1_unpassaged">
+			<date value="2013.4630136986302" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_01-May-2013_86_KF468754.1_unpassaged">
+			<date value="2013.3287671232877" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_01-May-2013_86_KF468753.1_unpassaged">
+			<date value="2013.3287671232877" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="CO_10-May-2013_1_KF272920.1_unpassaged">
+			<date value="2013.3534246575343" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_20-Oct-2013_1_KJ645649.1_unpassaged">
+			<date value="2013.8" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_29-Dec-2013_1_KJ645695.1_unpassaged">
+			<date value="2013.9917808219177" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IA_29-Dec-2013_1_KJ645696.1_unpassaged">
+			<date value="2013.9917808219177" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="IN_08-Jun-2013_1_KJ645635.1_unpassaged">
+			<date value="2013.4328767123288" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_05-Nov-2013_1_KJ645655.1_unpassaged">
+			<date value="2013.8438356164384" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="MN_26-Jun-2013_1_KJ645704.1_unpassaged">
+			<date value="2013.482191780822" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_29-Jan-2014_1_KJ645702.1_unpassaged">
+			<date value="2014.0767123287671" direction="forwards" units="years"/>
+		</taxon>
+		<taxon id="OH_15-Jan-2014_1_KJ399978.1_unpassaged">
+			<date value="2014.0383561643835" direction="forwards" units="years"/>
+		</taxon>
 	</taxa>
-	<taxa id="INDEL strains">
+
+	<!-- gene name = nonsIndel-aligned.fasta-gb, ntax= 85                        -->
+	<taxa id="nonsIndel-aligned.fasta-gb.taxa">
+		<taxon idref="Mexico_03-Nov-2013_1_KJ645708.1_unpassaged"/>
+		<taxon idref="MN_03-Dec-2013_1_KJ645707.1_unpassaged"/>
+		<taxon idref="MN_25-Nov-2013_1_KJ645706.1_unpassaged"/>
+		<taxon idref="MN_18-Nov-2013_1_KJ645705.1_unpassaged"/>
+		<taxon idref="MN_02-Feb-2014_1_KJ645703.1_unpassaged"/>
+		<taxon idref="KS_27-Jan-2014_1_KJ645701.1_unpassaged"/>
+		<taxon idref="Mexico_22-Jan-2014_1_KJ645700.1_unpassaged"/>
+		<taxon idref="OH_15-Dec-2013_1_KJ645699.1_unpassaged"/>
+		<taxon idref="OH_01-Jan-2014_1_KJ645698.1_unpassaged"/>
+		<taxon idref="TX_12-Nov-2013_1_KJ645697.1_unpassaged"/>
+		<taxon idref="IA_15-Dec-2013_1_KJ645694.1_unpassaged"/>
+		<taxon idref="MO_15-Dec-2013_1_KJ645693.1_unpassaged"/>
+		<taxon idref="MO_15-Dec-2013_1_KJ645692.1_unpassaged"/>
+		<taxon idref="MN_14-Dec-2013_1_KJ645691.1_unpassaged"/>
+		<taxon idref="IL_11-Dec-2013_1_KJ645690.1_unpassaged"/>
+		<taxon idref="IL_11-Dec-2013_1_KJ645689.1_unpassaged"/>
+		<taxon idref="IA_11-Dec-2013_1_KJ645688.1_unpassaged"/>
+		<taxon idref="MN_10-Dec-2013_1_KJ645687.1_unpassaged"/>
+		<taxon idref="MN_10-Dec-2013_1_KJ645686.1_unpassaged"/>
+		<taxon idref="MO_11-Dec-2013_1_KJ645685.1_unpassaged"/>
+		<taxon idref="MO_11-Dec-2013_1_KJ645684.1_unpassaged"/>
+		<taxon idref="NC_08-Dec-2013_1_KJ645683.1_unpassaged"/>
+		<taxon idref="MN_04-Dec-2013_1_KJ645682.1_unpassaged"/>
+		<taxon idref="MN_04-Dec-2013_1_KJ645681.1_unpassaged"/>
+		<taxon idref="IL_04-Dec-2013_1_KJ645680.1_unpassaged"/>
+		<taxon idref="MN_07-Dec-2013_1_KJ645679.1_unpassaged"/>
+		<taxon idref="MN_04-Dec-2013_1_KJ645678.1_unpassaged"/>
+		<taxon idref="MN_02-Dec-2013_1_KJ645677.1_unpassaged"/>
+		<taxon idref="MN_02-Dec-2013_1_KJ645676.1_unpassaged"/>
+		<taxon idref="IL_03-Dec-2013_1_KJ645675.1_unpassaged"/>
+		<taxon idref="MN_30-Nov-2013_1_KJ645674.1_unpassaged"/>
+		<taxon idref="MN_28-Nov-2013_1_KJ645673.1_unpassaged"/>
+		<taxon idref="MN_28-Nov-2013_1_KJ645672.1_unpassaged"/>
+		<taxon idref="MN_30-Nov-2013_1_KJ645671.1_unpassaged"/>
+		<taxon idref="OH_27-Nov-2013_1_KJ645670.1_unpassaged"/>
+		<taxon idref="WI_27-Nov-2013_1_KJ645669.1_unpassaged"/>
+		<taxon idref="MN_25-Nov-2013_1_KJ645668.1_unpassaged"/>
+		<taxon idref="MN_28-Nov-2013_1_KJ645667.1_unpassaged"/>
+		<taxon idref="IA_24-Nov-2013_1_KJ645666.1_unpassaged"/>
+		<taxon idref="OH_24-Nov-2013_1_KJ645665.1_unpassaged"/>
+		<taxon idref="OH_24-Nov-2013_1_KJ645664.1_unpassaged"/>
+		<taxon idref="MN_23-Nov-2013_1_KJ645663.1_unpassaged"/>
+		<taxon idref="NC_23-Nov-2013_1_KJ645662.1_unpassaged"/>
+		<taxon idref="MN_20-Nov-2013_1_KJ645661.1_unpassaged"/>
+		<taxon idref="MN_19-Nov-2013_1_KJ645660.1_unpassaged"/>
+		<taxon idref="IL_19-Nov-2013_1_KJ645659.1_unpassaged"/>
+		<taxon idref="MN_18-Nov-2013_1_KJ645658.1_unpassaged"/>
+		<taxon idref="OH_12-Nov-2013_1_KJ645657.1_unpassaged"/>
+		<taxon idref="MN_11-Nov-2013_1_KJ645656.1_unpassaged"/>
+		<taxon idref="TN_04-Nov-2013_1_KJ645654.1_unpassaged"/>
+		<taxon idref="WI_03-Nov-2013_1_KJ645653.1_unpassaged"/>
+		<taxon idref="MN_02-Nov-2013_1_KJ645652.1_unpassaged"/>
+		<taxon idref="CO_23-Oct-2013_1_KJ645651.1_unpassaged"/>
+		<taxon idref="KS_23-Oct-2013_1_KJ645650.1_unpassaged"/>
+		<taxon idref="MN_20-Oct-2013_1_KJ645648.1_unpassaged"/>
+		<taxon idref="MN_14-Oct-2013_1_KJ645647.1_unpassaged"/>
+		<taxon idref="NC_05-Oct-2013_1_KJ645646.1_unpassaged"/>
+		<taxon idref="TX_28-Sep-2013_1_KJ645645.1_unpassaged"/>
+		<taxon idref="OK_07-Sep-2013_1_KJ645644.1_unpassaged"/>
+		<taxon idref="KS_01-Sep-2013_1_KJ645643.1_unpassaged"/>
+		<taxon idref="OK_26-Aug-2013_1_KJ645642.1_unpassaged"/>
+		<taxon idref="IN_21-Aug-2013_1_KJ645641.1_unpassaged"/>
+		<taxon idref="OK_24-Jul-2013_1_KJ645640.1_unpassaged"/>
+		<taxon idref="TX_22-Jul-2013_1_KJ645639.1_unpassaged"/>
+		<taxon idref="CO_22-Jul-2013_1_KJ645638.1_unpassaged"/>
+		<taxon idref="KS_15-Jul-2013_1_KJ645637.1_unpassaged"/>
+		<taxon idref="IA_14-Jul-2013_1_KJ645636.1_unpassaged"/>
+		<taxon idref="OH_01-Dec-2013_30_KM392230.1_passaged"/>
+		<taxon idref="OH_01-Dec-2013_30_KM392229.1_passaged"/>
+		<taxon idref="OH_01-Dec-2013_30_KM392228.1_passaged"/>
+		<taxon idref="MI_01-Nov-2013_30_KM392227.1_passaged"/>
+		<taxon idref="OH_01-Dec-2013_30_KM392231.1_passaged"/>
+		<taxon idref="MI_01-Nov-2013_30_KM392226.1_passaged"/>
+		<taxon idref="MN_22-Jan-2014_1_KM077139.1_unpassaged"/>
+		<taxon idref="OH_14-Jun-2013_1_KJ584361.1_unpassaged"/>
+		<taxon idref="OH_23-Jan-2014_1_KJ408801.1_unpassaged"/>
+		<taxon idref="IA_16-May-2013_1_KF804028.1_passaged"/>
+		<taxon idref="IA_06-Jun-2013_1_KF650373.1_unpassaged"/>
+		<taxon idref="IN_16-May-2013_1_KF650370.1_unpassaged"/>
+		<taxon idref="IN_07-May-2013_1_KF452323.1_unpassaged"/>
+		<taxon idref="IA_29-Apr-2013_1_KF452322.1_unpassaged"/>
+		<taxon idref="MN_19-Jun-2013_1_KF468752.1_unpassaged"/>
+		<taxon idref="IA_01-May-2013_86_KF468754.1_unpassaged"/>
+		<taxon idref="IA_01-May-2013_86_KF468753.1_unpassaged"/>
+		<taxon idref="CO_10-May-2013_1_KF272920.1_unpassaged"/>
+	</taxa>
+
+	<!-- gene name = sIndel-aligned.fasta-gb, ntax= 8                            -->
+	<taxa id="sIndel-aligned.fasta-gb.taxa">
 		<taxon idref="IA_20-Oct-2013_1_KJ645649.1_unpassaged"/>
 		<taxon idref="IA_29-Dec-2013_1_KJ645695.1_unpassaged"/>
 		<taxon idref="IA_29-Dec-2013_1_KJ645696.1_unpassaged"/>
@@ -20,112 +390,535 @@
 		<taxon idref="MN_05-Nov-2013_1_KJ645655.1_unpassaged"/>
 		<taxon idref="MN_26-Jun-2013_1_KJ645704.1_unpassaged"/>
 		<taxon idref="OH_29-Jan-2014_1_KJ645702.1_unpassaged"/>
-                <taxon idref="OH_15-Jan-2014_1_KJ399978.1_unpassaged"/>
+		<taxon idref="OH_15-Jan-2014_1_KJ399978.1_unpassaged"/>
 	</taxa>
 
 	<!-- The sequence alignment (each sequence refers to a taxon above).         -->
-	<!-- ntax=86 nchar=27998                                                     -->
-	<alignment id="alignment" dataType="nucleotide">
+	<!-- ntax=85 nchar=27998                                                     -->
 
+	<!-- Null sequences generated in order to sample from the prior only.        -->
+	<alignment id="alignment1" dataType="nucleotide">
+		<sequence>
+			<taxon idref="Mexico_03-Nov-2013_1_KJ645708.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_03-Dec-2013_1_KJ645707.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_25-Nov-2013_1_KJ645706.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_18-Nov-2013_1_KJ645705.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_02-Feb-2014_1_KJ645703.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="KS_27-Jan-2014_1_KJ645701.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="Mexico_22-Jan-2014_1_KJ645700.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_15-Dec-2013_1_KJ645699.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_01-Jan-2014_1_KJ645698.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="TX_12-Nov-2013_1_KJ645697.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_15-Dec-2013_1_KJ645694.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MO_15-Dec-2013_1_KJ645693.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MO_15-Dec-2013_1_KJ645692.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_14-Dec-2013_1_KJ645691.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IL_11-Dec-2013_1_KJ645690.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IL_11-Dec-2013_1_KJ645689.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_11-Dec-2013_1_KJ645688.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_10-Dec-2013_1_KJ645687.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_10-Dec-2013_1_KJ645686.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MO_11-Dec-2013_1_KJ645685.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MO_11-Dec-2013_1_KJ645684.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="NC_08-Dec-2013_1_KJ645683.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_04-Dec-2013_1_KJ645682.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_04-Dec-2013_1_KJ645681.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IL_04-Dec-2013_1_KJ645680.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_07-Dec-2013_1_KJ645679.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_04-Dec-2013_1_KJ645678.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_02-Dec-2013_1_KJ645677.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_02-Dec-2013_1_KJ645676.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IL_03-Dec-2013_1_KJ645675.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_30-Nov-2013_1_KJ645674.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_28-Nov-2013_1_KJ645673.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_28-Nov-2013_1_KJ645672.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_30-Nov-2013_1_KJ645671.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_27-Nov-2013_1_KJ645670.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="WI_27-Nov-2013_1_KJ645669.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_25-Nov-2013_1_KJ645668.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_28-Nov-2013_1_KJ645667.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_24-Nov-2013_1_KJ645666.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_24-Nov-2013_1_KJ645665.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_24-Nov-2013_1_KJ645664.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_23-Nov-2013_1_KJ645663.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="NC_23-Nov-2013_1_KJ645662.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_20-Nov-2013_1_KJ645661.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_19-Nov-2013_1_KJ645660.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IL_19-Nov-2013_1_KJ645659.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_18-Nov-2013_1_KJ645658.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_12-Nov-2013_1_KJ645657.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_11-Nov-2013_1_KJ645656.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="TN_04-Nov-2013_1_KJ645654.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="WI_03-Nov-2013_1_KJ645653.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_02-Nov-2013_1_KJ645652.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="CO_23-Oct-2013_1_KJ645651.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="KS_23-Oct-2013_1_KJ645650.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_20-Oct-2013_1_KJ645648.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_14-Oct-2013_1_KJ645647.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="NC_05-Oct-2013_1_KJ645646.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="TX_28-Sep-2013_1_KJ645645.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OK_07-Sep-2013_1_KJ645644.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="KS_01-Sep-2013_1_KJ645643.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OK_26-Aug-2013_1_KJ645642.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IN_21-Aug-2013_1_KJ645641.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OK_24-Jul-2013_1_KJ645640.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="TX_22-Jul-2013_1_KJ645639.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="CO_22-Jul-2013_1_KJ645638.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="KS_15-Jul-2013_1_KJ645637.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_14-Jul-2013_1_KJ645636.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_01-Dec-2013_30_KM392230.1_passaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_01-Dec-2013_30_KM392229.1_passaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_01-Dec-2013_30_KM392228.1_passaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MI_01-Nov-2013_30_KM392227.1_passaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_01-Dec-2013_30_KM392231.1_passaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MI_01-Nov-2013_30_KM392226.1_passaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_22-Jan-2014_1_KM077139.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_14-Jun-2013_1_KJ584361.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_23-Jan-2014_1_KJ408801.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_16-May-2013_1_KF804028.1_passaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_06-Jun-2013_1_KF650373.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IN_16-May-2013_1_KF650370.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IN_07-May-2013_1_KF452323.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_29-Apr-2013_1_KF452322.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_19-Jun-2013_1_KF468752.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_01-May-2013_86_KF468754.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_01-May-2013_86_KF468753.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="CO_10-May-2013_1_KF272920.1_unpassaged"/>
+			???
+		</sequence>
 	</alignment>
 
-	<!-- The unique patterns from 1 to end                                       -->
-	<!-- npatterns=446                                                           -->
-	<patterns id="patterns" from="1" strip="false">
-		<alignment idref="alignment"/>
-	</patterns>
+	<!-- The sequence alignment (each sequence refers to a taxon above).         -->
+	<!-- ntax=8 nchar=27989                                                      -->
 
-	<!-- A prior assumption that the population size has grown exponentially     -->
+	<!-- Null sequences generated in order to sample from the prior only.        -->
+	<alignment id="alignment2" dataType="nucleotide">
+		<sequence>
+			<taxon idref="IA_20-Oct-2013_1_KJ645649.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_29-Dec-2013_1_KJ645695.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IA_29-Dec-2013_1_KJ645696.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="IN_08-Jun-2013_1_KJ645635.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_05-Nov-2013_1_KJ645655.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="MN_26-Jun-2013_1_KJ645704.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_29-Jan-2014_1_KJ645702.1_unpassaged"/>
+			???
+		</sequence>
+		<sequence>
+			<taxon idref="OH_15-Jan-2014_1_KJ399978.1_unpassaged"/>
+			???
+		</sequence>
+	</alignment>
+
+	<!-- A prior assumption that the population size has remained constant       -->
 	<!-- throughout the time spanned by the genealogy.                           -->
-	<exponentialGrowth id="exponential" units="years">
+	<constantSize id="constant" units="years">
 		<populationSize>
-			<parameter id="exponential.popSize" value="7.6" lower="0.0"/>
+			<parameter id="constant.popSize" value="1.0" lower="0.0"/>
 		</populationSize>
-		<doublingTime>
-			<parameter id="exponential.doublingTime" value="100.0" lower="0.0"/>
-		</doublingTime>
-	</exponentialGrowth>
+	</constantSize>
 
 	<!-- Generate a random starting tree under the coalescent process            -->
-	<coalescentSimulator id="startingTree">
-		<coalescentSimulator>
-			<taxa idref="INDEL strains"/>
-			<exponentialGrowth idref="exponential"/>
-		</coalescentSimulator>
-		<taxa idref="taxa"/>
-		<exponentialGrowth idref="exponential"/>
+	<coalescentSimulator id="nonsIndel-aligned.fasta-gb.startingTree">
+		<taxa idref="nonsIndel-aligned.fasta-gb.taxa"/>
+		<constantSize idref="constant"/>
+	</coalescentSimulator>
+
+	<!-- Generate a random starting tree under the coalescent process            -->
+	<coalescentSimulator id="sIndel-aligned.fasta-gb.startingTree">
+		<taxa idref="sIndel-aligned.fasta-gb.taxa"/>
+		<constantSize idref="constant"/>
 	</coalescentSimulator>
 
 	<!-- Generate a tree model                                                   -->
-	<treeModel id="treeModel">
-		<coalescentTree idref="startingTree"/>
+	<treeModel id="nonsIndel-aligned.fasta-gb.treeModel">
+		<coalescentTree idref="nonsIndel-aligned.fasta-gb.startingTree"/>
 		<rootHeight>
-			<parameter id="treeModel.rootHeight"/>
+			<parameter id="nonsIndel-aligned.fasta-gb.treeModel.rootHeight"/>
 		</rootHeight>
 		<nodeHeights internalNodes="true">
-			<parameter id="treeModel.internalNodeHeights"/>
+			<parameter id="nonsIndel-aligned.fasta-gb.treeModel.internalNodeHeights"/>
 		</nodeHeights>
 		<nodeHeights internalNodes="true" rootNode="true">
-			<parameter id="treeModel.allInternalNodeHeights"/>
+			<parameter id="nonsIndel-aligned.fasta-gb.treeModel.allInternalNodeHeights"/>
 		</nodeHeights>
+
+		<!-- START Tip date sampling                                                 -->
+		<leafHeight taxon="Mexico_03-Nov-2013_1_KJ645708.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(Mexico_03-Nov-2013_1_KJ645708.1_unpassaged)"/>
+		</leafHeight>
+		<leafHeight taxon="MN_03-Dec-2013_1_KJ645707.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(MN_03-Dec-2013_1_KJ645707.1_unpassaged)"/>
+		</leafHeight>
+		<leafHeight taxon="MN_25-Nov-2013_1_KJ645706.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(MN_25-Nov-2013_1_KJ645706.1_unpassaged)"/>
+		</leafHeight>
+		<leafHeight taxon="MN_18-Nov-2013_1_KJ645705.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(MN_18-Nov-2013_1_KJ645705.1_unpassaged)"/>
+		</leafHeight>
+		<leafHeight taxon="MN_02-Feb-2014_1_KJ645703.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(MN_02-Feb-2014_1_KJ645703.1_unpassaged)"/>
+		</leafHeight>
+		<leafHeight taxon="KS_27-Jan-2014_1_KJ645701.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(KS_27-Jan-2014_1_KJ645701.1_unpassaged)"/>
+		</leafHeight>
+		<leafHeight taxon="Mexico_22-Jan-2014_1_KJ645700.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(Mexico_22-Jan-2014_1_KJ645700.1_unpassaged)"/>
+		</leafHeight>
+		<leafHeight taxon="OH_15-Dec-2013_1_KJ645699.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(OH_15-Dec-2013_1_KJ645699.1_unpassaged)"/>
+		</leafHeight>
+
+		<!-- END Tip date sampling                                                   -->
+
 	</treeModel>
 
-	<!-- Taxon Sets                                                              -->
-	<tmrcaStatistic id="tmrca(INDEL strains)" includeStem="false">
-		<mrca>
-			<taxa idref="INDEL strains"/>
-		</mrca>
-		<treeModel idref="treeModel"/>
-	</tmrcaStatistic>
-	<monophylyStatistic id="monophyly(INDEL strains)">
-		<mrca>
-			<taxa idref="INDEL strains"/>
-		</mrca>
-		<treeModel idref="treeModel"/>
-	</monophylyStatistic>
+	<!-- Generate a tree model                                                   -->
+	<treeModel id="sIndel-aligned.fasta-gb.treeModel">
+		<coalescentTree idref="sIndel-aligned.fasta-gb.startingTree"/>
+		<rootHeight>
+			<parameter id="sIndel-aligned.fasta-gb.treeModel.rootHeight"/>
+		</rootHeight>
+		<nodeHeights internalNodes="true">
+			<parameter id="sIndel-aligned.fasta-gb.treeModel.internalNodeHeights"/>
+		</nodeHeights>
+		<nodeHeights internalNodes="true" rootNode="true">
+			<parameter id="sIndel-aligned.fasta-gb.treeModel.allInternalNodeHeights"/>
+		</nodeHeights>
+
+		<!-- START Tip date sampling                                                 -->
+
+		<!-- END Tip date sampling                                                   -->
+
+	</treeModel>
+
+	<!-- START Tip date sampling                                                 -->
+	<jointParameter id="age(Mexico_03-Nov-2013_1_KJ645708.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(Mexico_03-Nov-2013_1_KJ645708.1_unpassaged)"/>
+	</jointParameter>
+	<jointParameter id="age(MN_03-Dec-2013_1_KJ645707.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(MN_03-Dec-2013_1_KJ645707.1_unpassaged)"/>
+	</jointParameter>
+	<jointParameter id="age(MN_25-Nov-2013_1_KJ645706.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(MN_25-Nov-2013_1_KJ645706.1_unpassaged)"/>
+	</jointParameter>
+	<jointParameter id="age(MN_18-Nov-2013_1_KJ645705.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(MN_18-Nov-2013_1_KJ645705.1_unpassaged)"/>
+	</jointParameter>
+	<jointParameter id="age(MN_02-Feb-2014_1_KJ645703.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(MN_02-Feb-2014_1_KJ645703.1_unpassaged)"/>
+	</jointParameter>
+	<jointParameter id="age(KS_27-Jan-2014_1_KJ645701.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(KS_27-Jan-2014_1_KJ645701.1_unpassaged)"/>
+	</jointParameter>
+	<jointParameter id="age(Mexico_22-Jan-2014_1_KJ645700.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(Mexico_22-Jan-2014_1_KJ645700.1_unpassaged)"/>
+	</jointParameter>
+	<jointParameter id="age(OH_15-Dec-2013_1_KJ645699.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(OH_15-Dec-2013_1_KJ645699.1_unpassaged)"/>
+	</jointParameter>
+
+	<!-- END Tip date sampling                                                   -->
+
 
 	<!-- Generate a coalescent likelihood                                        -->
-	<coalescentLikelihood id="coalescent">
+	<coalescentLikelihood id="nonsIndel-aligned.fasta-gb.coalescent">
 		<model>
-			<exponentialGrowth idref="exponential"/>
+			<constantSize idref="constant"/>
 		</model>
 		<populationTree>
-			<treeModel idref="treeModel"/>
+			<treeModel idref="nonsIndel-aligned.fasta-gb.treeModel"/>
 		</populationTree>
 	</coalescentLikelihood>
 
-	<!-- The uncorrelated relaxed clock (Drummond, Ho, Phillips & Rambaut (2006) PLoS Biology 4, e88 )-->
-	<discretizedBranchRates id="branchRates">
-		<treeModel idref="treeModel"/>
-		<distribution>
-			<logNormalDistributionModel meanInRealSpace="true">
-				<mean>
-					<parameter id="ucld.mean" value="1.0" lower="0.0"/>
-				</mean>
-				<stdev>
-					<parameter id="ucld.stdev" value="0.3333333333333333" lower="0.0"/>
-				</stdev>
-			</logNormalDistributionModel>
-		</distribution>
-		<rateCategories>
-			<parameter id="branchRates.categories"/>
-		</rateCategories>
-	</discretizedBranchRates>
-	<rateStatistic id="meanRate" name="meanRate" mode="mean" internal="true" external="true">
-		<treeModel idref="treeModel"/>
-		<discretizedBranchRates idref="branchRates"/>
-	</rateStatistic>
-	<rateStatistic id="coefficientOfVariation" name="coefficientOfVariation" mode="coefficientOfVariation" internal="true" external="true">
-		<treeModel idref="treeModel"/>
-		<discretizedBranchRates idref="branchRates"/>
-	</rateStatistic>
-	<rateCovarianceStatistic id="covariance" name="covariance">
-		<treeModel idref="treeModel"/>
-		<discretizedBranchRates idref="branchRates"/>
-	</rateCovarianceStatistic>
+	<!-- Generate a coalescent likelihood                                        -->
+	<coalescentLikelihood id="sIndel-aligned.fasta-gb.coalescent">
+		<model>
+			<constantSize idref="constant"/>
+		</model>
+		<populationTree>
+			<treeModel idref="sIndel-aligned.fasta-gb.treeModel"/>
+		</populationTree>
+	</coalescentLikelihood>
 
-	<!-- The general time reversible (GTR) substitution model                    -->
-	<gtrModel id="gtr">
+	<!-- The strict clock (Uniform rates across branches)                        -->
+	<strictClockBranchRates id="branchRates">
+		<rate>
+			<parameter id="clock.rate" value="7.0E-4" lower="0.0"/>
+		</rate>
+	</strictClockBranchRates>
+
+	<!-- The HKY substitution model (Hasegawa, Kishino & Yano, 1985)             -->
+	<HKYModel id="hky">
 		<frequencies>
 			<frequencyModel dataType="nucleotide">
 				<frequencies>
@@ -133,27 +926,15 @@
 				</frequencies>
 			</frequencyModel>
 		</frequencies>
-		<rateAC>
-			<parameter id="ac" value="1.0" lower="0.0"/>
-		</rateAC>
-		<rateAG>
-			<parameter id="ag" value="1.0" lower="0.0"/>
-		</rateAG>
-		<rateAT>
-			<parameter id="at" value="1.0" lower="0.0"/>
-		</rateAT>
-		<rateCG>
-			<parameter id="cg" value="1.0" lower="0.0"/>
-		</rateCG>
-		<rateGT>
-			<parameter id="gt" value="1.0" lower="0.0"/>
-		</rateGT>
-	</gtrModel>
+		<kappa>
+			<parameter id="kappa" value="2.0" lower="0.0"/>
+		</kappa>
+	</HKYModel>
 
 	<!-- site model                                                              -->
 	<siteModel id="siteModel">
 		<substitutionModel>
-			<gtrModel idref="gtr"/>
+			<HKYModel idref="hky"/>
 		</substitutionModel>
 		<gammaShape gammaCategories="4">
 			<parameter id="alpha" value="0.5" lower="0.0"/>
@@ -161,29 +942,25 @@
 	</siteModel>
 
 	<!-- Likelihood for tree given sequence data                                 -->
-	<treeLikelihood id="treeLikelihood" useAmbiguities="false">
-		<patterns idref="patterns"/>
-		<treeModel idref="treeModel"/>
+	<treeLikelihood id="nonsIndel-aligned.fasta-gb.treeLikelihood" useAmbiguities="false">
+		<alignment idref="alignment1"/>
+		<treeModel idref="nonsIndel-aligned.fasta-gb.treeModel"/>
 		<siteModel idref="siteModel"/>
-		<discretizedBranchRates idref="branchRates"/>
+		<strictClockBranchRates idref="branchRates"/>
+	</treeLikelihood>
+
+	<!-- Likelihood for tree given sequence data                                 -->
+	<treeLikelihood id="sIndel-aligned.fasta-gb.treeLikelihood" useAmbiguities="false">
+		<alignment idref="alignment2"/>
+		<treeModel idref="sIndel-aligned.fasta-gb.treeModel"/>
+		<siteModel idref="siteModel"/>
+		<strictClockBranchRates idref="branchRates"/>
 	</treeLikelihood>
 
 	<!-- Define operators                                                        -->
 	<operators id="operators" optimizationSchedule="default">
 		<scaleOperator scaleFactor="0.75" weight="0.1">
-			<parameter idref="ac"/>
-		</scaleOperator>
-		<scaleOperator scaleFactor="0.75" weight="0.1">
-			<parameter idref="ag"/>
-		</scaleOperator>
-		<scaleOperator scaleFactor="0.75" weight="0.1">
-			<parameter idref="at"/>
-		</scaleOperator>
-		<scaleOperator scaleFactor="0.75" weight="0.1">
-			<parameter idref="cg"/>
-		</scaleOperator>
-		<scaleOperator scaleFactor="0.75" weight="0.1">
-			<parameter idref="gt"/>
+			<parameter idref="kappa"/>
 		</scaleOperator>
 		<deltaExchange delta="0.01" weight="0.1">
 			<parameter idref="frequencies"/>
@@ -192,101 +969,123 @@
 			<parameter idref="alpha"/>
 		</scaleOperator>
 		<scaleOperator scaleFactor="0.75" weight="3">
-			<parameter idref="ucld.mean"/>
-		</scaleOperator>
-		<scaleOperator scaleFactor="0.75" weight="3">
-			<parameter idref="ucld.stdev"/>
+			<parameter idref="clock.rate"/>
 		</scaleOperator>
 		<subtreeSlide size="0.76" gaussian="true" weight="15">
-			<treeModel idref="treeModel"/>
+			<treeModel idref="nonsIndel-aligned.fasta-gb.treeModel"/>
 		</subtreeSlide>
 		<narrowExchange weight="15">
-			<treeModel idref="treeModel"/>
+			<treeModel idref="nonsIndel-aligned.fasta-gb.treeModel"/>
 		</narrowExchange>
 		<wideExchange weight="3">
-			<treeModel idref="treeModel"/>
+			<treeModel idref="nonsIndel-aligned.fasta-gb.treeModel"/>
 		</wideExchange>
 		<wilsonBalding weight="3">
-			<treeModel idref="treeModel"/>
+			<treeModel idref="nonsIndel-aligned.fasta-gb.treeModel"/>
 		</wilsonBalding>
 		<scaleOperator scaleFactor="0.75" weight="3">
-			<parameter idref="treeModel.rootHeight"/>
+			<parameter idref="nonsIndel-aligned.fasta-gb.treeModel.rootHeight"/>
 		</scaleOperator>
 		<uniformOperator weight="30">
-			<parameter idref="treeModel.internalNodeHeights"/>
+			<parameter idref="nonsIndel-aligned.fasta-gb.treeModel.internalNodeHeights"/>
+		</uniformOperator>
+		<subtreeSlide size="0.76" gaussian="true" weight="15">
+			<treeModel idref="sIndel-aligned.fasta-gb.treeModel"/>
+		</subtreeSlide>
+		<narrowExchange weight="15">
+			<treeModel idref="sIndel-aligned.fasta-gb.treeModel"/>
+		</narrowExchange>
+		<wideExchange weight="3">
+			<treeModel idref="sIndel-aligned.fasta-gb.treeModel"/>
+		</wideExchange>
+		<wilsonBalding weight="3">
+			<treeModel idref="sIndel-aligned.fasta-gb.treeModel"/>
+		</wilsonBalding>
+		<scaleOperator scaleFactor="0.75" weight="3">
+			<parameter idref="sIndel-aligned.fasta-gb.treeModel.rootHeight"/>
+		</scaleOperator>
+		<uniformOperator weight="30">
+			<parameter idref="sIndel-aligned.fasta-gb.treeModel.internalNodeHeights"/>
 		</uniformOperator>
 		<scaleOperator scaleFactor="0.75" weight="3">
-			<parameter idref="exponential.popSize"/>
-		</scaleOperator>
-		<scaleOperator scaleFactor="0.75" weight="3">
-			<parameter idref="exponential.doublingTime"/>
+			<parameter idref="constant.popSize"/>
 		</scaleOperator>
 		<upDownOperator scaleFactor="0.75" weight="3">
 			<up>
-				<parameter idref="ucld.mean"/>
+				<parameter idref="clock.rate"/>
 			</up>
 			<down>
-				<parameter idref="treeModel.allInternalNodeHeights"/>
+				<parameter idref="nonsIndel-aligned.fasta-gb.treeModel.allInternalNodeHeights"/>
 			</down>
 		</upDownOperator>
-		<swapOperator size="1" weight="10" autoOptimize="false">
-			<parameter idref="branchRates.categories"/>
-		</swapOperator>
-		<uniformIntegerOperator weight="10">
-			<parameter idref="branchRates.categories"/>
-		</uniformIntegerOperator>
+		<upDownOperator scaleFactor="0.75" weight="3">
+			<up>
+				<parameter idref="clock.rate"/>
+			</up>
+			<down>
+				<parameter idref="sIndel-aligned.fasta-gb.treeModel.allInternalNodeHeights"/>
+			</down>
+		</upDownOperator>
+		<uniformOperator weight="1">
+			<parameter idref="age(Mexico_03-Nov-2013_1_KJ645708.1_unpassaged)"/>
+		</uniformOperator>
+		<uniformOperator weight="1">
+			<parameter idref="age(MN_03-Dec-2013_1_KJ645707.1_unpassaged)"/>
+		</uniformOperator>
+		<uniformOperator weight="1">
+			<parameter idref="age(MN_25-Nov-2013_1_KJ645706.1_unpassaged)"/>
+		</uniformOperator>
+		<uniformOperator weight="1">
+			<parameter idref="age(MN_18-Nov-2013_1_KJ645705.1_unpassaged)"/>
+		</uniformOperator>
+		<uniformOperator weight="1">
+			<parameter idref="age(MN_02-Feb-2014_1_KJ645703.1_unpassaged)"/>
+		</uniformOperator>
+		<uniformOperator weight="1">
+			<parameter idref="age(KS_27-Jan-2014_1_KJ645701.1_unpassaged)"/>
+		</uniformOperator>
+		<uniformOperator weight="1">
+			<parameter idref="age(Mexico_22-Jan-2014_1_KJ645700.1_unpassaged)"/>
+		</uniformOperator>
+		<uniformOperator weight="1">
+			<parameter idref="age(OH_15-Dec-2013_1_KJ645699.1_unpassaged)"/>
+		</uniformOperator>
 	</operators>
 
 	<!-- Define MCMC                                                             -->
-	<mcmc id="mcmc" chainLength="20000000" autoOptimize="true" operatorAnalysis="aligned.fasta-gb.ops">
+	<mcmc id="mcmc" chainLength="50000000" autoOptimize="true">
 		<posterior id="posterior">
 			<prior id="prior">
-				<booleanLikelihood>
-					<monophylyStatistic idref="monophyly(INDEL strains)"/>
-				</booleanLikelihood>
-				<gammaPrior shape="0.05" scale="10.0" offset="0.0">
-					<parameter idref="ac"/>
-				</gammaPrior>
-				<gammaPrior shape="0.05" scale="20.0" offset="0.0">
-					<parameter idref="ag"/>
-				</gammaPrior>
-				<gammaPrior shape="0.05" scale="10.0" offset="0.0">
-					<parameter idref="at"/>
-				</gammaPrior>
-				<gammaPrior shape="0.05" scale="10.0" offset="0.0">
-					<parameter idref="cg"/>
-				</gammaPrior>
-				<gammaPrior shape="0.05" scale="10.0" offset="0.0">
-					<parameter idref="gt"/>
-				</gammaPrior>
+				<logNormalPrior mean="1.0" stdev="1.25" offset="0.0" meanInRealSpace="false">
+					<parameter idref="kappa"/>
+				</logNormalPrior>
 				<uniformPrior lower="0.0" upper="1.0">
 					<parameter idref="frequencies"/>
 				</uniformPrior>
 				<exponentialPrior mean="0.5" offset="0.0">
 					<parameter idref="alpha"/>
 				</exponentialPrior>
-				<exponentialPrior mean="0.3333333333333333" offset="0.0">
-					<parameter idref="ucld.stdev"/>
-				</exponentialPrior>
-				<logNormalPrior mean="0.0" stdev="1.0" offset="0.0" meanInRealSpace="false">
-					<parameter idref="ucld.mean"/>
-				</logNormalPrior>
-				<exponentialPrior mean="1.0" offset="0.0">
-					<parameter idref="exponential.popSize"/>
-				</exponentialPrior>
-				<gammaPrior shape="0.001" scale="1000.0" offset="0.0">
-					<parameter idref="exponential.doublingTime"/>
+				<uniformPrior lower="0.0" upper="Infinity">
+					<parameter idref="clock.rate"/>
+				</uniformPrior>
+				<normalPrior mean="7.0E-4" stdev="1.0E-4">
+					<parameter idref="clock.rate"/>
+				</normalPrior>
+				<gammaPrior shape="3.0" scale="0.3" offset="0.0">
+					<parameter idref="constant.popSize"/>
 				</gammaPrior>
-				<coalescentLikelihood idref="coalescent"/>
+				<coalescentLikelihood idref="nonsIndel-aligned.fasta-gb.coalescent"/>
+				<coalescentLikelihood idref="sIndel-aligned.fasta-gb.coalescent"/>
 			</prior>
 			<likelihood id="likelihood">
-				<treeLikelihood idref="treeLikelihood"/>
+				<treeLikelihood idref="nonsIndel-aligned.fasta-gb.treeLikelihood"/>
+				<treeLikelihood idref="sIndel-aligned.fasta-gb.treeLikelihood"/>
 			</likelihood>
 		</posterior>
 		<operators idref="operators"/>
 
 		<!-- write log to screen                                                     -->
-		<log id="screenLog" logEvery="20000">
+		<log id="screenLog" logEvery="5000">
 			<column label="Posterior" dp="4" width="12">
 				<posterior idref="posterior"/>
 			</column>
@@ -296,44 +1095,60 @@
 			<column label="Likelihood" dp="4" width="12">
 				<likelihood idref="likelihood"/>
 			</column>
-			<column label="rootHeight" sf="6" width="12">
-				<parameter idref="treeModel.rootHeight"/>
+			<column label="nonsIndel-aligned.fasta-gb.rootHeight" sf="6" width="12">
+				<parameter idref="nonsIndel-aligned.fasta-gb.treeModel.rootHeight"/>
 			</column>
-			<column label="ucld.mean" sf="6" width="12">
-				<parameter idref="ucld.mean"/>
+			<column label="sIndel-aligned.fasta-gb.rootHeight" sf="6" width="12">
+				<parameter idref="sIndel-aligned.fasta-gb.treeModel.rootHeight"/>
+			</column>
+			<column label="clock.rate" sf="6" width="12">
+				<parameter idref="clock.rate"/>
 			</column>
 		</log>
 
 		<!-- write log to file                                                       -->
-		<log id="fileLog" logEvery="2000" fileName="aligned.fasta-gb.log" overwrite="false">
+		<log id="fileLog" logEvery="5000" fileName="pedv.log" overwrite="false">
 			<posterior idref="posterior"/>
 			<prior idref="prior"/>
 			<likelihood idref="likelihood"/>
-			<parameter idref="treeModel.rootHeight"/>
-			<tmrcaStatistic idref="tmrca(INDEL strains)"/>
-			<parameter idref="exponential.popSize"/>
-			<parameter idref="exponential.doublingTime"/>
-			<parameter idref="ac"/>
-			<parameter idref="ag"/>
-			<parameter idref="at"/>
-			<parameter idref="cg"/>
-			<parameter idref="gt"/>
+			<parameter idref="nonsIndel-aligned.fasta-gb.treeModel.rootHeight"/>
+			<parameter idref="sIndel-aligned.fasta-gb.treeModel.rootHeight"/>
+			<parameter idref="constant.popSize"/>
+			<parameter idref="kappa"/>
 			<parameter idref="frequencies"/>
 			<parameter idref="alpha"/>
-			<parameter idref="ucld.mean"/>
-			<parameter idref="ucld.stdev"/>
-			<rateStatistic idref="meanRate"/>
-			<rateStatistic idref="coefficientOfVariation"/>
-			<rateCovarianceStatistic idref="covariance"/>
-			<treeLikelihood idref="treeLikelihood"/>
-			<coalescentLikelihood idref="coalescent"/>
+			<parameter idref="clock.rate"/>
+
+			<!-- START Tip date sampling                                                 -->
+			<parameter idref="age(Mexico_03-Nov-2013_1_KJ645708.1_unpassaged)"/>
+			<parameter idref="age(MN_03-Dec-2013_1_KJ645707.1_unpassaged)"/>
+			<parameter idref="age(MN_25-Nov-2013_1_KJ645706.1_unpassaged)"/>
+			<parameter idref="age(MN_18-Nov-2013_1_KJ645705.1_unpassaged)"/>
+			<parameter idref="age(MN_02-Feb-2014_1_KJ645703.1_unpassaged)"/>
+			<parameter idref="age(KS_27-Jan-2014_1_KJ645701.1_unpassaged)"/>
+			<parameter idref="age(Mexico_22-Jan-2014_1_KJ645700.1_unpassaged)"/>
+			<parameter idref="age(OH_15-Dec-2013_1_KJ645699.1_unpassaged)"/>
+
+			<!-- END Tip date sampling                                                   -->
+
+			<treeLikelihood idref="nonsIndel-aligned.fasta-gb.treeLikelihood"/>
+			<treeLikelihood idref="sIndel-aligned.fasta-gb.treeLikelihood"/>
+			<coalescentLikelihood idref="nonsIndel-aligned.fasta-gb.coalescent"/>
+			<coalescentLikelihood idref="sIndel-aligned.fasta-gb.coalescent"/>
 		</log>
 
 		<!-- write tree log to file                                                  -->
-		<logTree id="treeFileLog" logEvery="2000" nexusFormat="true" fileName="aligned.fasta-gb.trees" sortTranslationTable="true">
-			<treeModel idref="treeModel"/>
+		<logTree id="nonsIndel-aligned.fasta-gb.treeFileLog" logEvery="5000" nexusFormat="true" fileName="pedv.nonsIndel-aligned.fasta-gb.trees" sortTranslationTable="true">
+			<treeModel idref="nonsIndel-aligned.fasta-gb.treeModel"/>
 			<trait name="rate" tag="rate">
-				<discretizedBranchRates idref="branchRates"/>
+				<strictClockBranchRates idref="branchRates"/>
+			</trait>
+			<posterior idref="posterior"/>
+		</logTree>
+		<logTree id="sIndel-aligned.fasta-gb.treeFileLog" logEvery="5000" nexusFormat="true" fileName="pedv.sIndel-aligned.fasta-gb.trees" sortTranslationTable="true">
+			<treeModel idref="sIndel-aligned.fasta-gb.treeModel"/>
+			<trait name="rate" tag="rate">
+				<strictClockBranchRates idref="branchRates"/>
 			</trait>
 			<posterior idref="posterior"/>
 		</logTree>

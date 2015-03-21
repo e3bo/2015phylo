@@ -102,16 +102,16 @@ among all unique pairs of nucleotide bases, we used the general
 time-reversible model of nucleotide
 substitutions~\cite{rodriguez1990}.
 
-TODO describe source of clock rate prior, cite maybe woo et al to
-explain why unlinking clock for S and rest.
-
 In setting up our BEAST analysis, we deemed the default priors in the
 configuration generator BEAUTi~\cite{drummond2012} acceptable for the
 substitution model parameters, as previous estimates from the SARS
 coronavirus~\cite{salemi2002} were in relatively high density
-locations of the priors.
-
-
+locations of the priors. We placed a normal prior on the rate of the
+molecular clock with a mean of $7 \times 10^{-4}$ and a standard
+deviation of $1 \times 10^{-4}$ based on the estimate of
+Ref.~\cite{sanchez1992} for transmissible gastroenteritis virus
+(TGEV), which is another alphacoronavirus that infects swine. This
+prior was truncated at zero since rates must be positive.
 
 with one notable exception. We chose the doubling time
 parameterization of the exponential growth model rather than the
