@@ -73,7 +73,7 @@ my.gelman.plot <- function (x, bin.width = 10, max.bins = 50, confidence = 0.95,
 }
 
 burnin <- 0.5
-runstems <- paste0('simplest/run', 1:4, '/simplest')
+runstems <- paste0('run', 1:4, '/pedv')
 
 files <- paste(runstems, '.log', sep='')
 runs <- lapply(files, read.table, header=TRUE, sep="\t")

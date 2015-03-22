@@ -10,7 +10,7 @@ VPATH = $(SD):$(WD)
 
 all: convergence-check.html
 
-convergence-check.html: convergence-check.r
+convergence-check.html: convergence-check.r run1/pedv.trees run2/pedv.trees run3/pedv.trees run4/pedv.trees
 	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr
 
 flagMleReport: mle.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData
@@ -22,14 +22,14 @@ shipment-flows-origins-on-rows-dests-on-columns.csv: clean-shipment-matrix.r fla
 mcc.nh: mcc.tree
 	$(RS) -e "library(ape); tree <- read.nexus(\"$<\"); write.tree(tree, file=\"mcc.nh\");"
 
-mcc.tree: pedv.trees
+mcc.tree: run1/pedv.trees
 	$(TREEANN) -heights keep -burninTrees 10000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
 
-pedv.trees: pedv.xml 
-	$(BEAST) -beagle_off $< >beast-stdout 2>beast-stderr
+run1/pedv.trees run2/pedv.trees run3/pedv.trees run4/pedv.trees: pedv.xml 
+	install -d $(subst pedv.trees,,$@) && cd $(subst pedv.trees,,$@) && $(BEAST) -beagle_off ../$< >beast-stdout 2>beast-stderr
 
-pedv.xml: beast-xml-gen.r flagData sIndel-aligned.fasta-gb nonsIndel-aligned.fasta-gb
-	$<
+pedv.xml: flagData sIndel-aligned.fasta-gb nonsIndel-aligned.fasta-gb
+	md5sum -c alignment-md5sums && touch $@
 
 flagData: $(shell find $(DD)/*)
 	cp -p $(DD)/* . && touch $@

@@ -8,7 +8,7 @@ xmlTemplatePath <- file.path("../data/beast-template.xml")
 
 outputBasename <- "pedv"
 alignStems <- 'aligned.fasta-gb'
-prefixes <- c('sIndel', 'nonsIndel')
+prefixes <- c('nonsIndel', 'sIndel')
 alignmentPaths <- alignmentNames <- paste(prefixes, alignStems, sep='-')
 alignmentNames <- paste(alignmentNames, 'taxa', sep='.')
 
@@ -35,7 +35,9 @@ tmpf <- function(x) {
 }
 allTaxaNodeList <- lapply(unlist(taxaNames), tmpf)
 taxaNode <- xmlNode("taxa", attrs=c(id="taxa"))
-root[["taxa"]] <- addChildren(taxaNode, kids=allTaxaNodeList)
+
+taxan <- which(names(root)=='taxa')
+root[[taxan[1]]] <- addChildren(taxaNode, kids=allTaxaNodeList)
 
 tmpf <- function(x) {
     tmpff <- function(xx) xmlNode("taxon", attrs=c(idref=xx))
@@ -47,9 +49,10 @@ tmpf <- function(x, y) {
     ret <- xmlNode("taxa", attrs=c(id=x))
     addChildren(ret, kids=y)
 }
+taxaNodes <- mapply(tmpf, x=alignmentNames, y=taxaNodes)
 
-mapply(tmpf, x=alignmentNames, y=taxaNodes)
-
+root[[taxan[2]]] <- taxaNodes[[1]]
+root[[taxan[3]]] <- taxaNodes[[2]]
 
 tmpf <- function(x) {
     seq <- toupper(paste(as.character(x)[1,], collapse=''))
@@ -57,11 +60,51 @@ tmpf <- function(x) {
     xmlNode("sequence", xmlNode("taxon", attrs=c(idref=idref)), xmlTextNode(seq))
 }
 
-sequenceNodeList <- lapply(alns[[1]], tmpf)
-alignmentNode <- xmlNode("alignment", attrs=c(id="alignment", dataType="nucleotide"))
-root[["alignment"]] <- addChildren(alignmentNode, kids=sequenceNodeList)
+tmpff <- function(xx){
+    lapply(xx, tmpf)
+}
+
+sequenceNodeList <- lapply(alns, tmpff)
+
+tmpf <- function(x){
+    id <- paste0("alignment", x)
+    xmlNode("alignment", attrs=c(id=id), dataType="nucleotide")
+}
+
+alignmentNodes <- lapply(seq_along(sequenceNodeList), tmpf)
+
+alignn <- which(names(root) =='alignment')
+stopifnot(length(alignn) == length(alignmentNodes))
+for(i in seq_along(alignn)){
+    root[[alignn[i]]] <- addChildren(alignmentNodes[[i]], kids=sequenceNodeList[[i]])
+}
+
+tmpf <- function(x, tm){
+    parmid <- paste(tm, x, "height", sep='.')
+    xmlNode("leafHeight", attrs=c(taxon=x), xmlNode("parameter", attrs=c(id=parmid)))
+}
+
+tmpff <- function(x, y){
+    lapply(x, tmpf, tm=y)
+}
+
+leafHeightList <- mapply(tmpff, taxaNames, alignmentNames)
+
+ind <- which(names(root)=='treeModel')
+stopifnot(length(ind) == length(leafHeightList))
+for(i in seq_along(ind)){
+    root[[ind[i]]] <- addChildren(root[[ind[i]]], kids=leafHeightList[[i]])
+}
+
+
 
 ind <- which(names(xmlChildren(root[["mcmc"]])) == "log")
+
+
+
+xpathApply(root, "/beast/taxa[@id=\'taxa\']", 'xmlChildren<-', value=allTaxaNodeList)
+node <- getNodeSet(root, "/beast/taxa[@id=\'taxa\']")
+
 
 for(i in ind){
     x <- root[["mcmc"]][[i]]
@@ -93,15 +136,6 @@ q('no')
 #'  | Sanchez et al. 1992 |                     |  TGEV |  not in abstract, probably spike |  7e-4 | 5e-4 | 9e-4 |
 
 
-tmpf <- function(x){
-    parmid <- paste0(x, ".height")
-    xmlNode("leafHeight", attrs=c(taxon=x), xmlNode("parameter", attrs=c(id=parmid)))
-}
-
-leafHeightList <- lapply(taxaNames, tmpf)
-
-root[["nonsIndel-aligned.fasta-gb.treeModel"]] <- addChildren(root[['nonsIndel-aligned.fasta-gb.treeModel']], kids=leafHeightList)
-root[["sIndel-aligned.fasta-gb.treeModel"]] <- addChildren(root[['sIndel-aligned.fasta-gb.treeModel']], kids=leafHeightList)
 
 
 

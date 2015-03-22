@@ -12,28 +12,28 @@
 	<!-- ntax=93                                                                 -->
 	<taxa id="taxa">
 		<taxon id="Mexico_03-Nov-2013_1_KJ645708.1_unpassaged">
-			<date value="2013.8383561643836" direction="forwards" units="years" precision="0.0027"/>
+			<date value="2013.8383561643836" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="MN_03-Dec-2013_1_KJ645707.1_unpassaged">
-			<date value="2013.9205479452055" direction="forwards" units="years" precision="0.0027"/>
+			<date value="2013.9205479452055" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="MN_25-Nov-2013_1_KJ645706.1_unpassaged">
-			<date value="2013.8986301369864" direction="forwards" units="years" precision="0.0027"/>
+			<date value="2013.8986301369864" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="MN_18-Nov-2013_1_KJ645705.1_unpassaged">
-			<date value="2013.8794520547945" direction="forwards" units="years" precision="0.0027"/>
+			<date value="2013.8794520547945" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="MN_02-Feb-2014_1_KJ645703.1_unpassaged">
-			<date value="2014.0876712328768" direction="forwards" units="years" precision="0.0027"/>
+			<date value="2014.0876712328768" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="KS_27-Jan-2014_1_KJ645701.1_unpassaged">
-			<date value="2014.0712328767124" direction="forwards" units="years" precision="0.0027"/>
+			<date value="2014.0712328767124" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="Mexico_22-Jan-2014_1_KJ645700.1_unpassaged">
-			<date value="2014.0575342465754" direction="forwards" units="years" precision="0.0027"/>
+			<date value="2014.0575342465754" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="OH_15-Dec-2013_1_KJ645699.1_unpassaged">
-			<date value="2013.9534246575342" direction="forwards" units="years" precision="0.0027"/>
+			<date value="2013.9534246575342" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="OH_01-Jan-2014_1_KJ645698.1_unpassaged">
 			<date value="2014.0" direction="forwards" units="years"/>
@@ -213,22 +213,22 @@
 			<date value="2013.531506849315" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="OH_01-Dec-2013_30_KM392230.1_passaged">
-			<date value="2013.9150684931508" direction="forwards" units="years"/>
+			<date value="2013.9150684931508" direction="forwards" units="years" precision="0.0822"/>
 		</taxon>
 		<taxon id="OH_01-Dec-2013_30_KM392229.1_passaged">
-			<date value="2013.9150684931508" direction="forwards" units="years"/>
+			<date value="2013.9150684931508" direction="forwards" units="years" precision="0.0822"/>
 		</taxon>
 		<taxon id="OH_01-Dec-2013_30_KM392228.1_passaged">
-			<date value="2013.9150684931508" direction="forwards" units="years"/>
+			<date value="2013.9150684931508" direction="forwards" units="years" precision="0.0822"/>
 		</taxon>
 		<taxon id="MI_01-Nov-2013_30_KM392227.1_passaged">
-			<date value="2013.8328767123287" direction="forwards" units="years"/>
+			<date value="2013.8328767123287" direction="forwards" units="years" precision="0.0822"/>
 		</taxon>
 		<taxon id="OH_01-Dec-2013_30_KM392231.1_passaged">
-			<date value="2013.9150684931508" direction="forwards" units="years"/>
+			<date value="2013.9150684931508" direction="forwards" units="years" precision="0.0822"/>
 		</taxon>
 		<taxon id="MI_01-Nov-2013_30_KM392226.1_passaged">
-			<date value="2013.8328767123287" direction="forwards" units="years"/>
+			<date value="2013.8328767123287" direction="forwards" units="years" precision="0.0822"/>
 		</taxon>
 		<taxon id="MN_22-Jan-2014_1_KM077139.1_unpassaged">
 			<date value="2014.0575342465754" direction="forwards" units="years"/>
@@ -258,10 +258,10 @@
 			<date value="2013.4630136986302" direction="forwards" units="years"/>
 		</taxon>
 		<taxon id="IA_01-May-2013_86_KF468754.1_unpassaged">
-			<date value="2013.3287671232877" direction="forwards" units="years"/>
+			<date value="2013.3287671232877" direction="forwards" units="years" precision="0.2356"/>
 		</taxon>
 		<taxon id="IA_01-May-2013_86_KF468753.1_unpassaged">
-			<date value="2013.3287671232877" direction="forwards" units="years"/>
+			<date value="2013.3287671232877" direction="forwards" units="years" precision="0.2356"/>
 		</taxon>
 		<taxon id="CO_10-May-2013_1_KF272920.1_unpassaged">
 			<date value="2013.3534246575343" direction="forwards" units="years"/>
@@ -811,6 +811,35 @@
 		<nodeHeights internalNodes="true" rootNode="true">
 			<parameter id="nonsIndel-aligned.fasta-gb.treeModel.allInternalNodeHeights"/>
 		</nodeHeights>
+
+		<!-- START Tip date sampling                                                 -->
+		<leafHeight taxon="OH_01-Dec-2013_30_KM392230.1_passaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(OH_01-Dec-2013_30_KM392230.1_passaged)"/>
+		</leafHeight>
+		<leafHeight taxon="OH_01-Dec-2013_30_KM392229.1_passaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(OH_01-Dec-2013_30_KM392229.1_passaged)"/>
+		</leafHeight>
+		<leafHeight taxon="OH_01-Dec-2013_30_KM392228.1_passaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(OH_01-Dec-2013_30_KM392228.1_passaged)"/>
+		</leafHeight>
+		<leafHeight taxon="MI_01-Nov-2013_30_KM392227.1_passaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(MI_01-Nov-2013_30_KM392227.1_passaged)"/>
+		</leafHeight>
+		<leafHeight taxon="OH_01-Dec-2013_30_KM392231.1_passaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(OH_01-Dec-2013_30_KM392231.1_passaged)"/>
+		</leafHeight>
+		<leafHeight taxon="MI_01-Nov-2013_30_KM392226.1_passaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(MI_01-Nov-2013_30_KM392226.1_passaged)"/>
+		</leafHeight>
+		<leafHeight taxon="IA_01-May-2013_86_KF468754.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(IA_01-May-2013_86_KF468754.1_unpassaged)"/>
+		</leafHeight>
+		<leafHeight taxon="IA_01-May-2013_86_KF468753.1_unpassaged">
+			<parameter id="nonsIndel-aligned.fasta-gb.age(IA_01-May-2013_86_KF468753.1_unpassaged)"/>
+		</leafHeight>
+
+		<!-- END Tip date sampling                                                   -->
+
 	</treeModel>
 
 	<!-- Generate a tree model                                                   -->
@@ -833,29 +862,29 @@
 	</treeModel>
 
 	<!-- START Tip date sampling                                                 -->
-	<jointParameter id="age(Mexico_03-Nov-2013_1_KJ645708.1_unpassaged)">
-		<parameter idref="nonsIndel-aligned.fasta-gb.age(Mexico_03-Nov-2013_1_KJ645708.1_unpassaged)"/>
+	<jointParameter id="age(OH_01-Dec-2013_30_KM392230.1_passaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(OH_01-Dec-2013_30_KM392230.1_passaged)"/>
 	</jointParameter>
-	<jointParameter id="age(MN_03-Dec-2013_1_KJ645707.1_unpassaged)">
-		<parameter idref="nonsIndel-aligned.fasta-gb.age(MN_03-Dec-2013_1_KJ645707.1_unpassaged)"/>
+	<jointParameter id="age(OH_01-Dec-2013_30_KM392229.1_passaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(OH_01-Dec-2013_30_KM392229.1_passaged)"/>
 	</jointParameter>
-	<jointParameter id="age(MN_25-Nov-2013_1_KJ645706.1_unpassaged)">
-		<parameter idref="nonsIndel-aligned.fasta-gb.age(MN_25-Nov-2013_1_KJ645706.1_unpassaged)"/>
+	<jointParameter id="age(OH_01-Dec-2013_30_KM392228.1_passaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(OH_01-Dec-2013_30_KM392228.1_passaged)"/>
 	</jointParameter>
-	<jointParameter id="age(MN_18-Nov-2013_1_KJ645705.1_unpassaged)">
-		<parameter idref="nonsIndel-aligned.fasta-gb.age(MN_18-Nov-2013_1_KJ645705.1_unpassaged)"/>
+	<jointParameter id="age(MI_01-Nov-2013_30_KM392227.1_passaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(MI_01-Nov-2013_30_KM392227.1_passaged)"/>
 	</jointParameter>
-	<jointParameter id="age(MN_02-Feb-2014_1_KJ645703.1_unpassaged)">
-		<parameter idref="nonsIndel-aligned.fasta-gb.age(MN_02-Feb-2014_1_KJ645703.1_unpassaged)"/>
+	<jointParameter id="age(OH_01-Dec-2013_30_KM392231.1_passaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(OH_01-Dec-2013_30_KM392231.1_passaged)"/>
 	</jointParameter>
-	<jointParameter id="age(KS_27-Jan-2014_1_KJ645701.1_unpassaged)">
-		<parameter idref="nonsIndel-aligned.fasta-gb.age(KS_27-Jan-2014_1_KJ645701.1_unpassaged)"/>
+	<jointParameter id="age(MI_01-Nov-2013_30_KM392226.1_passaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(MI_01-Nov-2013_30_KM392226.1_passaged)"/>
 	</jointParameter>
-	<jointParameter id="age(Mexico_22-Jan-2014_1_KJ645700.1_unpassaged)">
-		<parameter idref="nonsIndel-aligned.fasta-gb.age(Mexico_22-Jan-2014_1_KJ645700.1_unpassaged)"/>
+	<jointParameter id="age(IA_01-May-2013_86_KF468754.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(IA_01-May-2013_86_KF468754.1_unpassaged)"/>
 	</jointParameter>
-	<jointParameter id="age(OH_15-Dec-2013_1_KJ645699.1_unpassaged)">
-		<parameter idref="nonsIndel-aligned.fasta-gb.age(OH_15-Dec-2013_1_KJ645699.1_unpassaged)"/>
+	<jointParameter id="age(IA_01-May-2013_86_KF468753.1_unpassaged)">
+		<parameter idref="nonsIndel-aligned.fasta-gb.age(IA_01-May-2013_86_KF468753.1_unpassaged)"/>
 	</jointParameter>
 
 	<!-- END Tip date sampling                                                   -->
@@ -998,28 +1027,28 @@
 			</down>
 		</upDownOperator>
 		<uniformOperator weight="1">
-			<parameter idref="age(Mexico_03-Nov-2013_1_KJ645708.1_unpassaged)"/>
+			<parameter idref="age(OH_01-Dec-2013_30_KM392230.1_passaged)"/>
 		</uniformOperator>
 		<uniformOperator weight="1">
-			<parameter idref="age(MN_03-Dec-2013_1_KJ645707.1_unpassaged)"/>
+			<parameter idref="age(OH_01-Dec-2013_30_KM392229.1_passaged)"/>
 		</uniformOperator>
 		<uniformOperator weight="1">
-			<parameter idref="age(MN_25-Nov-2013_1_KJ645706.1_unpassaged)"/>
+			<parameter idref="age(OH_01-Dec-2013_30_KM392228.1_passaged)"/>
 		</uniformOperator>
 		<uniformOperator weight="1">
-			<parameter idref="age(MN_18-Nov-2013_1_KJ645705.1_unpassaged)"/>
+			<parameter idref="age(MI_01-Nov-2013_30_KM392227.1_passaged)"/>
 		</uniformOperator>
 		<uniformOperator weight="1">
-			<parameter idref="age(MN_02-Feb-2014_1_KJ645703.1_unpassaged)"/>
+			<parameter idref="age(OH_01-Dec-2013_30_KM392231.1_passaged)"/>
 		</uniformOperator>
 		<uniformOperator weight="1">
-			<parameter idref="age(KS_27-Jan-2014_1_KJ645701.1_unpassaged)"/>
+			<parameter idref="age(MI_01-Nov-2013_30_KM392226.1_passaged)"/>
 		</uniformOperator>
 		<uniformOperator weight="1">
-			<parameter idref="age(Mexico_22-Jan-2014_1_KJ645700.1_unpassaged)"/>
+			<parameter idref="age(IA_01-May-2013_86_KF468754.1_unpassaged)"/>
 		</uniformOperator>
 		<uniformOperator weight="1">
-			<parameter idref="age(OH_15-Dec-2013_1_KJ645699.1_unpassaged)"/>
+			<parameter idref="age(IA_01-May-2013_86_KF468753.1_unpassaged)"/>
 		</uniformOperator>
 	</operators>
 
@@ -1036,9 +1065,6 @@
 				<exponentialPrior mean="0.5" offset="0.0">
 					<parameter idref="alpha"/>
 				</exponentialPrior>
-				<uniformPrior lower="0.0" upper="Infinity">
-					<parameter idref="clock.rate"/>
-				</uniformPrior>
 				<normalPrior mean="7.0E-4" stdev="1.0E-4">
 					<parameter idref="clock.rate"/>
 				</normalPrior>
@@ -1078,7 +1104,7 @@
 		</log>
 
 		<!-- write log to file                                                       -->
-		<log id="fileLog" logEvery="5000" fileName="pedv.log" overwrite="false">
+		<log id="fileLog" logEvery="5000" fileName="pedv-priors.log" overwrite="false">
 			<posterior idref="posterior"/>
 			<prior idref="prior"/>
 			<likelihood idref="likelihood"/>
@@ -1091,14 +1117,14 @@
 			<parameter idref="clock.rate"/>
 
 			<!-- START Tip date sampling                                                 -->
-			<parameter idref="age(Mexico_03-Nov-2013_1_KJ645708.1_unpassaged)"/>
-			<parameter idref="age(MN_03-Dec-2013_1_KJ645707.1_unpassaged)"/>
-			<parameter idref="age(MN_25-Nov-2013_1_KJ645706.1_unpassaged)"/>
-			<parameter idref="age(MN_18-Nov-2013_1_KJ645705.1_unpassaged)"/>
-			<parameter idref="age(MN_02-Feb-2014_1_KJ645703.1_unpassaged)"/>
-			<parameter idref="age(KS_27-Jan-2014_1_KJ645701.1_unpassaged)"/>
-			<parameter idref="age(Mexico_22-Jan-2014_1_KJ645700.1_unpassaged)"/>
-			<parameter idref="age(OH_15-Dec-2013_1_KJ645699.1_unpassaged)"/>
+			<parameter idref="age(OH_01-Dec-2013_30_KM392230.1_passaged)"/>
+			<parameter idref="age(OH_01-Dec-2013_30_KM392229.1_passaged)"/>
+			<parameter idref="age(OH_01-Dec-2013_30_KM392228.1_passaged)"/>
+			<parameter idref="age(MI_01-Nov-2013_30_KM392227.1_passaged)"/>
+			<parameter idref="age(OH_01-Dec-2013_30_KM392231.1_passaged)"/>
+			<parameter idref="age(MI_01-Nov-2013_30_KM392226.1_passaged)"/>
+			<parameter idref="age(IA_01-May-2013_86_KF468754.1_unpassaged)"/>
+			<parameter idref="age(IA_01-May-2013_86_KF468753.1_unpassaged)"/>
 
 			<!-- END Tip date sampling                                                   -->
 
@@ -1109,14 +1135,14 @@
 		</log>
 
 		<!-- write tree log to file                                                  -->
-		<logTree id="nonsIndel-aligned.fasta-gb.treeFileLog" logEvery="5000" nexusFormat="true" fileName="pedv.nonsIndel-aligned.fasta-gb.trees" sortTranslationTable="true">
+		<logTree id="nonsIndel-aligned.fasta-gb.treeFileLog" logEvery="5000" nexusFormat="true" fileName="pedv-priors.nonsIndel-aligned.fasta-gb.trees" sortTranslationTable="true">
 			<treeModel idref="nonsIndel-aligned.fasta-gb.treeModel"/>
 			<trait name="rate" tag="rate">
 				<strictClockBranchRates idref="branchRates"/>
 			</trait>
 			<posterior idref="posterior"/>
 		</logTree>
-		<logTree id="sIndel-aligned.fasta-gb.treeFileLog" logEvery="5000" nexusFormat="true" fileName="pedv.sIndel-aligned.fasta-gb.trees" sortTranslationTable="true">
+		<logTree id="sIndel-aligned.fasta-gb.treeFileLog" logEvery="5000" nexusFormat="true" fileName="pedv-priors.sIndel-aligned.fasta-gb.trees" sortTranslationTable="true">
 			<treeModel idref="sIndel-aligned.fasta-gb.treeModel"/>
 			<trait name="rate" tag="rate">
 				<strictClockBranchRates idref="branchRates"/>
