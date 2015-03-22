@@ -4,8 +4,8 @@ library(ggplot2)
 library(rphastRegression)
 
 tmpf <- function(){
-    tmNames <- system("grep ^TreeLikelihood beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
-    uniquePatterns <- system("grep \"unique pattern count\" beast-stdout | cut -d\' \' -f7", inter=TRUE)
+    tmNames <- system("grep ^TreeLikelihood run1/beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
+    uniquePatterns <- system("grep \"unique pattern count\" run1/beast-stdout | cut -d\' \' -f7", inter=TRUE)
     names(uniquePatterns) <- tmNames
     uniquePatterns
 }
