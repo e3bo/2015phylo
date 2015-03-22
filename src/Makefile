@@ -11,7 +11,7 @@ VPATH = $(SD):$(WD)
 
 all: convergence-check.html
 
-convergence-check.html: convergence-check.r beast/run1/pedv.trees beast/run2/pedv.trees beast/run3/pedv.trees beast/run4/pedv.trees
+convergence-check.html: convergence-check.r beast/run1/pedv.log beast/run2/pedv.log beast/run3/pedv.log beast/run4/pedv.log
 	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr
 
 flagMleReport: mle.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData
@@ -26,9 +26,9 @@ mcc.nh: mcc.tree
 mcc.tree: run1/pedv.trees
 	$(TREEANN) -heights keep -burninTrees 10000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
 
-beast/run1/pedv.trees beast/run2/pedv.trees beast/run3/pedv.trees beast/run4/pedv.trees: pedv.xml 
+beast/run1/pedv.log beast/run2/pedv.log beast/run3/pedv.log beast/run4/pedv.log: pedv.xml
 	bd=$(subst pedv.trees,,$@) && install -d $$bd && cp $< $$bd \
-	&& $(BEAST) -working -beagle_off $${bd}$(<F) >$${bd}beast-stdout 2>$${bd}beast-stderr &\
+	&& $(BEAST) -mc3 -overwrite -working -beagle_off $${bd}$(<F) >$${bd}beast-stdout 2>$${bd}beast-stderr &\
 	while [ ! -f $(subst pedv.trees,,$@)pedv.ops ]; do sleep 1; done
 
 pedv.xml: flagData sIndel-aligned.fasta-gb nonsIndel-aligned.fasta-gb
