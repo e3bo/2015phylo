@@ -1,3 +1,4 @@
+SHELL = bash
 RS = /usr/bin/Rscript
 MAFFT = /usr/bin/mafft
 GBLOCKS = /usr/bin/Gblocks
@@ -26,7 +27,9 @@ mcc.tree: run1/pedv.trees
 	$(TREEANN) -heights keep -burninTrees 10000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
 
 beast/run1/pedv.trees beast/run2/pedv.trees beast/run3/pedv.trees beast/run4/pedv.trees: pedv.xml 
-	install -d beast/$(subst pedv.trees,,$@) && cd beast/$(subst pedv.trees,,$@) && $(BEAST) -beagle_off ../../$< >beast-stdout 2>beast-stderr & while [ ! -e pedv.ops ]; do sleep 60; done && kill $(jobs -p)
+	bd=$(subst pedv.trees,,$@) && install -d $$bd && cp $< $$bd \
+	&& $(BEAST) -working -beagle_off $${bd}$(<F) >$${bd}beast-stdout 2>$${bd}beast-stderr &\
+	while [ ! -f $(subst pedv.trees,,$@)pedv.ops ]; do sleep 1; done
 
 pedv.xml: flagData sIndel-aligned.fasta-gb nonsIndel-aligned.fasta-gb
 	md5sum -c alignment-md5sums && touch $@
