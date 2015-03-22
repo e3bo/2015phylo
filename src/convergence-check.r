@@ -329,22 +329,52 @@ asdsf.plot <- function(...){
 
 ## Now to actually make use of all those functions
 
-tfiles <- paste(runstems, '.trees', sep='')
-truns <- lapply(tfiles, read.nexus)
-tmobs <- lapply(truns, phymcmc)
-tml <- phymcmc.list(tmobs)
+tnames <- c('nonsIndel-aligned.fasta-gb', 'sIndel-aligned.fasta-gb')
+tmpf <- function(x) {
+    paste(runstems, x,  'trees', sep='.')
+}
+tfiles <- lapply(tnames, tmpf)
+tmpf <- function(x) {
+    lapply(x, read.nexus)
+}
+truns <- lapply(tfiles, tmpf)
+tmpf <- function(x) {
+    lapply(x, phymcmc)
+}
+tmobs <- lapply(truns, tmpf)
+tml <- lapply(tmobs, phymcmc.list)
 
-wstart <- burnin*end(tml)
-wtml <- window(tml, start=wstart)
+tmpf <- function(x) {
+    burnin*end(x)
+}
+wstart <- lapply(tml, tmpf)
+
+tmpf <- function(x, y) {
+    window(x, start=y)
+}
+wtml <- mapply(tmpf, tml, wstart, SIMPLIFY=FALSE)
 
 nbin <- 8
-system.time(ans <- asdsf.plot(wtml, nbin=nbin))
-hist(log10(ans$sdsfl[[nbin]]))
+tmpf <- function(x) {
+    asdsf.plot(x, nbin=nbin)
+}
+ans <- lapply(wtml, tmpf)
 
-tsamp <- window(wtml, thin=thin(wtml)*100)
-tsamp <- Reduce('c', x=tsamp)
-class(tsamp) <- 'multiPhylo'
-attr(tsamp, 'mcpar') <- NULL
-write.nexus(tsamp, file='sampled.trees')
+system.time(ans <- asdsf.plot(wtml, nbin=nbin))
+
+tmpf <- function(x) {
+    hist(log10(x$sdsfl[[nbin]]))
+}
+lapply(ans, tmpf)
+
+tmpf <- function(x, y) {
+    file <- paste0(y, '.sample.trees') 
+    tsamp <- window(x, thin=thin(x)*100)
+    tsamp <- Reduce('c', x=tsamp)
+    class(tsamp) <- 'multiPhylo'
+    attr(tsamp, 'mcpar') <- NULL
+    write.nexus(tsamp, file=file)
+}
+mapply(tmpf, wtml, tnames)
 
 save.image('convergence-check.RData')

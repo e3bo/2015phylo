@@ -25,8 +25,8 @@ mcc.nh: mcc.tree
 mcc.tree: run1/pedv.trees
 	$(TREEANN) -heights keep -burninTrees 10000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
 
-run1/pedv.trees run2/pedv.trees run3/pedv.trees run4/pedv.trees: pedv.xml 
-	install -d $(subst pedv.trees,,$@) && cd $(subst pedv.trees,,$@) && $(BEAST) -beagle_off ../$< >beast-stdout 2>beast-stderr
+beast/run1/pedv.trees beast/run2/pedv.trees beast/run3/pedv.trees beast/run4/pedv.trees: pedv.xml 
+	install -d beast/$(subst pedv.trees,,$@) && cd beast/$(subst pedv.trees,,$@) && $(BEAST) -beagle_off ../../$< >beast-stdout 2>beast-stderr
 
 pedv.xml: flagData sIndel-aligned.fasta-gb nonsIndel-aligned.fasta-gb
 	md5sum -c alignment-md5sums && touch $@
