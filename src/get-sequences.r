@@ -38,7 +38,6 @@ feats$isPassaged <- FALSE
 foo <- c(okaCell2014field, hoangFull2013)
 feats[foo, 'isPassaged'] <- TRUE
 
-
 ## from table 1 of Oka et al.
 feats['KM392226.1','loc'] <- 'MI'
 feats['KM392227.1','loc'] <- 'MI'
@@ -84,24 +83,23 @@ names(dna) <- sapply(labs, '[[', 4)
 test <- sapply(dna, length) > 27000
 
 feats$isWholeGenome <- test[rownames(feats)]
-feats$tname <- paste(feats$loc, feats$tipDate, feats$precision, rownames(feats),
-                     ifelse(feats$isPassaged, 'passaged', 'unpassaged'), sep='_')
+feats$tname <- paste(feats$loc, feats$tipDate, feats$precision, rownames(feats), sep='_')
 
-test <- feats$isFieldSample %in% TRUE & feats$isWholeGenome
+test <- feats$isFieldSample %in% TRUE & feats$isWholeGenome & !feats$isPassaged
 sel <- rownames(feats)[test]
 
 dna <- dna[sel]
 
 names(dna) <- feats[sel, 'tname']
 
-sIndels <- c("IA_20-Oct-2013_1_KJ645649.1_unpassaged",
-             "IA_29-Dec-2013_1_KJ645695.1_unpassaged",
-             "IA_29-Dec-2013_1_KJ645696.1_unpassaged",
-             "IN_08-Jun-2013_1_KJ645635.1_unpassaged",
-             "MN_05-Nov-2013_1_KJ645655.1_unpassaged",
-             "MN_26-Jun-2013_1_KJ645704.1_unpassaged",
-             "OH_29-Jan-2014_1_KJ645702.1_unpassaged",
-             "OH_15-Jan-2014_1_KJ399978.1_unpassaged")
+sIndels <- c("IA_20-Oct-2013_1_KJ645649.1",
+             "IA_29-Dec-2013_1_KJ645695.1",
+             "IA_29-Dec-2013_1_KJ645696.1",
+             "IN_08-Jun-2013_1_KJ645635.1",
+             "MN_05-Nov-2013_1_KJ645655.1",
+             "MN_26-Jun-2013_1_KJ645704.1",
+             "OH_29-Jan-2014_1_KJ645702.1",
+             "OH_15-Jan-2014_1_KJ399978.1")
 
 write.dna(dna[sIndels], file='sIndel.fasta', format='fasta')
 test <- !names(dna) %in% sIndels

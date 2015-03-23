@@ -28,7 +28,7 @@ mcc.tree: run1/pedv.trees
 
 beast/run1/pedv.log beast/run2/pedv.log beast/run3/pedv.log beast/run4/pedv.log: sample-initial-values-from-priors.r
 	bd=$(subst pedv.log,,$@) && install -d $$bd && $< > $${bd}pedv-reinitialized.xml \
-	&& $(BEAST) -mc3_chains 4 -overwrite -working -beagle_off $${bd}pedv-reinitialized.xml >$${bd}beast-stdout 2>$${bd}beast-stderr &\
+	&& $(BEAST) -working -beagle_off $${bd}pedv-reinitialized.xml >$${bd}beast-stdout 2>$${bd}beast-stderr &\
 	while [ ! -f $(subst pedv.log,,$@)pedv.ops ]; do sleep 1; done
 
 pedv.xml: flagData sIndel-aligned.fasta-gb nonsIndel-aligned.fasta-gb

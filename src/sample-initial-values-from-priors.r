@@ -21,4 +21,7 @@ while(rval <= 0){
 }    
 invisible(xpathApply(tree, "/beast/strictClockBranchRates/rate/parameter", 'xmlAttrs<-', value=c(value=rval)))
 
+rval <- rgamma(n=1, shape=3, scale=0.3)
+invisible(xpathApply(tree, "/beast/constantSize/populationSize/parameter", 'xmlAttrs<-', value=c(value=rval)))
+
 cat(saveXML(xmlRoot(tree)), '\n')
