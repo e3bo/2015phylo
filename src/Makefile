@@ -26,7 +26,7 @@ mcc.nh: mcc.tree
 mcc.tree: run1/pedv.trees
 	$(TREEANN) -heights keep -burninTrees 10000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
 
-beast/run1/pedv.log beast/run2/pedv.log beast/run3/pedv.log beast/run4/pedv.log: sample-initial-values-from-priors.r
+beast/run1/pedv.log beast/run2/pedv.log beast/run3/pedv.log beast/run4/pedv.log: sample-initial-values-from-priors.r pedv.xml
 	bd=$(subst pedv.log,,$@) && install -d $$bd && $< > $${bd}pedv-reinitialized.xml \
 	&& $(BEAST) -working -beagle_off $${bd}pedv-reinitialized.xml >$${bd}beast-stdout 2>$${bd}beast-stderr &\
 	while [ ! -f $(subst pedv.log,,$@)pedv.ops ]; do sleep 1; done

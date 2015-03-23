@@ -1,5 +1,6 @@
 library(ape)
 library(coda)
+library(phangorn)
 
 my.gelman.preplot <- function (x, bin.width = bin.width, max.bins = max.bins, confidence = confidence, 
     transform = transform, autoburnin = autoburnin) 
@@ -73,7 +74,7 @@ my.gelman.plot <- function (x, bin.width = 10, max.bins = 50, confidence = 0.95,
 }
 
 burnin <- 0.5
-runstems <- paste0('run', 1:4, '/pedv')
+runstems <- paste0('beast/run', 1:4, '/pedv')
 
 files <- paste(runstems, '.log', sep='')
 runs <- lapply(files, read.table, header=TRUE, sep="\t")
@@ -376,5 +377,20 @@ tmpf <- function(x, y) {
     write.nexus(tsamp, file=file)
 }
 mapply(tmpf, wtml, tnames)
+
+tmpff <- function(xx, stem, thin=50000){
+    tmpf <- function(x) {
+        x <- window(x, thin=thin)
+        class(x) <- 'multiPhylo'
+        x
+    }
+    xx <- lapply(xx, tmpf)
+    con <- consensus(xx[[1]], p=0.5)
+    file <- paste0('densiTree.', stem, '.pdf')
+    pdf(file=file)
+    lapply(xx, densiTree, consensus=con, alpha=0.1)
+    dev.off()
+}
+mapply(tmpff, xx=wtml, stem=tnames)
 
 save.image('convergence-check.RData')
