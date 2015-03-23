@@ -31,6 +31,15 @@
 
 \section*{Introduction}
 
+Porcine epidemic diarrhea virus (PEDV) emerged in the United States in
+2013, rapidly spread throughout much of the country, and was later
+detected in neighboring Canada and
+Mexico~\cite{hill2014,efsa2014}. The circulating strains cause severe
+diarrhea and vomiting~\cite{jung_pathology_2014}, and more than 90 percent of
+unweaned pigs may die during an outbreak on a
+farm~\cite{stevenson2013}. Pigs surviving infection have been found to
+be less productive~\cite{alvarez2015}.
+
 Genomic analyses
 ~\cite{huang2013,chen_isolation_2013,marthaler_complete_2013,wang_new_2014,vlasova2014,marthaler2014}
 have shown that several strains of PEDV are circulating in the United
@@ -51,6 +60,7 @@ We build on the work of Refs.~\cite{lemey2014,magee2014}.
 \section*{Methods}
 
 <<load-results,include=FALSE>>=
+
 
 load("mle.RData")
 
@@ -76,9 +86,9 @@ Several of these sequences had a characteristic indel in their spike
 gene. These are referred to as S INDEL sequences, and they are
 divergent enough from the strains lacking the indel that it is likely
 that their most recent common ancestor predates their introduction to
-North America~\cite{vlasova}. Thus we generated separate alignments
+North America~\cite{vlasova2014}. Thus we generated separate alignments
 for S INDEL and non-S INDEL sequences and estimate separate trees for
-them.  We used mafft to generate the alignments.~\cite{katoh2013}. The
+them.  We used mafft to generate the alignments~\cite{katoh2013}. The
 alignments were run through Gblocks~\cite{castresana2000} to identify
 any very poorly conserved, potentially misleading segments. Gblocks
 removed only regions with many gaps such as the ends of the alignment
@@ -104,14 +114,14 @@ substitutions~\cite{rodriguez1990}.
 
 In setting up our BEAST analysis, we deemed the default priors in the
 configuration generator BEAUTi~\cite{drummond2012} acceptable for the
-substitution model parameters, as previous estimates from the SARS
-coronavirus~\cite{salemi2002} were in relatively high density
-locations of the priors. We placed a normal prior on the rate of the
-molecular clock with a mean of $7 \times 10^{-4}$ and a standard
-deviation of $1 \times 10^{-4}$ based on the estimate of
-Ref.~\cite{sanchez1992} for transmissible gastroenteritis virus
-(TGEV), which is another alphacoronavirus that infects swine. This
-prior was truncated at zero since rates must be positive.
+substitution model parameters, as previous estimates from the severe
+acute respiratory syndrome (SARS) coronavirus~\cite{salemi2004} were
+in relatively high density locations of the priors. We placed a normal
+prior on the rate of the molecular clock with a mean of $7 \times
+10^{-4}$ and a standard deviation of $1 \times 10^{-4}$ based on the
+estimate of Ref.~\cite{sanchez1992} for transmissible gastroenteritis
+virus (TGEV), which is another alphacoronavirus that infects
+swine. This prior was truncated at zero since rates must be positive.
 
 with one notable exception. We chose the doubling time
 parameterization of the exponential growth model rather than the
@@ -238,8 +248,8 @@ bound on the importation date of these strains to the country.
     time scale. The S INDEL sequences form the monophyletic group at
     the bottom that diverges from the rest of the sequences at the
     root of the tree. These trees were based on
-    \Sexpr{uniquePatterns[sIndel]} unique columns in the alignment of
-    S INDEL sequences and \Sexpr{uniquePatterns[nonsIndel]} in the
+    \Sexpr{#uniquePatterns[sIndel]} unique columns in the alignment of
+    S INDEL sequences and \Sexpr{#uniquePatterns[nonsIndel]} in the
     alignment of the other sequences.
   }\label{densitree}
 \end{figure}
