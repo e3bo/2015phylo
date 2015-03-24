@@ -35,27 +35,24 @@ Porcine epidemic diarrhea virus (PEDV) emerged in the United States in
 2013, rapidly spread throughout much of the country, and was later
 detected in neighboring Canada and
 Mexico~\cite{hill2014,efsa2014}. The circulating strains cause severe
-diarrhea and vomiting~\cite{jung_pathology_2014}, and more than 90 percent of
-unweaned pigs may die during an outbreak on a
-farm~\cite{stevenson2013}. Pigs surviving infection have been found to
-be less productive~\cite{alvarez2015}.
+diarrhea and vomiting~\cite{jung_pathology_2014}, and more than 90
+percent of unweaned pigs may die during an outbreak on a
+farm~\cite{stevenson2013}. Those pigs that do survive infection have
+been found to be less productive~\cite{alvarez2015}.
 
-Genomic analyses
-~\cite{huang2013,chen_isolation_2013,marthaler_complete_2013,wang_new_2014,vlasova2014,marthaler2014}
+Greater understanding of how PEDV spreads among farms could likely
+identify weak points in current control measures. That unidentified
+weak points exist is clear from the occurrence of PEDV outbreaks
+without any clear cause on farms with rigorous biosecurity
+programs~\cite{stevenson2013}. Plausible sources of infection include
+aerosolized particles, contaminated fomites such as feed and transport
+trailers, animals with subclinical infections, and milk from affected
+sows~\cite{jung2015}. Genomic analyses
+~\cite{chen_isolation_2013,hoang2013,huang2013,marthaler_complete_2013,stevenson2013,marthaler2014,oka2014,vlasova2014,wang_new_2014}
 have shown that several strains of PEDV are circulating in the United
 States, raising the prospect of a phylogeographic assessment of
 transmission routes, as in
-Refs.~\cite{nelson2011,lemey2014,magee2014}. Molecular work thus far,
-however, has not provided evidence regarding the large-scale spread of
-PEDV beyond a possible origin in China.
-
-There is some evidence that one strain leads to infection with milder
-severity and could serve as a vaccine candidate~\cite{wang_new_2014},
-but work to develop effective vaccines for the related TGEV
-(transmissible gastroenteritis virus) has had limited success
-~\cite[p. 513]{zimmerman_diseases_2012}.
-
-We build on the work of Refs.~\cite{lemey2014,magee2014}.
+Refs.~\cite{nelson2011,lemey2014,magee2014}.
 
 \section*{Methods}
 
@@ -122,6 +119,8 @@ prior on the rate of the molecular clock with a mean of $7 \times
 estimate of Ref.~\cite{sanchez1992} for transmissible gastroenteritis
 virus (TGEV), which is another alphacoronavirus that infects
 swine. This prior was truncated at zero since rates must be positive.
+
+TODO describe rationale for constant population size gamma prior
 
 with one notable exception. We chose the doubling time
 parameterization of the exponential growth model rather than the
