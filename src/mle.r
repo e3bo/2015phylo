@@ -4,28 +4,44 @@ library(ggplot2)
 library(rphastRegression)
 
 tmpf <- function(){
-    tmNames <- system("grep ^TreeLikelihood run1/beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
-    uniquePatterns <- system("grep \"unique pattern count\" run1/beast-stdout | cut -d\' \' -f7", inter=TRUE)
+    tmNames <- system("grep ^TreeLikelihood beast/run1/beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
+    uniquePatterns <- system("grep \"unique pattern count\" beast/run1/beast-stdout | cut -d\' \' -f7", inter=TRUE)
     names(uniquePatterns) <- tmNames
     uniquePatterns
 }
-uniqePatterns <- tmpf()
+uniquePatterns <- tmpf()
 
-trees <- read.nexus('sampled.trees')
+tnames <- c('nonsIndel-aligned.fasta-gb', 'sIndel-aligned.fasta-gb')
+tfiles <- paste0(names(uniquePatterns), '-aligned.fasta-gb.sample.trees')
+trees <- lapply(tfiles, read.nexus)
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
 
-nms <- attr(trees, 'TipLabel')
-abs <- sapply(strsplit(nms, '_'), '[[', 1)
-absF <- factor(abs)
-levs <- levels(absF)
+nms <- lapply(trees, attr, which='TipLabel')
 
-n <- length(levs)
+tmpf <- function(x) {
+    x <- strsplit(x, '_')
+    sapply(x, '[', 1)
+}
+abs <- lapply(nms, tmpf)
+
+absF <- factor(unlist(abs))
+levs <- levels(absF)
+n <- length(unlist(levs))
 alph <- LETTERS[seq_len(n)]
-levels(absF) <- alph
+
+absFt <- lapply(abs, factor, levels=levs)
+absFt <- lapply(absFt, 'levels<-', value=alph)
 alph <- paste(alph, collapse='')
-seqs <- lapply(absF, as.character)
-pedvMSA <- msa(seqs=seqs, names=nms, alphabet=alph)
-treeChar <- unname(lapply(trees, write.tree))
+seqs <- lapply(absFt, as.character)
+tmpf <- function(x, y) {
+    msa(seqs=x, names=y, alphabet=alph)
+}
+pedvMSA <- mapply(tmpf, seqs, nms, SIMPLIFY=FALSE)
+
+tmpf <- function(x) {
+    unname(lapply(x, write.tree))
+}
+treeChar <- lapply(trees, tmpf)
 
 pairs <- expand.grid(to=levs, from=levs)
 test <- pairs$from != pairs$to
@@ -48,11 +64,17 @@ designMatrixAsym <- cbind("(Intercept)"=1, pairFlows)
 
 bg <- rep(1, n)/n
 
-mods <- lapply(treeChar, tm, subst.mod="UNREST", alphabet=alph, backgd=bg)
+tmpf <- function(x) {
+    lapply(x, tm, subst.mod="UNREST", alphabet=alph, backgd=bg)
+}
+mods <- lapply(treeChar, tmpf)
 
 assignElement <- function(x, nam, val) {
-    x[[nam]] <- val
-    x
+    tmpf <- function(x) {
+        x[[nam]] <- val
+        x
+    }
+    lapply(x, tmpf)
 }
 mods <- lapply(mods, assignElement, nam='rate.matrix', val=matrix(NA, nrow=n, ncol=n))
 
@@ -78,17 +100,21 @@ getRateMatrix <- function(design.matrix, w){
     rate.matrix
 }
 
-obj <- function(w, msa=pedvMSA, tmlist=M[['asym']]){
-    design.matrix <- tmlist[[1]][['design.matrix']]
+obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
+    design.matrix <- tmlol[[1]][[1]][['design.matrix']]
     rate.matrix <- getRateMatrix(design.matrix, w)
-    tmlist <- lapply(tmlist, assignElement, nam='rate.matrix', val=rate.matrix)
-    tmpf <- function(x) likelihood.msa(x=msa, tm=x)
-    mean(sapply(tmlist, tmpf))
+    tmlol <- lapply(tmlol, assignElement, nam='rate.matrix', val=rate.matrix)
+    tmpf <- function(x, tmlist) {
+        treeLogLikGivenMSA <- function(tm) likelihood.msa(x=x, tm=tm)
+        sapply(tmlist, treeLogLikGivenMSA)
+    }
+    ll <- mapply(tmpf, msal, tmlol)
+    mean(rowSums(ll))
 }
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
-system.time(ans[['sym']] <- optim.rphast(obj, tmlist=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
+system.time(ans[['sym']] <- optim.rphast(obj, tmlol=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
 objNull <- function(x) obj(c(x, 0))
 system.time(ans[['null']] <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
 
