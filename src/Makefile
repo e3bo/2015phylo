@@ -27,7 +27,7 @@ mcc.tree: run1/pedv.trees
 	$(TREEANN) -heights keep -burninTrees 10000 -limit 0.5 $< $@ >treean-stdout 2>treean-stderr
 
 beast/priors/pedv-priors.log: flagData
-	bd=$(subst pedv-priors.log,,$@) && install -d $$bd && cp pedv-priors.xml ${bd} \
+	bd=$(subst pedv-priors.log,,$@) && install -d $$bd && cp pedv-priors.xml $$bd \
 	&& $(BEAST) -working -beagle_off $${bd}pedv-priors.xml >$${bd}beast-stdout 2>$${bd}beast-stderr &\
 	while [ ! -f $(subst pedv-priors.log,,$@)pedv-priors.ops ]; do sleep 60; done; kill $$(jobs -p)
 
