@@ -361,10 +361,8 @@ tmpf <- function(x) {
 }
 ans <- lapply(wtml, tmpf)
 
-system.time(ans <- asdsf.plot(wtml, nbin=nbin))
-
 tmpf <- function(x) {
-    hist(log10(x$sdsfl[[nbin]]))
+    hist(log10(10e-8 + x$sdsfl[[nbin]]))
 }
 lapply(ans, tmpf)
 
