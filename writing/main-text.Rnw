@@ -33,26 +33,39 @@
 
 Porcine epidemic diarrhea virus (PEDV) emerged in the United States in
 2013, rapidly spread throughout much of the country, and was later
-detected in neighboring Canada and
-Mexico~\cite{hill2014,efsa2014}. The circulating strains cause severe
-diarrhea and vomiting~\cite{jung_pathology_2014}, and more than 90
-percent of unweaned pigs may die during an outbreak on a
-farm~\cite{stevenson2013}. Those pigs that do survive infection have
-been found to be less productive~\cite{alvarez2015}.
+detected in neighboring Canada and Mexico~\cite{hill2014,efsa2014}. A
+U.S. strain has been confirmed to cause severe watery diarrhea and
+vomiting~\cite{jung_pathology_2014}, characteristic symptoms of
+porcine epidemic diarrhea (PED). Morbidity during a PED outbreak can
+be extremely high, and more than 90 percent of unweaned pigs may
+die~\cite{stevenson2013}. Those pigs that do survive have been found
+to be less productive~\cite{alvarez2015}.
 
 Greater understanding of how PEDV spreads among farms could likely
 identify weak points in current control measures. That unidentified
-weak points exist is clear from the occurrence of PEDV outbreaks
+weak points exist is clear from the occurrence of PED outbreaks
 without any clear cause on farms with rigorous biosecurity
-programs~\cite{stevenson2013}. Plausible sources of infection include
-aerosolized particles, contaminated fomites such as feed and transport
-trailers, animals with subclinical infections, and milk from affected
-sows~\cite{jung2015}. Genomic analyses
+programs~\cite{stevenson2013}. At a larger scale, although it seems
+that a U.S. strain originated from a recombination of strains
+circulating in China~\cite{tian2014}, the location and manner through
+which PEDV was introduced into the United States remains unknown,
+indicating an unidentified weak point in the nation's border security.
+
+Genomic analyses
 ~\cite{chen_isolation_2013,hoang2013,huang2013,marthaler_complete_2013,stevenson2013,marthaler2014,oka2014,vlasova2014,wang_new_2014}
-have shown that several strains of PEDV are circulating in the United
-States, raising the prospect of a phylogeographic assessment of
-transmission routes, as in
-Refs.~\cite{nelson2011,lemey2014,magee2014}.
+have shown that several strains of PEDV are circulating in North
+America. Here, we take advantage of the available sequence data to
+estimate rates of interstate migration of the virus with a
+phylogeographic approach as in
+Refs.~\cite{nelson2011,lemey2014,magee2014} . A regression model is
+used to relate these rates to interstate transport flows of swine, as
+contamination of transport trailers has been implicated in
+farm-to-farm spread~\cite{lowe2014,thomas2015}. We use simulation to
+verify our ability to accurately estimate parameters for our assumed
+model. Regarding the nature of PEDV's introduction to the United
+States, we look for evidence of multiple introductions by comparing
+estimated ages of common ancestors of two clades with the first known
+outbreak of PEDV in the United States.
 
 \section*{Methods}
 
@@ -249,8 +262,7 @@ bound on the importation date of these strains to the country.
     root of the tree. These trees were based on
     \Sexpr{#uniquePatterns[sIndel]} unique columns in the alignment of
     S INDEL sequences and \Sexpr{#uniquePatterns[nonsIndel]} in the
-    alignment of the other sequences.
-  }\label{densitree}
+    alignment of the other sequences.  }\label{densitree}
 \end{figure}
 
 To gain insight into drivers of the geographic spread of PEDV, we
@@ -287,7 +299,8 @@ used~\cite{lemey2014,magee2014}, did not include such a
 verification. Although the reliability of likelihood-based estimation
 of transition rates is well-established for molecular data, it was not
 clear that they could perform well with the comparatively smaller
-amounts of geographic information in current field data. Thus the
+amounts of geographic information in current field data (TODO cite
+Yang statement to this effect). Thus the
 finding that these methods are reasonably accurate with simulated data
 sets of a similar size and shape to a real data set supports the
 continued development and application of these methods for
