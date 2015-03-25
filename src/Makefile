@@ -9,13 +9,13 @@ SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
 
-all: convergence-check.html
+all: flagMleReport
+
+flagMleReport: mle.r convergence-check.html shipment-flows-origins-on-rows-dests-on-columns.csv flagData
+	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr && touch $@
 
 convergence-check.html: convergence-check.r beast/run1/pedv.log beast/run2/pedv.log beast/run3/pedv.log beast/run4/pedv.log
 	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr
-
-flagMleReport: mle.r mcc.tree shipment-flows-origins-on-rows-dests-on-columns.csv flagData
-	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr && touch $@
 
 shipment-flows-origins-on-rows-dests-on-columns.csv: clean-shipment-matrix.r flagData
 	$<
