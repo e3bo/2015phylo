@@ -56,3 +56,6 @@ pedv-north-america.csv: parse.py pedv-north-america.gb
 
 pedv-north-america.gb: get-gb.r
 	$<
+
+clean:
+	rm convergence-check.r mle.r
