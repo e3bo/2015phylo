@@ -84,43 +84,46 @@ virus[Organism] AND (country=USA OR country=Mexico OR
 country=Canada)''. We refined these results to whole genome sequences
 that had both ``collection\_date'' and ``country'' features in their
 GenBank records. Further, we checked that the sequences were from
-field
-strains. Refs.~\cite{marthaler_complete_2013,hoang2013,huang2013,chen_isolation_2013,stevenson2013,vlasova2014,oka2014,wang_new_2014}
+field strains. That is, we checked that the sequences were from
+samples collected from farms experiencing
+outbreaks. Refs.~\cite{marthaler_complete_2013,hoang2013,huang2013,chen_isolation_2013,stevenson2013,vlasova2014,oka2014,wang_new_2014}
 were used in this regard, and for sequence with accession KJ584361 we
 relied on a comment in the GenBank record to verify that it was a
 field strain. Those references and other fields in the GenBank records
 were also used to determine the U.S. state of collection for some
-sequences. (TODO explain that passged strains excluded and why)
+sequences. We excluded any sequences that were known to have come from
+viruses passaged in cell culture because such passaging has been found
+to lead to alterations in the spike
+protein~\cite{lawrence2014,oka2014}.
 
 Several of these sequences had a characteristic indel in their spike
 gene. These are referred to as S INDEL sequences, and they are
 divergent enough from the strains lacking the indel that it is likely
 that their most recent common ancestor predates their introduction to
-North America~\cite{vlasova2014}. Thus we generated separate alignments
-for S INDEL and non-S INDEL sequences and estimate separate trees for
-them.  We used mafft to generate the alignments~\cite{katoh2013}. The
-alignments were run through Gblocks~\cite{castresana2000} to identify
-any very poorly conserved, potentially misleading segments. Gblocks
-removed only regions with many gaps such as the ends of the alignment
-and indels. The alignments were also checked visually for evidence of
+North America~\cite{vlasova2014}. For our anlaysis we are primarily
+interested in the evolutionary history of the strains within North
+America ans thus we generated separate alignments for S INDEL and
+non-S INDEL sequences and estimate separate trees for them.  We used
+mafft to generate the alignments~\cite{katoh2013}. The alignments were
+run through Gblocks~\cite{castresana2000} to identify any very poorly
+conserved, potentially misleading segments. Gblocks removed only
+regions with many gaps such as the ends of the alignment and
+indels. The alignments were also checked visually for evidence of
 alignment errors using CLUSTAL~X~\cite{thompson1997}.
 
 We used BEAST~\cite{drummond2012} to obtain from our sequence
 alignments a posterior sample of rooted trees with branch lengths
-measured in calendar years. Because PEDV in North America is believed
-to have spread rapidly in 2013~\cite{lowe2014}, we used an exponential
-growth coalescent model~\cite{griffiths1994,drummond2002} as a prior
-density for the times of ancestral nodes of the tree. To allow for
-random variation in substitution rates among lineages, we used a
-relaxed molecular clock model~\cite{drummond2006} in which the
-substitution rates of branches were lognormaly distributed. To allow
-for random variation in substitution rates among sites, we assume the
-rates are sampled from an approximation to the
-gamma-distribution~\cite{yang1994}, with four discrete rate categories
-in our approximation. To allow for variation in substitution rates
-among all unique pairs of nucleotide bases, we used the general
-time-reversible model of nucleotide
-substitutions~\cite{rodriguez1990}.
+measured in calendar years. To guard against overfitting and to limit
+the computational demands of our analysis, we chose relatively
+low-parameter model components. We used a constant--population-size
+coalescent model~\cite{kingman1982,drummond2002} as a prior density
+for the times of ancestral nodes of the tree. We also assume that
+substitutions occur according to a molecular clock with a constant
+rate and that the relative rates of substitutions between different
+bases occur according to the HKY85 model~\cite{hasegawa1985}. We allow
+for random variation in rates among sites using the standard
+approximation to the gamma distribution~\cite{yang1994}, with four
+discrete rate categories in our approximation.
 
 In setting up our BEAST analysis, we deemed the default priors in the
 configuration generator BEAUTi~\cite{drummond2012} acceptable for the
@@ -132,15 +135,16 @@ prior on the rate of the molecular clock with a mean of $7 \times
 estimate of Ref.~\cite{sanchez1992} for transmissible gastroenteritis
 virus (TGEV), which is another alphacoronavirus that infects
 swine. This prior was truncated at zero since rates must be positive.
-
-TODO describe rationale for constant population size gamma prior
-
-with one notable exception. We chose the doubling time
-parameterization of the exponential growth model rather than the
-growth rate parameterization, which had the effect of preventing
-models with negative growth rates from being proposed. We have placed
-code to reproduce our input files in a web archive (TODO make sure
-full build is working, make archive, add citation).
+For a prior on the coalescent population size, we used a gamma
+distribution with a shape of 3 and a scale of 0.3. This prior was
+chosen based on our belief that it is unlikely that the most recent
+common ancestor of either the S INDEL and non-S INDEL sequences
+existed much earlier than the date of the first known
+U.S. outbreak. For two sequences not having month and days of
+collection, we placed a uniform prior on their day of collection over
+a window of 86 days considered likely to include the true collection
+date. Our BEAST XML input files have been archived on the web (TODO
+make sure full build is working, make archive, add citation).
 
 We discarded the first 10 percent of samples as burn-in, and we
 performed the following checks for signs that the remaining samples
