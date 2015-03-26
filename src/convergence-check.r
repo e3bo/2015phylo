@@ -391,4 +391,34 @@ tmpff <- function(xx, stem, thin=50000){
 }
 mapply(tmpff, xx=wtml, stem=tnames)
 
+tmpf <- function(x, y) {
+    file <- paste0(y, '.plotted.trees') 
+    tsamp <- window(x, thin=thin(x)*2000)
+    tsamp <- Reduce('c', x=tsamp)
+    class(tsamp) <- 'multiPhylo'
+    attr(tsamp, 'mcpar') <- NULL
+    tl <- attr(tsamp, 'TipLabel')
+    tl <- gsub("_.*_", " ", tl)
+    n <- max(nchar(tl))
+    if(n > maxLabLen) maxLabLen <<- n
+    tmpff <- function(xx) {
+        while(nchar(xx) < maxLabLen) xx <- paste0(xx, ' ')
+        xx
+    }
+    attr(tsamp, 'TipLabel') <- sapply(tl, tmpff)
+    con <- consensus(tsamp, p=0.5)
+    par(mar=c(1,1,0,1.8))
+    par(xpd=NA)
+    densiTree(tsamp, consensus=con, alpha=0.01)
+    write.nexus(tsamp, file=file)
+}
+
+maxLabLen <- 0
+res <- 400
+png('trees.png', pointsize=8, height=8.75*res, width=3.25*res, res=400)
+layout(matrix(c(1,2,3), ncol=1), heights=c(7,1,0.25))
+mapply(tmpf, wtml, tnames)
+mtext('Years before Februrary 2014', side=1, line=2.75, at=0.5)
+dev.off()
+
 save.image('convergence-check.RData')

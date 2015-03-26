@@ -90,7 +90,7 @@ were used in this regard, and for sequence with accession KJ584361 we
 relied on a comment in the GenBank record to verify that it was a
 field strain. Those references and other fields in the GenBank records
 were also used to determine the U.S. state of collection for some
-sequences.
+sequences. (TODO explain that passged strains excluded and why)
 
 Several of these sequences had a characteristic indel in their spike
 gene. These are referred to as S INDEL sequences, and they are
