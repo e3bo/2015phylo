@@ -391,7 +391,7 @@ tmpff <- function(xx, stem, thin=50000){
 }
 mapply(tmpff, xx=wtml, stem=tnames)
 
-tmpf <- function(x, y, mar) {
+tmpf <- function(x, y, mar, text) {
     file <- paste0(y, '.plotted.trees') 
     tsamp <- window(x, thin=thin(x)*50)
     tsamp <- Reduce('c', x=tsamp)
@@ -409,8 +409,9 @@ tmpf <- function(x, y, mar) {
     con <- consensus(tsamp, p=0.5)
     par(mar=mar)
     par(xpd=NA)
-    par(yaxs='i')#avoid extending y-range by 4%
+    par(yaxs='i') ## avoid extending y-range by 4%
     densiTree(tsamp, consensus=con, alpha=0.01)
+    mtext(text, side=2, las=1, at=length(tl), cex=1.5)
     write.nexus(tsamp, file=file)
 }
 
@@ -418,8 +419,9 @@ maxLabLen <- 0
 res <- 400
 png('trees.png', pointsize=8, height=8.75*res, width=3.25*res, res=res)
 layout(matrix(c(1,2,3), ncol=1), heights=c(7,1,0.25))
-mar <- list(c(1,0,0,0.1), c(1,0,2,0.1))
-mapply(tmpf, wtml, tnames, mar)
+mar <- list(c(1,2,0,0.1), c(1,2,2,0.1))
+text <- list('A', 'B')
+mapply(tmpf, wtml, tnames, mar, text)
 mtext('Years before Februrary 2014', side=1, line=2.75, at=0.5)
 dev.off()
 

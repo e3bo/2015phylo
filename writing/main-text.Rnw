@@ -247,22 +247,18 @@ S INDEL and non-S INDEL strains before April 2013, the current upper
 bound on the importation date of these strains to the country.
 
 \begin{figure}[h]
-%  \includegraphics[width=\textwidth]{fig1}
+  \includegraphics[height=0.8\textheight]{fig1}
   \caption{{\bf The resolution of clades and clade ages for the PEDV
-      sequences was variable.}  All trees in the posterior sample are
-    plotted with a transparent color to illustrate the probability
-    densities of all clades and node ages. At intermediate depths of
-    the tree, several conflicting clades have moderate levels of
-    support producing a blurred image of webs and multifurcations. The
-    node positions on the $x$ axis represent their occurrence in
-    calendar time. The time interval between the oldest and newest
-    tree tip is about 9 months, which provides an indication of the
-    time scale. The S INDEL sequences form the monophyletic group at
-    the bottom that diverges from the rest of the sequences at the
-    root of the tree. These trees were based on
-    \Sexpr{#uniquePatterns[sIndel]} unique columns in the alignment of
-    S INDEL sequences and \Sexpr{#uniquePatterns[nonsIndel]} in the
-    alignment of the other sequences.  }\label{densitree}
+      sequences was variable.}  A subset of trees in the posterior
+    sample are plotted with a transparent color to illustrate the
+    probability densities of all clades and node ages. (A) The tree
+    for the non-S INDEL strains is poorly resolved at intermediate
+    depths, producing a blurred image of webs and multifurcations. (B)
+    The tree for the S INDEL sequences is well resolved. These trees
+    were based on \Sexpr{#uniquePatterns[sIndel]} unique columns in
+    the alignment of S INDEL sequences and
+    \Sexpr{#uniquePatterns[nonsIndel]} in the alignment of the other
+    sequences.  }\label{densitree}
 \end{figure}
 
 To gain insight into drivers of the geographic spread of PEDV, we
