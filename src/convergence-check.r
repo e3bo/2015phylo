@@ -391,9 +391,9 @@ tmpff <- function(xx, stem, thin=50000){
 }
 mapply(tmpff, xx=wtml, stem=tnames)
 
-tmpf <- function(x, y) {
+tmpf <- function(x, y, mar) {
     file <- paste0(y, '.plotted.trees') 
-    tsamp <- window(x, thin=thin(x)*2000)
+    tsamp <- window(x, thin=thin(x)*50)
     tsamp <- Reduce('c', x=tsamp)
     class(tsamp) <- 'multiPhylo'
     attr(tsamp, 'mcpar') <- NULL
@@ -407,17 +407,19 @@ tmpf <- function(x, y) {
     }
     attr(tsamp, 'TipLabel') <- sapply(tl, tmpff)
     con <- consensus(tsamp, p=0.5)
-    par(mar=c(1,1,0,1.8))
+    par(mar=mar)
     par(xpd=NA)
+    par(yaxs='i')#avoid extending y-range by 4%
     densiTree(tsamp, consensus=con, alpha=0.01)
     write.nexus(tsamp, file=file)
 }
 
 maxLabLen <- 0
 res <- 400
-png('trees.png', pointsize=8, height=8.75*res, width=3.25*res, res=400)
+png('trees.png', pointsize=8, height=8.75*res, width=3.25*res, res=res)
 layout(matrix(c(1,2,3), ncol=1), heights=c(7,1,0.25))
-mapply(tmpf, wtml, tnames)
+mar <- list(c(1,0,0,0.1), c(1,0,2,0.1))
+mapply(tmpf, wtml, tnames, mar)
 mtext('Years before Februrary 2014', side=1, line=2.75, at=0.5)
 dev.off()
 
