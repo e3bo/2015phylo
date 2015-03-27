@@ -18,5 +18,5 @@ docker run -it -v ${ddir}:${hdir}/data:ro \
 user=$(id -u)
 group=$(id -g)
 
-echo " Currently, $wdir and its contents are always owned by root, so you might want to"
+echo " Currently, $wkdir and its contents are always owned by root, so you might want to"
 echo "    sudo chown -hR ${user}:${group} $wkdir "
