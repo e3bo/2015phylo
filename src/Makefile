@@ -9,7 +9,10 @@ SD = /root/src
 DD = /root/data
 VPATH = $(SD):$(WD)
 
-all: flagMleReport
+all: flagMleReport posteriors-and-priors.pdf
+
+posteriors-and-priors.pdf: plot-posteriors-and-priors.r beast/priors/pedv-priors.log beast/run1/pedv.log beast/run2/pedv.log beast/run3/pedv.log beast/run4/pedv.log nonsIndel-aligned.fasta-gb sIndel-aligned.fasta-gb
+	$<
 
 flagMleReport: mle.r convergence-check.html shipment-flows-origins-on-rows-dests-on-columns.csv flagData
 	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr && touch $@
