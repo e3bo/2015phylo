@@ -127,7 +127,7 @@ discrete rate categories in our approximation.
 
 In setting up our BEAST analysis, we deemed the default priors in the
 configuration generator BEAUTi~\cite{drummond2012} acceptable for the
-substitution model parameters, as previous estimates from the severe
+substitution model parameters, as previous estimates from severe
 acute respiratory syndrome (SARS) coronavirus~\cite{salemi2004} were
 in relatively high density locations of the priors. We placed a normal
 prior on the rate of the molecular clock with a mean of $7 \times
@@ -146,23 +146,26 @@ a window of 86 days considered likely to include the true collection
 date. Our BEAST XML input files have been archived on the web (TODO
 make sure full build is working, make archive, add citation).
 
-We discarded the first 10 percent of samples as burn-in, and we
-performed the following checks for signs that the remaining samples
-had failed to adequately sample the true posterior distribution. Using
-Tracer~\cite{tracer}, we confirmed visually that all marginal
-distributions seemed fairly smooth and that all traces appeared to
-have constant means and variances. We increased the length of the
-chains until all effective sample sizes exceeded 200, and ended up
-with a chain of 100 million states in which the minimum effective
-sample size was 408.
+We ran BEAST four times, each time with different initial parameter
+values sampled from the prior. We discarded the first 50 percent of
+samples from each run as burn-in, and checked for convergence problems
+as follows. We plotted the potential scale reduction
+factor~\cite{gelman1992} over increasing fractions of our sample and
+confirmed that it was steadily below 1.01 for all parameters. We
+confirmed visually that all marginal posterior densities seemed smooth
+and all traces appeared to have constant means and variances. We
+verified that all effective sample sizes exceeded 200.
 
-We obtained a one-tree summary of our posterior sample of trees using
-the treeanotator progam that is distributed with BEAST. This tree was
-one of our posterior trees having the maximum clade credibility
-topology, which is the topology with the highest geometric mean of
-posterior probabilities for all of its clades. We used
-DensiTree~\cite{bouckaert2010} to plot the full sample of trees and
-thus illustrate the degree to which the tree was resolved.
+We also computed for each tree estimate, for all clades occurring in
+10 percent or more of the sampled trees from any one of our runs, the
+averaged standard deviation of clade frequencies (ASDCF), where
+standard deviations are of the frequencies of clades across runs. We
+plotted the ASDCF with increasing fractions of our posterior sample to
+confirm that it was steadily below 1.01. This diagnostic was based on
+that of the popular Mr. Bayes program~\cite{ronquist2012} for Bayesian
+phylogenetics. We also made density plots of the samples of
+trees~\cite{bouckaert2010} from each run and compared them visually to
+detect any qualitative differences in trees among runs.
 
 \subsection*{Regression modeling of geographic transition rates}
 
@@ -221,7 +224,7 @@ by the middle 95\% of these bootstrap estimates.
 
 In our application, we matched the states of the geographic model to
 the unique collection locations of sequences. This choice gave us a
-total of $K =\Sexpr{nchar(modAsym$alphabet)}$ unique model states,
+total of $K =\Sexpr{nchar(M[['asym']][[1]][[1]]$alphabet)}$ unique model states,
 each of which corresponded to an area governed by either a U.S. state
 or the nation of Mexico.
 
@@ -259,10 +262,16 @@ bound on the importation date of these strains to the country.
     for the non-S INDEL strains is poorly resolved at intermediate
     depths, producing a blurred image of webs and multifurcations. (B)
     The tree for the S INDEL sequences is well resolved. These trees
-    were based on \Sexpr{#uniquePatterns[sIndel]} unique columns in
+    were based on \Sexpr{uniquePatterns['sIndel']} unique columns in
     the alignment of S INDEL sequences and
-    \Sexpr{#uniquePatterns[nonsIndel]} in the alignment of the other
+    \Sexpr{uniquePatterns['nonsIndel']} in the alignment of the other
     sequences.  }\label{densitree}
+\end{figure}
+
+\begin{figure}[h]
+\includegraphics{fig2}
+\caption{{\bf The S INDEL and non-S INDEL strains likely diverged
+    before the first reported U.S. outbreak.}  }\label{rootheights}
 \end{figure}
 
 To gain insight into drivers of the geographic spread of PEDV, we
@@ -277,7 +286,7 @@ the hypothesis that flows had no effect $(\chi^2_1 =
   df=1)))})$.
 
 \begin{figure}[h]
-\includegraphics{fig2}
+\includegraphics{fig3}
 \caption{{\bf Flows have a positive effect on geographic transition
     rates.} The red point indicates maximum likelihood estimate for
   regression coefficients in our linear predictor of geographic
