@@ -111,7 +111,9 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
         sapply(tmlist, treeLogLikGivenMSA)
     }
     ll <- mapply(tmpf, msal, tmlol)
-    mean(rowSums(ll))
+    probs <- apply(exp(ll), 1, prod)
+    print(diff(range(log10(probs))))
+    log(mean(probs))
 }
 
 ans <- list()

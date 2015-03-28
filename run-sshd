@@ -11,7 +11,7 @@ hdir="/root"
 docker run -d -p 49153:22 -v ${ddir}:${hdir}/data:ro \
        -v ${sdir}:${hdir}/src:ro \
        -v ${wkdir}:${hdir}/work \
-       --name 2015phylo_sshd eamon/2015phylo:v2013.03.26
+       --name 2015phylo_sshd eamon/2015phylo:v2015.03.26
 
 user=$(id -u)
 group=$(id -g)
