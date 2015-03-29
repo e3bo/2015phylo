@@ -1,6 +1,7 @@
 library(ape)
 library(boot)
 library(ggplot2)
+library(numDeriv)
 library(rphastRegression)
 
 tmpf <- function(){
@@ -12,10 +13,9 @@ tmpf <- function(){
 uniquePatterns <- tmpf()
 
 tnames <- c('nonsIndel-aligned.fasta-gb', 'sIndel-aligned.fasta-gb')
-tfiles <- paste0(names(uniquePatterns), '-aligned.fasta-gb.sample.trees')
+tfiles <- paste0(names(uniquePatterns), '-aligned.fasta-gb.combined.trees')
 trees <- lapply(tfiles, read.nexus)
-# uncomment to speed up
-# trees <- list(trees[[1]][1:3], trees[[2]][1:3])
+
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
 
 nms <- lapply(trees, attr, which='TipLabel')
@@ -40,7 +40,11 @@ tmpf <- function(x, y) {
 }
 pedvMSA <- mapply(tmpf, seqs, nms, SIMPLIFY=FALSE)
 
+simulationR <- 2
 tmpf <- function(x) {
+    n <- length(x)
+    ind <- sample.int(n, size=simulationR, replace=TRUE)
+    x <- x[ind]
     unname(lapply(x, write.tree))
 }
 treeChar <- lapply(trees, tmpf)
@@ -84,6 +88,8 @@ M <- list()
 M[['sym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixSym)
 M[['asym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixAsym)
 
+##' ## Fit models
+
 getRateMatrix <- function(design.matrix, w){
     eta <- exp(design.matrix %*% w)
     pos <- 1
@@ -112,7 +118,6 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
     }
     ll <- mapply(tmpf, msal, tmlol)
     probs <- apply(exp(ll), 1, prod)
-    print(diff(range(log10(probs))))
     log(mean(probs))
 }
 
@@ -121,6 +126,46 @@ system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upp
 system.time(ans[['sym']] <- optim.rphast(obj, tmlol=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
 objNull <- function(x) obj(c(x, 0))
 system.time(ans[['null']] <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
+
+#' ## Check for simulation bias
+#'
+
+ran.gen <- function(data, pars, tmlol=M[['asym']], nsim=1){
+    ntrees <- sapply(trees, length)
+    ind <- sapply(ntrees, sample.int, size=1)
+    tmpf <- function(x, tr, y) {
+        ret <- x[[1]]
+        ret$tree <- write.tree(tr[y])
+        ret
+    }
+    tmsel <- mapply(tmpf, tmlol, trees, ind, SIMPLIFY=FALSE)
+    tmpf <- function(x) {
+        design.matrix <- x[['design.matrix']]
+        x[['rate.matrix']] <- getRateMatrix(design.matrix, pars)
+        simulate.msa(object=x, nsim=nsim)
+    }
+    lapply(tmsel, tmpf)
+}
+
+get.score.stat <- function(data, pars) {
+    grad(obj, x=pars, msal=data)
+}
+
+simulation.bias.diagnostic <- function(pars, R=1e3) {
+    bs.score <- boot(data=pedvMSA, get.score.stat, R=R, sim='parametric',
+                                 ran.gen=ran.gen, mle=pars, parallel='multicore',
+                                 ncpus=parallel::detectCores(), pars=pars)
+    hats <- colMeans(bs.score$t)
+    V <- var(bs.score$t)
+    Q <- hats %*% solve(V) %*% hats
+    1 - pchisq(q=Q, df=2)
+}
+
+simPars <- lapply(ans, '[[', 'par')
+simPars$null <- c(ans$null$maximum, 0)
+
+(pvals <- sapply(simPars, simulation.bias.diagnostic, R=20))
+stopifnot(pvals > 0.1)
 
 (Dsym <- -2*ans[['null']]$objective + 2*-ans[['sym']]$value)
 (Dasym <- -2*ans[['null']]$objective + 2*-ans[['asym']]$value)
@@ -146,7 +191,7 @@ ran.gen <- function(data, pars, tmlol=M[['asym']], nsim=1){
 }
 
 get.stat <- function(data) {
-    ans <- optim.rphast(obj, params=simPars, lower=c(-5,-5), upper=c(2,2), msa=data)
+    ans <- optim.rphast(obj, params=simPars, lower=c(-5,-5), upper=c(2,2), msal=data)
     ans$par
 }
 
@@ -174,12 +219,12 @@ ylim <- est[c('plotMin', 'plotMax'), 'flo']
 
 D <- expand.grid(Intercept=seq(from=xlim[1], to=xlim[2], length.out=41),
                  Flows=seq(from=ylim[1], to=ylim[2], length.out=31))
-D[, 'Expected\nlog likelihood'] <- apply(D, 1, obj)
+D[, 'Simulated\nlog likelihood'] <- apply(D, 1, obj)
 
 estCol <- "#CC6677"
 theme_set(theme_classic())
-g <- ggplot(data=D, aes(x=Intercept, y=Flows, z=`Expected\nlog likelihood`))
-g <- g + geom_tile(aes(fill=`Expected\nlog likelihood`))
+g <- ggplot(data=D, aes(x=Intercept, y=Flows, z=`Simulated\nlog likelihood`))
+g <- g + geom_tile(aes(fill=`Simulated\nlog likelihood`))
 g <- g + stat_contour(colour="#DDCC77", alpha=0.5)
 g <- g + geom_point(x=est['point', 'int'], y=est['point', 'flo'], size=5, colour=estCol)
 g <- g + xlab('\nIntercept') + ylab('Flow effect\n')

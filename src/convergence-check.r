@@ -367,9 +367,8 @@ tmpf <- function(x) {
 lapply(ans, tmpf)
 
 tmpf <- function(x, y) {
-    file <- paste0(y, '.sample.trees') 
-    tsamp <- window(x, thin=thin(x)*2000)
-    tsamp <- Reduce('c', x=tsamp)
+    file <- paste0(y, '.combined.trees')
+    tsamp <- Reduce('c', x=x)
     class(tsamp) <- 'multiPhylo'
     attr(tsamp, 'mcpar') <- NULL
     write.nexus(tsamp, file=file)
