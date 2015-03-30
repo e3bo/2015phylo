@@ -2,6 +2,7 @@
 
 set -e
 
+dtag="v2013.03.30"
 topd=$(pwd)
 tstamp=$(date +%Y-%m-%d_%H-%M-%S)
 rnd=$RANDOM
@@ -14,7 +15,7 @@ nproc=$(nproc)
 docker run -v ${ddir}:${hdir}/data:ro \
        -v ${sdir}:${hdir}/src:ro \
        -v ${wkdir}:${hdir}/work \
-       eamon/2015phylo:v2015.03.26 /bin/bash -c "cd /root/work && nice -n 19 make -j $nproc -f /root/src/Makefile"
+       eamon/2015phylo:${dtag} /bin/bash -c "cd /root/work && nice -n 19 make -j $nproc -f /root/src/Makefile"
 
 echo "Currently, $wkdir and its contents are always owned by root, so you might want to"
 user=$(id -u)
