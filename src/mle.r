@@ -117,8 +117,11 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
         sapply(tmlist, treeLogLikGivenMSA)
     }
     ll <- mapply(tmpf, msal, tmlol)
-    probs <- apply(exp(ll), 1, prod)
-    log(mean(probs))
+    ll <- rowSums(ll)
+    scale <- max(ll)
+    ll <- ll - scale
+    probs <- exp(ll)
+    log(mean(probs)) + scale
 }
 
 ans <- list()
@@ -153,12 +156,14 @@ get.score.stat <- function(data, pars) {
 
 simulation.bias.diagnostic <- function(pars, R=1e3) {
     bs.score <- boot(data=pedvMSA, get.score.stat, R=R, sim='parametric',
-                                 ran.gen=ran.gen, mle=pars, parallel='multicore',
-                                 ncpus=parallel::detectCores(), pars=pars)
+                     ran.gen=ran.gen, mle=pars, parallel='multicore',
+                     ncpus=parallel::detectCores(), pars=pars)
+    print(bs.score)
     hats <- colMeans(bs.score$t)
     V <- var(bs.score$t)
     Q <- hats %*% solve(V) %*% hats
-    1 - pchisq(q=Q, df=2)
+    print(Q)
+    1 - pchisq(q=Q, df=length(pars))
 }
 
 simPars <- lapply(ans, '[[', 'par')
@@ -173,30 +178,15 @@ stopifnot(pvals > 0.1)
 #' A chi squared test supports rejection of the null for the directed model
 pchisq(q=c(Dsym, Dasym), df=1, lower.tail=FALSE)
 
-#' Parametric bootstrap for confidence intervals and bias
+#' ## Parametric bootstrap for confidence intervals and bias
 
-simPars <- ans[['asym']]$par
-
-ran.gen <- function(data, pars, tmlol=M[['asym']], nsim=1){
-    ntrees <- sapply(tmlol, length)
-    ind <- sapply(ntrees, sample.int, size=1)
-    tmpf <- function(x, y) x[[y]]
-    tmsel <- mapply(tmpf, tmlol, ind, SIMPLIFY=FALSE)
-    tmpf <- function(x) {
-        design.matrix <- x[['design.matrix']]
-        x[['rate.matrix']] <- getRateMatrix(design.matrix, pars)
-        simulate.msa(object=x, nsim=nsim)
-    }
-    lapply(tmsel, tmpf)
-}
-
-get.stat <- function(data) {
-    ans <- optim.rphast(obj, params=simPars, lower=c(-5,-5), upper=c(2,2), msal=data)
+get.param.stat <- function(data, pars) {
+    ans <- optim.rphast(obj, params=pars, lower=c(-5,-5), upper=c(2,2), msal=data)
     ans$par
 }
 
-system.time(bs <- boot(data=pedvMSA, get.stat, R=1e3, sim='parametric',
-                       ran.gen=ran.gen, mle=simPars, parallel='multicore',
+system.time(bs <- boot(data=pedvMSA, get.param.stat, R=1e3, sim='parametric',
+                       ran.gen=ran.gen, mle=simPars$asym, pars=simPars$asym, parallel='multicore',
                        ncpus=parallel::detectCores()))
 
 # The distribution of estimates appears close to normal, without any discontinuities
@@ -206,7 +196,7 @@ plot(bs, index=2)
 (ciInt <- boot.ci(bs, index=1, type=c('perc', 'norm')))
 (ciFlo <- boot.ci(bs, index=2, type=c('perc', 'norm')))
 
-#' Make a nice plot of the point estimates, confidence intervals, and likelihood surface
+#' ##  Make a nice plot of the point estimates, confidence intervals, and likelihood surface
 
 est <- data.frame(int=ciInt$percent[4:5], flo=ciFlo$percent[4:5], row.names=c('lower', 'upper'))
 est['point', ] <- ans[['asym']]$par
@@ -239,10 +229,10 @@ g <- g + geom_segment(x=est['lower', 'int'], xend=est['upper', 'int'],
 #g <- g + theme(legend.position='top')
 ggsave('ll-surface.pdf', width=7, height=5, pointsize=12)
 
-# Illustrate consistency
+##' ## Illustrate consistency
 
 nsim <- 1e3
-simMsa <- ran.gen(data=NA, pars=simPars, nsim=nsim)
+simMsa <- ran.gen(data=NA, pars=simPars$asym, nsim=nsim)
 
 tmpf <- function(x) {
     x <- floor(10^x)
@@ -251,7 +241,7 @@ tmpf <- function(x) {
         xx[, cols]
     }
     msa <- lapply(simMsa, tmpff)
-    ans <- optim.rphast(obj, params=simPars, lower=c(-5,-5), upper=c(2,2), msa=msa)
+    ans <- optim.rphast(obj, params=simPars$asym, lower=c(-5,-5), upper=c(2,2), msa=msa)
     ans$par
 }
 
@@ -260,15 +250,15 @@ system.time(parSeq <- sapply(inds, tmpf))
 
 par(mfrow=c(2,1))
 par(mar=c(5,5,4,2) + .1)
-plot(c(inds, inds[1]), c(parSeq[1, ], simPars[1]), type='n',
+plot(c(inds, inds[1]), c(parSeq[1, ], simPars$asym[1]), type='n',
      xlab='log10(Fold increase in information)',
      ylab='Intercept\n( log {interstate movements} / year)')
 points(inds, parSeq[1, ], type='b')
-abline(h=simPars[1])
-plot(c(inds, inds[1]), c(parSeq[2, ], simPars[2]), type='n',
+abline(h=simPars$asym[1])
+plot(c(inds, inds[1]), c(parSeq[2, ], simPars$asym[2]), type='n',
      xlab='log10(Fold increase in information)',
      ylab='Flow effect\n(log{rate multiplier} / log {flow})')
 points(inds, parSeq[2, ], type='b')
-abline(h=simPars[2])
+abline(h=simPars$asym[2])
 
 save.image('mle.RData')
