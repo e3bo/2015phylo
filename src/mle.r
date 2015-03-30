@@ -12,8 +12,8 @@ tmpf <- function(){
 }
 uniquePatterns <- tmpf()
 
-tnames <- c('nonsIndel-aligned.fasta-gb', 'sIndel-aligned.fasta-gb')
-tfiles <- paste0(names(uniquePatterns), '-aligned.fasta-gb.combined.trees')
+tnames <- c('nonsIndel', 'sIndel')
+tfiles <- paste0(tnames, '-aligned.fasta-gb.combined.trees')
 trees <- lapply(tfiles, read.nexus)
 
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
@@ -63,10 +63,10 @@ aggFlow <- function(from, to, sym=TRUE, M=flows){
 }
 
 pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=TRUE)
-designMatrixSym <- cbind("(Intercept)"=1, pairFlows)
+designMatrixSym <- data.matrix(pairFlows)
 
 pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=FALSE)
-designMatrixAsym <- cbind("(Intercept)"=1, pairFlows)
+designMatrixAsym <- data.matrix(pairFlows)
 
 bg <- rep(1, n)/n
 
@@ -91,7 +91,10 @@ M[['asym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrix
 ##' ## Fit models
 
 getRateMatrix <- function(design.matrix, w){
-    eta <- exp(design.matrix %*% w)
+    scale <- exp(w[1])
+    effects <- w[-1]
+    eta <- exp(design.matrix %*% effects)
+    eta <- eta / mean(eta) * scale
     pos <- 1
     rate.matrix <- matrix(nrow=n, ncol=n)
     for(i in seq_len(n)){
@@ -172,6 +175,8 @@ simPars$null <- c(ans$null$maximum, 0)
 (pvals <- sapply(simPars, simulation.bias.diagnostic, R=1e3))
 stopifnot(pvals > 0.1)
 
+#' ## Likelihood ratio test
+
 (Dsym <- -2*ans[['null']]$objective + 2*-ans[['sym']]$value)
 (Dasym <- -2*ans[['null']]$objective + 2*-ans[['asym']]$value)
 
@@ -185,9 +190,13 @@ get.param.stat <- function(data, pars) {
     ans$par
 }
 
-system.time(bs <- boot(data=pedvMSA, get.param.stat, R=1e3, sim='parametric',
+system.time(bs <- boot(data=pedvMSA, get.param.stat, R=1e2, sim='parametric',
                        ran.gen=ran.gen, mle=simPars$asym, pars=simPars$asym, parallel='multicore',
                        ncpus=parallel::detectCores()))
+
+# Bootstrap bias and standard error estimates
+
+bs
 
 # The distribution of estimates appears close to normal, without any discontinuities
 plot(bs, index=1)
@@ -196,7 +205,7 @@ plot(bs, index=2)
 (ciInt <- boot.ci(bs, index=1, type=c('perc', 'norm')))
 (ciFlo <- boot.ci(bs, index=2, type=c('perc', 'norm')))
 
-#' ##  Make a nice plot of the point estimates, confidence intervals, and likelihood surface
+#' ##  Plot of the point estimates, confidence intervals, and likelihood surface
 
 est <- data.frame(int=ciInt$percent[4:5], flo=ciFlo$percent[4:5], row.names=c('lower', 'upper'))
 est['point', ] <- ans[['asym']]$par
@@ -229,7 +238,7 @@ g <- g + geom_segment(x=est['lower', 'int'], xend=est['upper', 'int'],
 #g <- g + theme(legend.position='top')
 ggsave('ll-surface.pdf', width=7, height=5, pointsize=12)
 
-##' ## Illustrate consistency
+##' ## Check consistency
 
 nsim <- 1e3
 simMsa <- ran.gen(data=NA, pars=simPars$asym, nsim=nsim)
@@ -260,5 +269,7 @@ plot(c(inds, inds[1]), c(parSeq[2, ], simPars$asym[2]), type='n',
      ylab='Flow effect\n(log{rate multiplier} / log {flow})')
 points(inds, parSeq[2, ], type='b')
 abline(h=simPars$asym[2])
+
+
 
 save.image('mle.RData')
