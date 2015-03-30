@@ -35,6 +35,7 @@ RUN install2.r --error \
   knitr \
   ggplot2 \
   lubridate \
+  numDeriv \
   phangorn \
   rentrez \
   && rm -rf /tmp/download_packages/ /tmp/*.rds
