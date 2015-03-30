@@ -169,7 +169,7 @@ simulation.bias.diagnostic <- function(pars, R=1e3) {
 simPars <- lapply(ans, '[[', 'par')
 simPars$null <- c(ans$null$maximum, 0)
 
-(pvals <- sapply(simPars, simulation.bias.diagnostic, R=20))
+(pvals <- sapply(simPars, simulation.bias.diagnostic, R=1e3))
 stopifnot(pvals > 0.1)
 
 (Dsym <- -2*ans[['null']]$objective + 2*-ans[['sym']]$value)
