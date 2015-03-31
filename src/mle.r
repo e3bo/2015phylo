@@ -127,6 +127,63 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
     log(mean(probs)) + scale
 }
 
+my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.001), r=0.01){
+    niter <- 0
+    dim <- length(par)
+    I <- diag(nrow=dim)
+    H <- 10 * I
+    gF <- grad(F, x=par)
+    k <- 1
+    F1 <- F(par)
+    while (k <= maxIter){
+        ndesc <- ceiling(a*k + b)
+        d <- numeric(dim)
+        for (i in seq_len(ndesc)){
+            j <- sample.int(dim, size=1)
+            Hd <- H %*% d
+            z <- - (gF[j] + 2*Hd[j])/H[j,j]
+            unpen <- z + d[j] + par[j]
+            if(abs(unpen)  < lambda[j]){
+                d[j] <- -par[j]
+            } else if (unpen > 0){
+                d[j] <- unpen - lambda[j]
+            } else {
+                d[j] <- unpen + lambda[j]
+            }
+        }
+        par2 <- par + d
+        Fmod <- d %*% H %*% d + gF %*% d + F1 + abs(d) %*% lambda
+        F2 <- F(par2)
+        stopifnot(Fmod - F1 < 0)
+        if(F2 - F1 < r * (Fmod - F1)){
+            ## update BFGS
+            gF2 <- grad(F, x=par + d)
+            y <- gF2 - gF
+            s <- d
+            rho <- as.numeric(1/(y %*% s))
+            M <- I - rho * outer(y, s)
+            M <- H %*% M
+            M2 <- I - rho * outer(s, y)
+            M <- M2 %*% H
+            H <- M + rho * outer(s, s)
+            H <- H + I
+            ## update par
+            par <- par2
+            print(paste('F:', F2))
+            print(paste('par:', par))
+            k <- k + 1
+        } else {
+            H <- H + 2 * I
+        }
+    }
+    list(par=par, F=F2, k=k, gF=gF, H=H)
+}
+
+
+nll <- function(x) -obj(x)
+my.ans <- my.opt(nll, c(0.001, 0.002), maxIter=4)
+
+
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
 system.time(ans[['sym']] <- optim.rphast(obj, tmlol=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
@@ -269,7 +326,5 @@ plot(c(inds, inds[1]), c(parSeq[2, ], simPars$asym[2]), type='n',
      ylab='Flow effect\n(log{rate multiplier} / log {flow})')
 points(inds, parSeq[2, ], type='b')
 abline(h=simPars$asym[2])
-
-
 
 save.image('mle.RData')
