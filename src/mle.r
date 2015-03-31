@@ -127,37 +127,41 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
     log(mean(probs)) + scale
 }
 
-my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.001), r=0.01){
+my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r=0.01){
     niter <- 0
     dim <- length(par)
     I <- diag(nrow=dim)
-    H <- 10 * I
     gF <- grad(F, x=par)
+    H <- 2 * diag(abs(gF))
     k <- 1
-    F1 <- F(par)
+    F1 <- F(par) + abs(par) %*% lambda
     while (k <= maxIter){
         ndesc <- ceiling(a*k + b)
         d <- numeric(dim)
+        print('entering RCD')
         for (i in seq_len(ndesc)){
+            #cat('i:'); print(i);
+            cat('d:'); print(signif(d, 3));
             j <- sample.int(dim, size=1)
             Hd <- H %*% d
-            z <- - (gF[j] + 2*Hd[j])/H[j,j]
+            z <- - (gF[j] + 2*Hd[j])/(2*H[j,j])
             unpen <- z + d[j] + par[j]
             if(abs(unpen)  < lambda[j]){
                 d[j] <- -par[j]
             } else if (unpen > 0){
-                d[j] <- unpen - lambda[j]
+                d[j] <- unpen - lambda[j] - par[j]
             } else {
-                d[j] <- unpen + lambda[j]
+                d[j] <- unpen + lambda[j] - par[j]
             }
         }
+        print('exiting RCD')
         par2 <- par + d
         Fmod <- d %*% H %*% d + gF %*% d + F1 + abs(d) %*% lambda
-        F2 <- F(par2)
         stopifnot(Fmod - F1 < 0)
-        if(F2 - F1 < r * (Fmod - F1)){
+        try(F2 <- F(par2) + abs(par2) %*% lambda)
+        if(!inherits(F2, 'try-error') &&  (F2 - F1 < r * (Fmod - F1))){
             ## update BFGS
-            gF2 <- grad(F, x=par + d)
+            gF2 <- grad(F, x=par2)
             y <- gF2 - gF
             s <- d
             rho <- as.numeric(1/(y %*% s))
@@ -167,10 +171,13 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.001), 
             M <- M2 %*% H
             H <- M + rho * outer(s, s)
             H <- H + I
-            ## update par
+            ## update vars
             par <- par2
-            print(paste('F:', F2))
-            print(paste('par:', par))
+            gF <- gF2
+            F1 <- F2
+            cat('F:'); print(signif(F1, 6));
+            cat('par:'); print(signif(par, 3));
+            cat('grad:'); print(signif(gF, 3));
             k <- k + 1
         } else {
             H <- H + 2 * I
@@ -179,9 +186,8 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.001), 
     list(par=par, F=F2, k=k, gF=gF, H=H)
 }
 
-
 nll <- function(x) -obj(x)
-my.ans <- my.opt(nll, c(0.001, 0.002), maxIter=4)
+my.ans <- my.opt(nll, c(0.001, 0.002), maxIter=40, b=10)
 
 
 ans <- list()
@@ -283,7 +289,7 @@ g <- ggplot(data=D, aes(x=Intercept, y=Flows, z=`Simulated\nlog likelihood`))
 g <- g + geom_tile(aes(fill=`Simulated\nlog likelihood`))
 g <- g + stat_contour(colour="#DDCC77", alpha=0.5)
 g <- g + geom_point(x=est['point', 'int'], y=est['point', 'flo'], size=5, colour=estCol)
-g <- g + xlab('\nIntercept') + ylab('Flow effect\n')
+g <- g + xlab('\nScale') + ylab('Flow effect\n')
 g <- g + geom_segment(x=est['point', 'int'], xend=est['point', 'int'],
                       y=est['lower', 'flo'], yend=est['upper', 'flo'],
                       color=estCol, arrow=grid::arrow(angle=90, ends='both'),
@@ -298,6 +304,7 @@ ggsave('ll-surface.pdf', width=7, height=5, pointsize=12)
 ##' ## Check consistency
 
 nsim <- 1e3
+## This simulation method is not correct, and so simulation bias will be evident
 simMsa <- ran.gen(data=NA, pars=simPars$asym, nsim=nsim)
 
 tmpf <- function(x) {
