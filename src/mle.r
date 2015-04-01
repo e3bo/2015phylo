@@ -144,13 +144,14 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r
             #browser()
             #cat('d:'); print(signif(d, 3));
             #cat('dDelta:'); print(signif(dDelta, 3));
-            for(j in dim:1){
+                                        #for(j in dim:1){
+            j <-  k %% dim + 1
                 Hd <- H %*% d
                 gr <- gF[j] + 2*Hd[j]#/(2*H[j,j])
                 #unpen <- z + d[j] + par[j]
                 if(abs(-gr + (par[j] + d[j]) * 2 * H[j,j]) < lambda[j]){
                     d[j] <- -par[j]
-                } else if (par[j] + d[j] > 0){
+                } else if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
                     d[j] <- (-gr - lambda[j])/(2*H[j,j])
                 } else {
                     d[j] <- (-gr + lambda[j])/(2*H[j,j])
@@ -159,7 +160,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r
             dDelta <- sqrt(mean((d - dlast)^2))
             #if (dDelta > max(upper - lower)) break
             dlast <- d
-        }
+        #}
         #print('exiting CCD')
         par2 <- par + d
         if (any(par2 > upper) || any(par2 < lower)){
@@ -179,23 +180,26 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r
                   #print('backtracking')
                   H <- H + 2 * I
                 } else {
-                    ## update BFGS
                     gF2 <- grad(F, x=par2)
                     y <- gF2 - gF
                     s <- d
+                    ys <- y%*%s
                     if(isTRUE(all.equal(sum(s), 0))) {
-                        print('convergence on change in x')
-                        break
+                        #print('convergence on change in x')
+                        #break
                     }
-                    #cat('s:'); print(s);
-                    #cat('y:'); print(y);
-                    rho <- as.numeric(1/(y %*% s))
-                    M <- I - rho * outer(y, s)
-                    M <- H %*% M
-                    M2 <- I - rho * outer(s, y)
-                    M <- M2 %*% H
-                    H <- M + rho * outer(s, s)
-                    #H <- H + I
+                    cat('s:'); print(s);
+                    cat('y:'); print(y);
+                    cat('ys:'); print(ys);
+                    if (ys > 0){
+                                            ## update BFGS
+                        rho <- as.numeric(1/(y %*% s))
+                        M <- I - rho * outer(y, s)
+                        M <- H %*% M
+                        M2 <- I - rho * outer(s, y)
+                        M <- M2 %*% H
+                        H <- M + rho * outer(s, s)
+                    }
                     ## update vars
                     par <- par2
                     gF <- gF2
@@ -212,7 +216,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r
 }
 
 nll <- function(x) -obj(x)
-my.ans <- my.opt(nll, c(.001, 0.002), maxIter=10, a=0, b=1, lambda=c(4, 10000))
+my.ans <- my.opt(nll, c(-1.49, 0.46), maxIter=80, a=0, b=1, lambda=c(0,9))
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
