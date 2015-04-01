@@ -127,96 +127,109 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
     log(mean(probs)) + scale
 }
 
-my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r=0.01, upper=c(2,2), lower=c(-2,-2)){
+my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r=0.01, upper=c(2,2), lower=c(-2,-2),
+                   nlambda=1, lscaler=0.9){
     niter <- 0
     dim <- length(par)
     I <- diag(nrow=dim)
     gF <- grad(F, x=par)
     H <- 2 * diag(abs(gF))
-    k <- 1
-    F1 <- F(par) + abs(par) %*% lambda
-    while (k <= maxIter){
-        ndesc <- ceiling(a*k + b)
-        dlast <- d <- numeric(dim)
-        dDelta <- Inf
-        #print('entering CCD')
-        {#while(dDelta > 1e-4){
-            #browser()
-            #cat('d:'); print(signif(d, 3));
-            #cat('dDelta:'); print(signif(dDelta, 3));
-                                        #for(j in dim:1){
-            j <-  k %% dim + 1
-                Hd <- H %*% d
-                gr <- gF[j] + 2*Hd[j]#/(2*H[j,j])
-                #unpen <- z + d[j] + par[j]
-                if(abs(-gr + (par[j] + d[j]) * 2 * H[j,j]) < lambda[j]){
-                    d[j] <- -par[j]
-                } else if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
-                    d[j] <- (-gr - lambda[j])/(2*H[j,j])
-                } else {
-                    d[j] <- (-gr + lambda[j])/(2*H[j,j])
+    res <- list()
+    for (i in seq_len(nlambda)){
+        k <- 1
+        F1 <- F(par) + abs(par) %*% lambda
+        nsg <- sum((gF + lambda)^2)
+        while (nsg > tol){
+            ndesc <- ceiling(a*k + b)
+            dlast <- d <- numeric(dim)
+            dDelta <- Inf
+            #print('entering CCD')
+            {#while(dDelta > 1e-4){
+                #browser()
+                #cat('d:'); print(signif(d, 3));
+                #cat('dDelta:'); print(signif(dDelta, 3));
+                                            #for(j in dim:1){
+                j <-  k %% dim + 1
+                    Hd <- H %*% d
+                    gr <- gF[j] + 2*Hd[j]#/(2*H[j,j])
+                    #unpen <- z + d[j] + par[j]
+                    if(abs(-gr + (par[j] + d[j]) * 2 * H[j,j]) < lambda[j]){
+                        d[j] <- -par[j]
+                    } else if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
+                        d[j] <- (-gr - lambda[j])/(2*H[j,j])
+                    } else {
+                        d[j] <- (-gr + lambda[j])/(2*H[j,j])
+                    }
                 }
-            }
-            dDelta <- sqrt(mean((d - dlast)^2))
-            #if (dDelta > max(upper - lower)) break
-            dlast <- d
-        #}
-        #print('exiting CCD')
-        par2 <- par + d
-        if (any(par2 > upper) || any(par2 < lower)){
-            #print('backtracking')
-            H <- H + 2 * I
-        } else {
-            Fmod <- d %*% H %*% d + gF %*% d + F1 - abs(par) %*% lambda + abs(par2) %*% lambda
-            if(!Fmod  <= F1) {
-                browser()
+                dDelta <- sqrt(mean((d - dlast)^2))
+                #if (dDelta > max(upper - lower)) break
+                dlast <- d
+            #}
+            #print('exiting CCD')
+            par2 <- par + d
+            if (any(par2 > upper) || any(par2 < lower)){
                 #print('backtracking')
                 H <- H + 2 * I
             } else {
-                try(F2 <- F(par2) + abs(par2) %*% lambda)
-                #cat('F2'); print(F2);
-                if(inherits(F2, 'try-error')) browser()
-                if (F2 - F1 > r * (Fmod - F1)){
-                  #print('backtracking')
-                  H <- H + 2 * I
+                Fmod <- d %*% H %*% d + gF %*% d + F1 - abs(par) %*% lambda + abs(par2) %*% lambda
+                if(!Fmod  <= F1) {
+                    browser()
+                    #print('backtracking')
+                    H <- H + 2 * I
                 } else {
-                    gF2 <- grad(F, x=par2)
-                    y <- gF2 - gF
-                    s <- d
-                    ys <- y%*%s
-                    if(isTRUE(all.equal(sum(s), 0))) {
-                        #print('convergence on change in x')
-                        #break
+                    try(F2 <- F(par2) + abs(par2) %*% lambda)
+                    #cat('F2'); print(F2);
+                    if(inherits(F2, 'try-error')) browser()
+                    if (F2 - F1 > r * (Fmod - F1)){
+                      #print('backtracking')
+                      H <- H + 2 * I
+                    } else {
+                        gF2 <- grad(F, x=par2)
+                        y <- gF2 - gF
+                        s <- d
+                        ys <- y%*%s
+                        if(isTRUE(all.equal(sum(s), 0))) {
+                            #print('convergence on change in x')
+                            #break
+                        }
+                        cat('s:'); print(s);
+                        cat('y:'); print(y);
+                        cat('ys:'); print(ys);
+                        if (ys > 0){
+                                                ## update BFGS
+                            rho <- as.numeric(1/(y %*% s))
+                            M <- I - rho * outer(y, s)
+                            M <- H %*% M
+                            M2 <- I - rho * outer(s, y)
+                            M <- M2 %*% H
+                            H <- M + rho * outer(s, s)
+                        }
+                        ## update vars
+                        par <- par2
+                        gF <- gF2
+                        F1 <- F2
+                        nsg <- sum((gF + lambda)^2)
+                        cat('F:'); print(signif(F1, 6));
+                        cat('par:'); print(signif(par, 3));
+                        cat('grad:'); print(signif(gF, 3));
+                        cat('nsg:'); print(signif(nsg, 3));
+                        k <- k + 1
                     }
-                    cat('s:'); print(s);
-                    cat('y:'); print(y);
-                    cat('ys:'); print(ys);
-                    if (ys > 0){
-                                            ## update BFGS
-                        rho <- as.numeric(1/(y %*% s))
-                        M <- I - rho * outer(y, s)
-                        M <- H %*% M
-                        M2 <- I - rho * outer(s, y)
-                        M <- M2 %*% H
-                        H <- M + rho * outer(s, s)
-                    }
-                    ## update vars
-                    par <- par2
-                    gF <- gF2
-                    F1 <- F2
-                    cat('F:'); print(signif(F1, 6));
-                    cat('par:'); print(signif(par, 3));
-                    cat('grad:'); print(signif(gF, 3));
-                    k <- k + 1
                 }
             }
         }
+        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H)
+        lambda <- lambda * lscaler
     }
-    list(par=par, F=F2, k=k, gF=gF2, H=H)
+    res
 }
 
 nll <- function(x) -obj(x)
-my.ans <- my.opt(nll, c(-1.49, 0.46), maxIter=80, a=0, b=1, lambda=c(0,9))
+my.ans <- my.opt(nll, c(-1.49, 0.46), maxIter=80, a=0, b=1, lambda=c(0,70), tol=0.1, nlambda=20)
+
+my.path <- sapply(my.ans, '[[', 'par')
+plot(my.path[2,], type='b')
+
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
