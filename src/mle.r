@@ -127,18 +127,26 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
     log(mean(probs)) + scale
 }
 
-my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r=0.01, upper=c(2,2), lower=c(-2,-2),
-                   nlambda=1, lscaler=0.9){
+my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=c(2,2), lower=c(-2,-2),
+                   nlambda=1, log10LambdaRange=3){
     niter <- 0
     dim <- length(par)
     I <- diag(nrow=dim)
     gF <- grad(F, x=par)
     H <- 2 * diag(abs(gF))
+    lstart <- max(abs(gF))*10
+    loglstart <- log10(lstart)
+    loglend <- loglstart - log10LambdaRange
+    logstep <- (loglend - loglstart)/nlambda
+    lscaler <- 10^logstep
+    lambda <- c(0, rep(lstart, dim-1))
     res <- list()
     for (i in seq_len(nlambda)){
         k <- 1
         F1 <- F(par) + abs(par) %*% lambda
-        nsg <- sum((gF + lambda)^2)
+        test <- par == 0 & abs(gF) > lambda
+        active <- par != 0 | test
+        nsg <- sum(((gF + lambda)^2)[active])
         while (nsg > tol){
             ndesc <- ceiling(a*k + b)
             dlast <- d <- numeric(dim)
@@ -208,7 +216,9 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r
                         par <- par2
                         gF <- gF2
                         F1 <- F2
-                        nsg <- sum((gF + lambda)^2)
+                        test <- par == 0 & abs(gF) > lambda
+                        active <- par != 0 | test
+                        nsg <- sum(((gF + lambda)^2)[active])
                         cat('F:'); print(signif(F1, 6));
                         cat('par:'); print(signif(par, 3));
                         cat('grad:'); print(signif(gF, 3));
@@ -218,18 +228,23 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, lambda=c(0, 0.00), r
                 }
             }
         }
-        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H)
+        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda)
         lambda <- lambda * lscaler
     }
     res
 }
 
 nll <- function(x) -obj(x)
-my.ans <- my.opt(nll, c(-1.49, 0.46), maxIter=80, a=0, b=1, lambda=c(0,70), tol=0.1, nlambda=20)
+my.ans <- my.opt(nll, c(0, 0), maxIter=60, a=0, b=1, tol=0.01, nlambda=100)
 
+lambda <- sapply(my.ans, function(x) x$lambda[2])
 my.path <- sapply(my.ans, '[[', 'par')
-plot(my.path[2,], type='b')
+plot(lambda, my.path[1,], type='b')
+plot(lambda, my.path[2,], type='b')
+dev.off()
 
+sapply(my.ans, '[[', 'k')
+sapply(my.ans, '[[', 'lambda')
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
