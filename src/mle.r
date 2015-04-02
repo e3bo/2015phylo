@@ -68,6 +68,11 @@ designMatrixSym <- data.matrix(pairFlows)
 pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=FALSE)
 designMatrixAsym <- data.matrix(pairFlows)
 
+nr <- nrow(designMatrixAsym)
+nc <- 10
+mNoise <-matrix(runif(nr*nc), nrow=nr)
+designMatrixBigger <- cbind(designMatrixAsym, mNoise)
+
 bg <- rep(1, n)/n
 
 tmpf <- function(x) {
@@ -87,6 +92,7 @@ mods <- lapply(mods, assignElement, nam='rate.matrix', val=matrix(NA, nrow=n, nc
 M <- list()
 M[['sym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixSym)
 M[['asym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixAsym)
+M[['big']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixBigger)
 
 ##' ## Fit models
 
@@ -151,19 +157,21 @@ getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
     log(res)
 }
 
-my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=c(2,2), lower=c(-2,-2),
+my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=2, lower=-2, relStart=1,
                    nlambda=1, log10LambdaRange=3){
     niter <- 0
     dim <- length(par)
     I <- diag(nrow=dim)
     gF <- grad(F, x=par)
     H <- 2 * diag(abs(gF))
-    lstart <- max(abs(gF))*10
-    loglstart <- log10(lstart)
+    lstart <- max(abs(gF))
+    loglstart <- log10(lstart) + relStart
     loglend <- loglstart - log10LambdaRange
     logstep <- (loglend - loglstart)/nlambda
     lscaler <- 10^logstep
-    lambda <- c(0, rep(lstart, dim-1))
+    lambda <- c(0, rep(10^loglstart, dim-1))
+    lower <- rep(lower, dim)
+    upper <- rep(upper,dim)
     res <- list()
     for (i in seq_len(nlambda)){
         k <- 1
@@ -233,9 +241,10 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=c(2,2)
                             M <- I - rho * outer(y, s)
                             M <- H %*% M
                             M2 <- I - rho * outer(s, y)
-                            M <- M2 %*% H
+                            M <- M2 %*% M
                             H <- M + rho * outer(s, s)
-                        }
+                            if (any(diag(H) <= 0)) browser()
+                        }                        
                         ## update vars
                         par <- par2
                         gF <- gF2
@@ -258,9 +267,9 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=c(2,2)
     res
 }
 
-nll <- function(x) -obj(x)
-par <- c(getInit(), 0)
-my.ans <- my.opt(F=nll, par=par, maxIter=60, a=0, b=1, tol=0.01, nlambda=2)
+nll <- function(x) -obj(x, tmlol=M[["big"]])
+par <- c(getInit(), rep(0, nc +1))
+my.ans <- my.opt(F=nll, par=par, maxIter=60, a=0, b=1, tol=0.01, nlambda=1, log10LambdaRange=3, relStart=-5)
 
 lambda <- sapply(my.ans, function(x) x$lambda[2])
 my.path <- sapply(my.ans, '[[', 'par')
