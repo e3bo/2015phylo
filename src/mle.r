@@ -127,6 +127,30 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
     log(mean(probs)) + scale
 }
 
+getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
+    tmpf <- function(x, y){
+        dloc <- outer(y$seq, y$seq, '==')
+        colnames(dloc) <- names(y)
+        rownames(dloc) <- names(y)
+        tmpff <- function(xx) {
+            phy <- read.tree(text=xx$tree)
+            dphy <- cophenetic(phy)
+            dphy <- dphy[rownames(dloc), colnames(dloc)]
+            rdist <- dloc / dphy
+            mean(rdist[upper.tri(rdist)])
+        }
+        lapply(x, tmpff)
+    }
+    res <- mapply(tmpf, x=tmlol, y=msal, SIMPLIFY=FALSE)
+    tmpf <- function(x) mean(unlist(x))
+    res <- sapply(res, tmpf)
+    tmpf <- function(x) length(x$seq)
+    nseq <- sapply(pedvMSA, tmpf)
+    w <- nseq*(nseq - 1)
+    res <- weighted.mean(res, w=w)
+    log(res)
+}
+
 my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=c(2,2), lower=c(-2,-2),
                    nlambda=1, log10LambdaRange=3){
     niter <- 0
@@ -235,7 +259,8 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=c(2,2)
 }
 
 nll <- function(x) -obj(x)
-my.ans <- my.opt(nll, c(0, 0), maxIter=60, a=0, b=1, tol=0.01, nlambda=100)
+par <- c(getInit(), 0)
+my.ans <- my.opt(F=nll, par=par, maxIter=60, a=0, b=1, tol=0.01, nlambda=2)
 
 lambda <- sapply(my.ans, function(x) x$lambda[2])
 my.path <- sapply(my.ans, '[[', 'par')
