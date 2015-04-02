@@ -162,7 +162,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
     niter <- 0
     dim <- length(par)
     I <- diag(nrow=dim)
-    gF <- grad(F, x=par)
+    gF <- grad(F, x=par, method='simple')
     H <- 2 * diag(abs(gF))
     lstart <- max(abs(gF))
     loglstart <- log10(lstart) + relStart
@@ -173,13 +173,21 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
     lower <- rep(lower, dim)
     upper <- rep(upper,dim)
     res <- list()
+    fsg <- function(p,g, l) {
+        if(p==0) {
+            max(abs(g) - l, 0)
+        } else if (p > 0){
+            -(g + l)
+        } else {
+            g + l
+        }
+    }
     for (i in seq_len(nlambda)){
         k <- 1
         F1 <- F(par) + abs(par) %*% lambda
-        test <- par == 0 & abs(gF) > lambda
-        active <- par != 0 | test
-        nsg0 <- nsg <- sum(((gF + lambda)^2)[active])
-        while (nsg > nsg0*tol){
+        sg <- mapply(fsg, p=par, g=gF, l=lambda)
+        nsg0 <- nsg <- sum(sg^2)
+        while (TRUE){
             ndesc <- ceiling(a*k + b)
             jvec <- sample.int(dim)
             d <- numeric(dim)
@@ -202,30 +210,25 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
             }
             par2 <- par + d
             if (any(par2 > upper) || any(par2 < lower)){
-                #print('backtracking')
+                print('backtracking: out of bounds')
                 H <- H + 2 * I
             } else {
                 Fmod <- d %*% H %*% d + gF %*% d + F1 - abs(par) %*% lambda + abs(par2) %*% lambda
                 if(!Fmod  <= F1) {
                     browser()
-                    #print('backtracking')
+                    print('backtracking: poorly solved model')
                     H <- H + 2 * I
                 } else {
                     try(F2 <- F(par2) + abs(par2) %*% lambda)
-                    #cat('F2'); print(F2);
                     if(inherits(F2, 'try-error')) browser()
                     if (F2 - F1 > r * (Fmod - F1)){
-                      #print('backtracking')
-                      H <- H + 2 * I
+                        print('backtracking: insufficient decrease')
+                        H <- H + 2 * I
                     } else {
-                        gF2 <- grad(F, x=par2)
+                        gF2 <- grad(F, x=par2, method='simple')
                         y <- gF2 - gF
                         s <- d
                         ys <- y%*%s
-                        if(isTRUE(all.equal(sum(s), 0))) {
-                            #print('convergence on change in x')
-                            #break
-                        }
                         cat('s:'); print(s);
                         cat('y:'); print(y);
                         cat('ys:'); print(ys);
@@ -242,36 +245,50 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
                         ## update vars
                         par <- par2
                         gF <- gF2
+                        dF <- F2 - F1
                         F1 <- F2
                         test <- par == 0 & abs(gF) > lambda
                         active <- par != 0 | test
-                        nsg <- sum(((gF + lambda)^2)[active])
+                        sg <- mapply(fsg, p=par, g=gF, l=lambda)
+                        nsg <- sum(sg^2)
+                        cat('lambda'); print(lambda);
                         cat('F:'); print(signif(F1, 6));
                         cat('par:'); print(signif(par, 3));
                         cat('grad:'); print(signif(gF, 3));
                         cat('nsg:'); print(signif(nsg, 3));
                         k <- k + 1
+                        #if (abs(dF) < 0.001) break
+                        if (max(abs(s*gF)) < 0.001) {
+                            convergence <- 'stepsize'
+                            break
+                        }
+                        if (nsg < 0.001) {
+                            convergence <- 'gradient'
+                            break
+                        }
                     }
                 }
             }
         }
-        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda)
+        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda, convergence=convergence)
         lambda <- lambda * lscaler
+        nsg0 <- nsg
+        convergence <- 'no'
     }
     res
 }
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 par <- c(getInit(), rep(0, nc +1))
-my.ans <- my.opt(F=nll, par=par, maxIter=60, a=.1, b=1, tol=0.01, nlambda=2, log10LambdaRange=3, relStart=1)
+system.time(my.ans <- my.opt(F=nll, par=par, maxIter=60, a=.1, b=1, tol=0.1, nlambda=100, log10LambdaRange=1, relStart=0.1))
 
 lambda <- sapply(my.ans, function(x) x$lambda[2])
 my.path <- sapply(my.ans, '[[', 'par')
-plot(lambda, my.path[1,], type='b')
-plot(lambda, my.path[2,], type='b')
+matplot(lambda, t(my.path), type='b', log='x')
+matplot(lambda, t(my.path[-1,]), type='b', log='x')
 dev.off()
 
-sapply(my.ans, '[[', 'k')
+kvec <- sapply(my.ans, '[[', 'k')
 sapply(my.ans, '[[', 'lambda')
 
 ans <- list()
@@ -301,7 +318,7 @@ ran.gen <- function(data, pars, tmlol=M[['asym']], nsim=1){
 }
 
 get.score.stat <- function(data, pars) {
-    grad(obj, x=pars, msal=data)
+    grad(obj, x=pars, method='simple', msal=data)
 }
 
 simulation.bias.diagnostic <- function(pars, R=1e3) {
