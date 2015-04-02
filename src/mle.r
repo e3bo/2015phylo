@@ -157,7 +157,7 @@ getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
     log(res)
 }
 
-my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=2, lower=-2, relStart=1,
+my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, lower=-2, relStart=1,
                    nlambda=1, log10LambdaRange=3){
     niter <- 0
     dim <- length(par)
@@ -178,34 +178,28 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=2, low
         F1 <- F(par) + abs(par) %*% lambda
         test <- par == 0 & abs(gF) > lambda
         active <- par != 0 | test
-        nsg <- sum(((gF + lambda)^2)[active])
-        while (nsg > tol){
+        nsg0 <- nsg <- sum(((gF + lambda)^2)[active])
+        while (nsg > nsg0*tol){
             ndesc <- ceiling(a*k + b)
-            dlast <- d <- numeric(dim)
-            dDelta <- Inf
-            #print('entering CCD')
-            {#while(dDelta > 1e-4){
-                #browser()
-                #cat('d:'); print(signif(d, 3));
-                #cat('dDelta:'); print(signif(dDelta, 3));
-                                            #for(j in dim:1){
-                j <-  k %% dim + 1
-                    Hd <- H %*% d
-                    gr <- gF[j] + 2*Hd[j]#/(2*H[j,j])
-                    #unpen <- z + d[j] + par[j]
-                    if(abs(-gr + (par[j] + d[j]) * 2 * H[j,j]) < lambda[j]){
-                        d[j] <- -par[j]
-                    } else if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
-                        d[j] <- (-gr - lambda[j])/(2*H[j,j])
-                    } else {
-                        d[j] <- (-gr + lambda[j])/(2*H[j,j])
-                    }
+            jvec <- sample.int(dim)
+            d <- numeric(dim)
+            for (n in 1:dim){
+                j <- jvec[n]
+                Hd <- H %*% d
+                gr <- gF[j] + 2*Hd[j]
+                if(abs(-gr + (par[j] + d[j]) * 2 * H[j,j]) < lambda[j]){
+                    step <- -par[j]
+                } else if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
+                    step <- (-gr - lambda[j])/(2*H[j,j])
+                } else {
+                    step <- (-gr + lambda[j])/(2*H[j,j])
                 }
-                dDelta <- sqrt(mean((d - dlast)^2))
-                #if (dDelta > max(upper - lower)) break
-                dlast <- d
-            #}
-            #print('exiting CCD')
+                if (step*d[j] < 0){
+                    browser()
+                    break
+                }
+                d[j] <- step
+            }
             par2 <- par + d
             if (any(par2 > upper) || any(par2 < lower)){
                 #print('backtracking')
@@ -269,7 +263,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-4, a=1, b=0.1, r=0.01, upper=2, low
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 par <- c(getInit(), rep(0, nc +1))
-my.ans <- my.opt(F=nll, par=par, maxIter=60, a=0, b=1, tol=0.01, nlambda=1, log10LambdaRange=3, relStart=-5)
+my.ans <- my.opt(F=nll, par=par, maxIter=60, a=.1, b=1, tol=0.01, nlambda=2, log10LambdaRange=3, relStart=1)
 
 lambda <- sapply(my.ans, function(x) x$lambda[2])
 my.path <- sapply(my.ans, '[[', 'par')
