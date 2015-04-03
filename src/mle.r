@@ -189,31 +189,38 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
         nsg0 <- nsg <- sum(sg^2)
         while (TRUE){
             ndesc <- ceiling(a*k + b)
-            jvec <- sample.int(dim)
             d <- numeric(dim)
-            for (n in 1:dim){
-                j <- jvec[n]
+            dlist <- list()
+            fmlist <- list()
+            for (nd in 1:ndesc){
+                j <- sample.int(n=dim, size=1)
                 Hd <- H %*% d
-                gr <- gF[j] + 2*Hd[j]
-                if(abs(-gr + (par[j] + d[j]) * 2 * H[j,j]) < lambda[j]){
-                    step <- -par[j]
-                } else if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
-                    step <- (-gr - lambda[j])/(2*H[j,j])
+                gr <- gF[j] + Hd[j]
+                if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
+                    z <- (-gr - lambda[j])/H[j,j]
+                    if (par[j] + d[j] + z < 0){
+                        d[j] <- -par[j]
+                    } else {
+                        d[j] <- d[j] + z
+                    }
                 } else {
-                    step <- (-gr + lambda[j])/(2*H[j,j])
+                    z <- (-gr + lambda[j])/H[j,j]
+                    if (par[j] + d[j] + z > 0){
+                        d[j] <- -par[j]
+                    } else {
+                        d[j] <- d[j] + z
+                    }
                 }
-                if (step*d[j] < 0){
-                    browser()
-                    break
-                }
-                d[j] <- step
+                dlist[[nd]] <- d
+                fmlist[[nd]] <- d %*% (H/2) %*% d + gF %*% d + F1 - abs(par) %*% lambda + abs(par + d) %*% lambda
             }
+            if(any(diff(c(F1, unlist(fmlist)))>1e-10)) browser()
             par2 <- par + d
             if (any(par2 > upper) || any(par2 < lower)){
                 print('backtracking: out of bounds')
                 H <- H + 2 * I
             } else {
-                Fmod <- d %*% H %*% d + gF %*% d + F1 - abs(par) %*% lambda + abs(par2) %*% lambda
+                Fmod <- d %*% (H/2) %*% d + gF %*% d + F1 - abs(par) %*% lambda + abs(par2) %*% lambda
                 if(!Fmod  <= F1) {
                     browser()
                     print('backtracking: poorly solved model')
@@ -222,16 +229,16 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
                     try(F2 <- F(par2) + abs(par2) %*% lambda)
                     if(inherits(F2, 'try-error')) browser()
                     if (F2 - F1 > r * (Fmod - F1)){
-                        print('backtracking: insufficient decrease')
+                        #print('backtracking: insufficient decrease')
                         H <- H + 2 * I
                     } else {
                         gF2 <- grad(F, x=par2, method='simple')
                         y <- gF2 - gF
                         s <- d
                         ys <- y%*%s
-                        cat('s:'); print(s);
-                        cat('y:'); print(y);
-                        cat('ys:'); print(ys);
+                        #cat('s:'); print(s);
+                        #cat('y:'); print(y);
+                        #cat('ys:'); print(ys);
                         if (ys > 0){
                                                 ## update BFGS
                             rho <- as.numeric(1/(y %*% s))
@@ -250,19 +257,26 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
                         test <- par == 0 & abs(gF) > lambda
                         active <- par != 0 | test
                         sg <- mapply(fsg, p=par, g=gF, l=lambda)
-                        nsg <- sum(sg^2)
-                        cat('lambda'); print(lambda);
+                        nsg <- sqrt(sum(sg^2)) / max(1, (abs(par)>0))
+                        cat('lambda'); print(lambda[2]);
                         cat('F:'); print(signif(F1, 6));
                         cat('par:'); print(signif(par, 3));
                         cat('grad:'); print(signif(gF, 3));
                         cat('nsg:'); print(signif(nsg, 3));
                         k <- k + 1
-                        #if (abs(dF) < 0.001) break
-                        if (max(abs(s*gF)) < 0.001) {
-                            convergence <- 'stepsize'
+                        if (dF > -0.0001 && ys > 0) {
+                            #convergence <- 'objective'
+                            #break
+                        }
+                        if (k > maxIter){
+                            convergence <- 'maxIterations'
                             break
                         }
-                        if (nsg < 0.001) {
+                        if (max(abs(s*gF)) < 0.0001 && ys > 0) {
+                            #convergence <- 'stepsize'
+                            #break
+                        }
+                        if (nsg < tol){
                             convergence <- 'gradient'
                             break
                         }
@@ -280,16 +294,18 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 par <- c(getInit(), rep(0, nc +1))
-system.time(my.ans <- my.opt(F=nll, par=par, maxIter=60, a=.1, b=1, tol=0.1, nlambda=100, log10LambdaRange=1, relStart=0.1))
+system.time(my.ans <- my.opt(F=nll, par=par, maxIter=100, a=1, b=12, tol=0.1, nlambda=10, log10LambdaRange=2, relStart=0.1))
 
-lambda <- sapply(my.ans, function(x) x$lambda[2])
+(sapply(my.ans, '[[', 'convergence'))
+(lambda <- sapply(my.ans, function(x) x$lambda[2]))
+(kvec <- sapply(my.ans, '[[', 'k'))
 my.path <- sapply(my.ans, '[[', 'par')
-matplot(lambda, t(my.path), type='b', log='x')
-matplot(lambda, t(my.path[-1,]), type='b', log='x')
+matplot(lambda, t(my.path), type='l', log='x')
+matplot(lambda, t(my.path[-1,]), type='l', log='x')
 dev.off()
 
-kvec <- sapply(my.ans, '[[', 'k')
-sapply(my.ans, '[[', 'lambda')
+
+
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
