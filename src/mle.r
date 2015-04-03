@@ -72,6 +72,7 @@ nr <- nrow(designMatrixAsym)
 nc <- 10
 mNoise <-matrix(runif(nr*nc), nrow=nr)
 designMatrixBigger <- cbind(designMatrixAsym, mNoise)
+designMatrixBigger <- scale(designMatrixBigger)
 
 bg <- rep(1, n)/n
 
@@ -173,20 +174,20 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
     lower <- rep(lower, dim)
     upper <- rep(upper,dim)
     res <- list()
-    fsg <- function(p,g, l) {
+    fsg <- function(p, g, l, h) {
         if(p==0) {
             max(abs(g) - l, 0)
         } else if (p > 0){
-            -(g + l)
+            -(g + l)/h
         } else {
-            g + l
+            (g + l)/h
         }
     }
     for (i in seq_len(nlambda)){
         k <- 1
         F1 <- F(par) + abs(par) %*% lambda
-        sg <- mapply(fsg, p=par, g=gF, l=lambda)
-        nsg0 <- nsg <- sum(sg^2)
+        sg <- mapply(fsg, p=par, g=gF, l=lambda, h=diag(H))
+        nsg <- max(abs(sg))
         while (TRUE){
             ndesc <- ceiling(a*k + b)
             d <- numeric(dim)
@@ -256,8 +257,8 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
                         F1 <- F2
                         test <- par == 0 & abs(gF) > lambda
                         active <- par != 0 | test
-                        sg <- mapply(fsg, p=par, g=gF, l=lambda)
-                        nsg <- sqrt(sum(sg^2)) / max(1, (abs(par)>0))
+                        sg <- mapply(fsg, p=par, g=gF, l=lambda, h=diag(H))
+                        nsg <- max(abs(sg))
                         cat('lambda'); print(lambda[2]);
                         cat('F:'); print(signif(F1, 6));
                         cat('par:'); print(signif(par, 3));
@@ -285,8 +286,9 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
             }
         }
         res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda, convergence=convergence)
+        H <- 2 * diag(abs(gF))
+        #par <- par + runif(par, min=-tol, max=tol)
         lambda <- lambda * lscaler
-        nsg0 <- nsg
         convergence <- 'no'
     }
     res
@@ -294,7 +296,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 par <- c(getInit(), rep(0, nc +1))
-system.time(my.ans <- my.opt(F=nll, par=par, maxIter=100, a=1, b=12, tol=0.1, nlambda=10, log10LambdaRange=2, relStart=0.1))
+system.time(my.ans <- my.opt(F=nll, par=par, maxIter=100, a=1, b=12, tol=0.01, nlambda=100, log10LambdaRange=2, relStart=0.1))
 
 (sapply(my.ans, '[[', 'convergence'))
 (lambda <- sapply(my.ans, function(x) x$lambda[2]))
