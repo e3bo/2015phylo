@@ -378,10 +378,10 @@ coefficients rather than posterior distributions. The MSL estimates
 are not as informative as the posterior distributions, but they may be
 sufficient for many analyses and have the advantage of being faster to
 calculate. That advantage allowed us to generate bootstrap confidence
-intervals from 1000 simulations in minutes on a standard workstation
-(TODO verify these stats at end). Also, speed may be essential in
-shortening the often numerous rounds of model fitting that occur when
-analyzing large and complex data sets.
+intervals in minutes on a standard workstation (TODO verify these
+stats at end). Also, speed may be essential in shortening the often
+numerous rounds of model fitting that occur when analyzing large and
+complex data sets.
 
 The finding that flows have a positive effect on geographic transition
 rates is consistent with the finding of Ref.~\cite{nelson2011}. They
