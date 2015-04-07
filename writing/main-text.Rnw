@@ -140,13 +140,15 @@ positive.  For a prior on the coalescent population size, we used a
 gamma distribution with a shape of 3 and a scale of 0.3. This prior
 was chosen based on our belief that it is unlikely that the most
 recent common ancestor of either the S INDEL and non-S INDEL sequences
-existed much earlier than the date of the first known U.S. outbreak
-because in the past succesful introductions of PEDV have hardly been
-frequent. For two sequences not having month and days of collection,
-we placed a uniform prior on their day of collection over a window of
-86 days considered likely to include the true collection date. Our
-BEAST XML input files have been archived on the web (TODO make sure
-full build is working, make archive, add citation).
+existed much earlier than the date of the first known
+U.S. outbreak. In other words, we consider a small number of
+introductions to be more likely because PEDV has not frequently
+detected in North America before 2013. For two sequences not having
+month and days of collection, we placed a uniform prior on their day
+of collection over a window of 86 days considered likely to include
+the true collection date. Our BEAST XML input files have been archived
+on the web (TODO make sure full build is working, make archive, add
+citation).
 
 We ran BEAST four times, each time with different initial parameter
 values sampled from the prior. We discarded the first 50 percent of
@@ -394,19 +396,23 @@ highly uncertain and based on expert
 opinion~\cite{mcreynolds2014,martinez-lopez2014}.
 
 Of course, we cannot from this analysis conclude that the association
-of shipment flows with migration rates is a necessary, causal
-one. Unequal sampling efforts among states could be biasing our
-estimates, for example. Another limitation to this analysis is the
-simplicity of the model we used to estimate the tree, which may not be
-taking full advantage of the information of the data. We opted for a
-relatively simple model that would allow us more confidence that our
-Markov chain sampler had converged to the posterior distribution of
-trees, as diagnosing lack of convergence to the posterior distribution
-of trees is still an active area of research~\cite{whidden2015}. In
-sum, improvements in estimation of the tree, additional data
-collection, the development of predictive variables relevant to
-sampling and transmission mechanism could all improve the accuracy of
-our estimates and the predictive performance of our model.
+of shipment flows with migration rates is a necessary, causal one. For
+example, unequal sampling probabilities among states could be biasing
+our estimates~\cite{demaio2015}. Our inference about the root node
+heights of the S INDEL and non-S INDEL clades in
+Figure~\ref{rootheights} may also biased by our not modeling
+dependence of the tree on the migration rates and effective population
+sizes of different states~\cite{demaio2015}. Another limitation to
+this analysis is the relative simplicity of the sequence evolution
+model that we used to calculate the likelihood of proposed trees. We
+favored simplicity here to limit the risk that the Markov chain
+samplers would fail to converge to the posterior distribution of
+trees, as powerful methods to detect such failures are still in active
+development~\cite[e.g.]{whidden2015}. In sum, improvements in
+estimation of the tree, additional data collection, and the
+development of predictive variables relevant to sampling and
+transmission mechanisms could all improve the accuracy of our
+estimates and the predictive performance of our model.
 
 \bibliography{pedv}
 

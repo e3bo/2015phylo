@@ -241,7 +241,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
                         #cat('y:'); print(y);
                         #cat('ys:'); print(ys);
                         if (ys > 0){
-                                                ## update BFGS
+                            ## update BFGS
                             rho <- as.numeric(1/(y %*% s))
                             M <- I - rho * outer(y, s)
                             M <- H %*% M
@@ -296,7 +296,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 par <- c(getInit(), rep(0, nc +1))
-system.time(my.ans <- my.opt(F=nll, par=par, maxIter=100, a=1, b=12, tol=0.01, nlambda=100, log10LambdaRange=2, relStart=0.1))
+system.time(my.ans <- my.opt(F=nll, par=par, maxIter=100, a=1, b=12, tol=0.01, nlambda=10, log10LambdaRange=2, relStart=0.1))
 
 (sapply(my.ans, '[[', 'convergence'))
 (lambda <- sapply(my.ans, function(x) x$lambda[2]))
@@ -305,9 +305,6 @@ my.path <- sapply(my.ans, '[[', 'par')
 matplot(lambda, t(my.path), type='l', log='x')
 matplot(lambda, t(my.path[-1,]), type='l', log='x')
 dev.off()
-
-
-
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
@@ -372,7 +369,8 @@ get.param.stat <- function(data, pars) {
     ans$par
 }
 
-system.time(bs <- boot(data=pedvMSA, get.param.stat, R=1e2, sim='parametric',
+bsParamR <- 1e4
+system.time(bs <- boot(data=pedvMSA, get.param.stat, R=bsParamR, sim='parametric',
                        ran.gen=ran.gen, mle=simPars$asym, pars=simPars$asym, parallel='multicore',
                        ncpus=parallel::detectCores()))
 
@@ -423,7 +421,7 @@ ggsave('ll-surface.pdf', width=7, height=5, pointsize=12)
 ##' ## Check consistency
 
 nsim <- 1e3
-## This simulation method is not correct, and so simulation bias will be evident
+## This simulation method is not correct (has been outdated by other developments), and so simulation bias will be evident
 simMsa <- ran.gen(data=NA, pars=simPars$asym, nsim=nsim)
 
 tmpf <- function(x) {
