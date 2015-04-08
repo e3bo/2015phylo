@@ -69,7 +69,7 @@ pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pair
 designMatrixAsym <- data.matrix(pairFlows)
 
 nr <- nrow(designMatrixAsym)
-nc <- 5
+nc <- 10
 mNoise <-matrix(runif(nr*nc), nrow=nr)
 designMatrixBigger <- cbind(designMatrixAsym, mNoise)
 designMatrixBigger <- scale(designMatrixBigger)
@@ -193,14 +193,13 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
         nsg <- max(abs(sg))
         while (nsg > tol && k < maxIter){
             k <- k + 1
-            #ndesc <- ceiling(a*k + b)
             d <- numeric(dim)
             dlist <- list()
             fmlist <- list()
             inactive <- par != 0 | sg != 0 ## inactive means not actively fixed to zero in solution
             nInactive <- sum(inactive)
             ndesc <- (1 + floor(k * a)) * nInactive
-            if (mu < 0.5) browser()
+            #if (mu < 0.5) browser()
             for (nd in 1:ndesc){
                 j <- sample.int(n=nInactive, size=1)
                 j <- parInds[inactive][j]
@@ -277,7 +276,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
                 }
             }
         }
-        convergence <- ifelse(k > maxIter, 'no', 'yes')
+        convergence <- ifelse(k == maxIter, 'no', 'yes')
         res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda, convergence=convergence, mu=mu)
         mu <- mubar
         lambda <- lambda * lscaler
@@ -287,7 +286,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 par <- c(getInit(), rep(0, nc +1))
-system.time(my.ans <- my.opt(F=nll, par=par, r=0.01, maxIter=100, a=0.1, b=1, tol=0.001,
+system.time(my.ans <- my.opt(F=nll, par=par, r=0.01, maxIter=200, a=0.1, b=1, tol=0.001,
                              nlambda=100, log10LambdaRange=1, relStart=0.1, beta=0.9))
 
 (sapply(my.ans, '[[', 'convergence'))
