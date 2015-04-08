@@ -69,7 +69,7 @@ pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pair
 designMatrixAsym <- data.matrix(pairFlows)
 
 nr <- nrow(designMatrixAsym)
-nc <- 10
+nc <- 5
 mNoise <-matrix(runif(nr*nc), nrow=nr)
 designMatrixBigger <- cbind(designMatrixAsym, mNoise)
 designMatrixBigger <- scale(designMatrixBigger)
@@ -162,6 +162,7 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
                    nlambda=1, log10LambdaRange=3, mubar=0.9, beta=.9){
     niter <- 0
     dim <- length(par)
+    parInds <- 1:dim
     I <- diag(nrow=dim)
     gF <- grad(F, x=par, method='simple')
     mu <- mubar
@@ -185,18 +186,24 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
         }
     }
     for (i in seq_len(nlambda)){
-        k <- 1
+        k <- 0
         F1 <- F(par) + abs(par) %*% lambda
         H <- I/(2*mu) + G
         sg <- mapply(fsg, p=par, g=gF, l=lambda, h=diag(H))
         nsg <- max(abs(sg))
-        while (TRUE){
-            ndesc <- ceiling(a*k + b)
+        while (nsg > tol && k < maxIter){
+            k <- k + 1
+            #ndesc <- ceiling(a*k + b)
             d <- numeric(dim)
             dlist <- list()
             fmlist <- list()
+            inactive <- par != 0 | sg != 0 ## inactive means not actively fixed to zero in solution
+            nInactive <- sum(inactive)
+            ndesc <- (1 + floor(k * a)) * nInactive
+            if (mu < 0.5) browser()
             for (nd in 1:ndesc){
-                j <- sample.int(n=dim, size=1)
+                j <- sample.int(n=nInactive, size=1)
+                j <- parInds[inactive][j]
                 Hd <- H %*% d
                 gr <- gF[j] + Hd[j]
                 if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
@@ -266,40 +273,22 @@ my.opt <- function(F, par, maxIter=2, tol=1e-2, a=1, b=0.1, r=0.01, upper=2, low
                         cat('par:'); print(signif(par, 3));
                         cat('grad:'); print(signif(gF, 3));
                         cat('nsg:'); print(signif(nsg, 3));
-                        k <- k + 1
-                        if (dF > -0.0001 && ys > 0) {
-                            #convergence <- 'objective'
-                            #break
-                        }
-                        if (k > maxIter){
-                            convergence <- 'maxIterations'
-                            break
-                        }
-                        if (max(abs(s*gF)) < 0.0001 && ys > 0) {
-                            #convergence <- 'stepsize'
-                            #break
-                        }
-                        if (nsg < tol){
-                            convergence <- 'gradient'
-                            break
-                        }
                     }
                 }
             }
         }
+        convergence <- ifelse(k > maxIter, 'no', 'yes')
         res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda, convergence=convergence, mu=mu)
         mu <- mubar
-        G <- diag(10*abs(gF), ncol=dim)
-        #par <- par + runif(par, min=-tol, max=tol)
         lambda <- lambda * lscaler
-        convergence <- 'no'
     }
     res
 }
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 par <- c(getInit(), rep(0, nc +1))
-system.time(my.ans <- my.opt(F=nll, par=par, r=0.01, maxIter=100, a=1, b=12, tol=0.05, nlambda=100, log10LambdaRange=1, relStart=0.1, beta=0.9))
+system.time(my.ans <- my.opt(F=nll, par=par, r=0.01, maxIter=100, a=0.1, b=1, tol=0.001,
+                             nlambda=100, log10LambdaRange=1, relStart=0.1, beta=0.9))
 
 (sapply(my.ans, '[[', 'convergence'))
 (lambda <- sapply(my.ans, function(x) x$lambda[2]))
