@@ -158,14 +158,15 @@ getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
     log(res)
 }
 
-my.opt <- function(F, par, maxIter=200, tol=1e-2, a=0.1, r=0.01, upper=2, lower=-2, relStart=1,
-                   nlambda=1, log10LambdaRange=3, mubar=0.9, beta=.9, verbose=FALSE, debug=TRUE){
+my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2, lower=-2, relStart=1,
+                   nlambda=1, log10LambdaRange=2, mubar=1, beta=.9, verbose=FALSE, debug=TRUE){
     niter <- 0
     dim <- length(par)
     parInds <- 1:dim
     I <- diag(nrow=dim)
     gF <- grad(F, x=par, method='simple')
     mu <- mubar
+    stopifnot(beta >0, beta <1)
     G <- diag(10*abs(gF), ncol=dim)
     lstart <- max(abs(gF))
     loglstart <- log10(lstart) + relStart
@@ -192,7 +193,6 @@ my.opt <- function(F, par, maxIter=200, tol=1e-2, a=0.1, r=0.01, upper=2, lower=
         sg <- mapply(fsg, p=par, g=gF, l=lambda, h=diag(H))
         nsg <- max(abs(sg))
         while (nsg > tol && k < maxIter){
-            k <- k + 1
             d <- numeric(dim)
             dlist <- list()
             fmlist <- list()
@@ -253,10 +253,11 @@ my.opt <- function(F, par, maxIter=200, tol=1e-2, a=0.1, r=0.01, upper=2, lower=
                             M <- G - M
                             G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
                             if (any(diag(G) <= 0)) browser()
-                        } else if(debug){
-                            browser()
+                        } else if(verbose){
+                            print('skipping Hessian update: ys <= 0')
                         }
                         ## update vars
+                        k <- k + 1
                         par <- par2
                         gF <- gF2
                         dF <- F2 - F1
@@ -264,7 +265,7 @@ my.opt <- function(F, par, maxIter=200, tol=1e-2, a=0.1, r=0.01, upper=2, lower=
                         H <- I/(2*mu) + G
                         sg <- mapply(fsg, p=par, g=gF, l=lambda, h=diag(H))
                         nsg <- max(abs(sg))
-                        if (debug && mu < 0.01) browser()
+                        if (debug && mu < 1e-8) browser()
                         if (verbose) {
                             cat('lambda[2]: ', lambda[2], '\n')
                             cat('k: ', k, '\n')
@@ -279,7 +280,7 @@ my.opt <- function(F, par, maxIter=200, tol=1e-2, a=0.1, r=0.01, upper=2, lower=
             }
         }
         convergence <- ifelse(k == maxIter, 'no', 'yes')
-        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda, convergence=convergence, mu=mu)
+        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda, convergence=convergence, mu=mu, nsg=nsg, sg=sg)
         mu <- mubar
         lambda <- lambda * lscaler
     }
@@ -288,12 +289,14 @@ my.opt <- function(F, par, maxIter=200, tol=1e-2, a=0.1, r=0.01, upper=2, lower=
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 par <- c(getInit(), rep(0, nc +1))
-system.time(my.ans <- my.opt(F=nll, par=par, r=0.01, maxIter=200, a=0.1, tol=0.001, verbose=TRUE,
-                             nlambda=100, log10LambdaRange=1, relStart=0.1, beta=0.9))
+system.time(my.ans <- my.opt(F=nll, par=par, r=0.01, maxIter=100, a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
+                             nlambda=100, log10LambdaRange=2, relStart=0.1, beta=0.99, mubar=1))
 
-(sapply(my.ans, '[[', 'convergence'))
+all(sapply(my.ans, '[[', 'convergence')=='yes')
 (lambda <- sapply(my.ans, function(x) x$lambda[2]))
 (kvec <- sapply(my.ans, '[[', 'k'))
+(sapply(my.ans, '[[', 'nsg'))
+(sapply(my.ans, '[[', 'mu'))
 
 my.path <- sapply(my.ans, '[[', 'par')
 matplot(lambda, t(my.path), type='l', log='x')
