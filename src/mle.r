@@ -100,6 +100,7 @@ M[['big']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixB
 getRateMatrix <- function(design.matrix, w){
     scale <- exp(w[1])
     effects <- w[-1]
+    stopifnot(ncol(design.matrix) == length(effects))
     eta <- exp(design.matrix %*% effects)
     eta <- eta / mean(eta) * scale
     pos <- 1
@@ -187,9 +188,10 @@ getClusters <- function(tmlol=M[['asym']], migsPerTime=1){
     hc
 }
 
-my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2,
-                   lower=-2, relStart=1, nlambda=1, log10LambdaRange=2,
-                   mubar=1, beta=.9, verbose=FALSE, debug=TRUE, initFactor=10){
+my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=Inf,
+                   lower.limits=-Inf, relStart=1, lambda=NULL, penalty.factor=NULL,
+                   nlambda=1, log10LambdaRange=2, mubar=1, beta=.9, verbose=FALSE,
+                   debug=TRUE, initFactor=10){
     niter <- 0
     dim <- length(par)
     parInds <- 1:dim
@@ -198,14 +200,22 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2,
     mu <- mubar
     stopifnot(beta >0, beta <1)
     G <- diag(initFactor * abs(gF), ncol=dim)
-    lstart <- max(abs(gF))
-    loglstart <- log10(lstart) + relStart
-    loglend <- loglstart - log10LambdaRange
-    logstep <- (loglend - loglstart)/nlambda
-    lscaler <- 10^logstep
-    lambda <- c(0, rep(10^loglstart, dim-1))
-    lower <- rep(lower, dim)
-    upper <- rep(upper,dim)
+    if(is.null(lambda)){
+        lstart <- max(abs(gF))
+        loglstart <- log10(lstart) + relStart
+        loglend <- loglstart - log10LambdaRange
+        logstep <- (loglend - loglstart)/nlambda
+        lambda <- loglstart + 0:(nlambda - 1)*logstep
+        lambda <- 10^lambda
+    }
+    if(is.null(penalty.factor)){
+        penalty.factor <- rep(1, dim)
+        penalty.factor[1] <- 0
+    }
+    stopifnot(length(lower.limits) %in% c(1, dim))
+    if(length(lower.limits) < dim) lower.limits <- rep(lower.limits, dim)
+    stopifnot(length(upper.limits) %in% c(1, dim))
+    if(length(upper.limits) < dim) upper.limits <- rep(upper.limits, dim)
     res <- list()
     fsg <- function(p, g, l, h) {
         if(p==0) {
@@ -216,11 +226,12 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2,
             (-g + l)/h
         }
     }
-    for (i in seq_len(nlambda)){
+    for (i in seq_along(lambda)){
+        penalty <- lambda[i]*penalty.factor
         k <- 0
-        F1 <- F(par) + abs(par) %*% lambda
+        F1 <- F(par) + abs(par) %*% penalty
         H <- I/(2*mu) + G
-        sg <- mapply(fsg, p=par, g=gF, l=lambda, h=diag(H))
+        sg <- mapply(fsg, p=par, g=gF, l=penalty, h=diag(H))
         nsg <- max(abs(sg))
         while (nsg > tol && k < maxIter){
             d <- numeric(dim)
@@ -235,14 +246,14 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2,
                 Hd <- H %*% d
                 gr <- gF[j] + Hd[j]
                 if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
-                    z <- (-gr - lambda[j])/H[j,j]
+                    z <- (-gr - penalty[j])/H[j,j]
                     if (par[j] + d[j] + z < 0){
                         d[j] <- -par[j]
                     } else {
                         d[j] <- d[j] + z
                     }
                 } else {
-                    z <- (-gr + lambda[j])/H[j,j]
+                    z <- (-gr + penalty[j])/H[j,j]
                     if (par[j] + d[j] + z > 0){
                         d[j] <- -par[j]
                     } else {
@@ -250,21 +261,21 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2,
                     }
                 }
                 dlist[[nd]] <- d
-                fmlist[[nd]] <- d %*% (H/2) %*% d + gF %*% d + F1 - abs(par) %*% lambda + abs(par + d) %*% lambda
+                fmlist[[nd]] <- d %*% (H/2) %*% d + gF %*% d + F1 - abs(par) %*% penalty + abs(par + d) %*% penalty
             }
             if(any(diff(c(F1, unlist(fmlist)))>1e-10)) browser()
             par2 <- par + d
-            if (any(par2 > upper) || any(par2 < lower)){
+            if (any(par2 > upper.limits) || any(par2 < lower.limits)){
                 if(verbose) cat('backtracking: out of bounds', '\n')
                 mu <- mu * beta
             } else {
-                Fmod <- d %*% (H/2) %*% d + gF %*% d + F1 - abs(par) %*% lambda + abs(par2) %*% lambda
+                Fmod <- d %*% (H/2) %*% d + gF %*% d + F1 - abs(par) %*% penalty + abs(par2) %*% penalty
                 if(Fmod  > F1 && !isTRUE(all.equal(Fmod, F1))) {
                     if (debug) browser()
                     if(verbose) cat('backtracking: poorly solved model', '\n')
                     mu <- mu * beta
                 } else {
-                    try(F2 <- F(par2) + abs(par2) %*% lambda)
+                    try(F2 <- F(par2) + abs(par2) %*% penalty)
                     if(inherits(F2, 'try-error')) browser()
                     if (F2 - F1 > r * (Fmod - F1)){
                         if(verbose) cat('backtracking: insufficient decrease', '\n')
@@ -293,11 +304,11 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2,
                         dF <- F2 - F1
                         F1 <- F2
                         H <- I/(2*mu) + G
-                        sg <- mapply(fsg, p=par, g=gF, l=lambda, h=diag(H))
+                        sg <- mapply(fsg, p=par, g=gF, l=penalty, h=diag(H))
                         nsg <- max(abs(sg))
                         if (debug && mu < 1e-8) browser()
                         if (verbose) {
-                            cat('lambda[2]: ', lambda[2], '\n')
+                            cat('lambda: ', lambda[i], '\n')
                             cat('k: ', k, '\n')
                             cat('F: ', as.numeric(F1), '\n')
                             cat('par: ', signif(par, 3), '\n')
@@ -310,9 +321,8 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2,
             }
         }
         convergence <- ifelse(k == maxIter, 'no', 'yes')
-        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda, convergence=convergence, mu=mu, nsg=nsg, sg=sg)
+        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda[i], convergence=convergence, mu=mu, nsg=nsg, sg=sg)
         mu <- mubar
-        lambda <- lambda * lscaler
     }
     res
 }
@@ -324,7 +334,7 @@ system.time(my.ans <- my.opt(F=nll, par=par, r=0.01, maxIter=100, a=0.1, tol=0.0
                              nlambda=100, log10LambdaRange=2, relStart=0.1, beta=0.99, mubar=1))
 
 all(sapply(my.ans, '[[', 'convergence')=='yes')
-(lambda <- sapply(my.ans, function(x) x$lambda[2]))
+(lambda <- sapply(my.ans, '[[', 'lambda'))
 (kvec <- sapply(my.ans, '[[', 'k'))
 (sapply(my.ans, '[[', 'nsg'))
 (sapply(my.ans, '[[', 'mu'))
@@ -376,7 +386,7 @@ system.time(fold.ans <- my.opt(F=foldnll, par=par, r=0.01, maxIter=100, a=0.1, t
                              nlambda=100, log10LambdaRange=2, relStart=0.1, beta=0.99, mubar=1))
 
 all(sapply(fold.ans, '[[', 'convergence')=='yes')
-(foldlambda <- sapply(fold.ans, function(x) x$lambda[2]))
+(foldlambda <- sapply(fold.ans, '[[', 'lambda'))
 (foldkvec <- sapply(fold.ans, '[[', 'k'))
 (sapply(fold.ans, '[[', 'nsg'))
 (sapply(fold.ans, '[[', 'mu'))
@@ -392,34 +402,50 @@ plot(foldlambda, -foldprednll + foldnll); dev.off()
 fold.path[,which.max(-foldprednll + foldnll)]
 
 cv.phylonet <- function(msal, tmlol, nfolds){
+    stopifnot(nfolds >2)
     totalNll <- function(x) -obj(x, tmlol=tmlol, msal=msal)
     migsPerTime <- getInit(msal=msal, tmlol=tmlol)
     nc <- ncol(tmlol[[1]][[1]]$design.matrix)
-    parInit <- c(migsPerTime, rep(0, nc +1))
+    parInit <- c(migsPerTime, rep(0, nc))
     hc <- getClusters(migsPerTime=exp(migsPerTime), tmlol=tmlol)
     clusts <- cutree(hc, k=nfolds)
+    totAns <- my.opt(F=totalNll, par=parInit, r=0.01, maxIter=100,
+                     a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
+                     nlambda=100, log10LambdaRange=2, relStart=0.1,
+                     beta=0.99, mubar=1, lower.limits=-5, upper.limits=5)
+    lambda <- sapply(totAns, '[[', 'lambda')
     tmpf <- function(foldid){
         test <- clusts != foldid
-        keepers <- names(clust)[test]
+        keepers <- names(clusts)[test]
         msalF <- filterSeqs(msal, keepers=keepers)
         tmlolF <- filterTips(tmlol, nms)
         foldNll <- function(x) -obj(w=x, msal=msalF, tmlol=tmlolF)
         foldAns <- my.opt(F=foldNll, par=parInit, r=0.01, maxIter=100,
-                           a=0.1, tol=0.001, verbose=FALSE, debug=TRUE,
-                           nlambda=100, log10LambdaRange=2, relStart=0.1,
-                           beta=0.99, mubar=1)
+                           a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
+                          lambda=lambda, beta=0.99, mubar=1,
+                          lower.limits=-5, upper.limits=5)
         fittedNll <- sapply(foldAns, '[[', 'F')
         conv <- sapply(foldAns, '[[', 'convergence')
         stopifnot(all(conv=='yes'))
-        lambda
-        k
-        predNll <- apply(foldAns, 2, totalNll)
+        k <- sapply(foldAns, '[[', 'k')
+        foldPath <- sapply(foldAns, '[[', 'par')
+        predNll <- apply(foldPath, 2, totalNll)
         cv <- -predNll - (-fittedNll)
-        
+        data.frame(foldid=foldid, lambda=lambda, fittedNll=fittedNll, predNll=predNll, cv=cv, k=k)
     }
-    sapply(seq_len(nfolds), )
+    cv <- lapply(seq_len(nfolds), tmpf)
+    list(totAns, cv)
 }
 
+cvasym <- cv.phylonet(msal=pedvMSA, tmlol=M[['asym']], nfolds=10)
+cvs <- sapply(cvasym[[2]], '[[', 'cv')
+EstPredLL <- rowMeans(cvs)
+(PredLLSE <- apply(cvs, 1, sd)/sqrt(ncol(cvs)))
+plot(cvasym[[2]][[1]][, 'lambda'], EstPredLL, log='x')
+
+totpath <- sapply(cvasym[[1]], '[[', 'par')
+
+#cvasym <- do.call(rbind, cvasym)
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
