@@ -332,7 +332,7 @@ all(sapply(my.ans, '[[', 'convergence')=='yes')
 my.path <- sapply(my.ans, '[[', 'par')
 matplot(lambda, t(my.path), type='l', log='x')
 matplot(lambda, t(my.path[-1,]), type='l', log='x')
-#dev.off()
+dev.off()
 
 hc <- getClusters(migsPerTime=exp(migsPerTime))
 clusts <- cutree(hc, k=10)
@@ -346,6 +346,45 @@ plot(trs[[2]], tip.color=clusts[trs[[2]]$tip.label])
 
 plot(read.tree(text=prune.tree(M[['asym']][[2]][[1]]$tree, names(clusts)[clusts==2])))
 
+filterTips <- function(tmlol, keepers){
+    prune <- function(xx){
+        tr <- xx$tree
+        tr <- prune.tree(tr, keepers, all.but=TRUE)
+        xx$tree <- tr
+        xx
+    }
+    tmpf <- function(x) {
+        lapply(x, prune)
+    }
+    lapply(tmlol, tmpf)
+}
+
+nms <- names(clusts)[clusts!=2]
+fold <- filterTips(M[['big']], nms)
+
+filterSeqs <- function(msal, keepers){
+    tmpf <- function(x){
+        test <- x$names %in% keepers
+        x[test, ]
+    }
+    lapply(msal, tmpf)
+}
+msaFold <- filterSeqs(pedvMSA, keepers=nms)
+foldnll <- function(x) -obj(w=x, msal=msaFold, tmlol=fold)
+
+system.time(fold.ans <- my.opt(F=foldnll, par=par, r=0.01, maxIter=100, a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
+                             nlambda=100, log10LambdaRange=2, relStart=0.1, beta=0.99, mubar=1))
+
+all(sapply(fold.ans, '[[', 'convergence')=='yes')
+(foldlambda <- sapply(fold.ans, function(x) x$lambda[2]))
+(foldkvec <- sapply(fold.ans, '[[', 'k'))
+(sapply(fold.ans, '[[', 'nsg'))
+(sapply(fold.ans, '[[', 'mu'))
+
+fold.path <- sapply(fold.ans, '[[', 'par')
+matplot(foldlambda, t(fold.path), type='l', log='x')
+matplot(foldlambda, t(fold.path[-1,]), type='l', log='x')
+dev.off()
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
