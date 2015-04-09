@@ -158,8 +158,38 @@ getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
     log(res)
 }
 
-my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2, lower=-2, relStart=1,
-                   nlambda=1, log10LambdaRange=2, mubar=1, beta=.9, verbose=FALSE, debug=TRUE){
+getClusters <- function(tmlol=M[['asym']], migsPerTime=1){
+    tmpf <- function(x, y){
+        tmpff <- function(xx) {
+            phy <- read.tree(text=xx$tree)
+            cophenetic(phy)
+        }
+        res <- lapply(x, tmpff)
+        res <- Reduce('+', res)/length(res)
+        -res
+    }
+    res <- lapply(tmlol, tmpf)
+    joinMats <- function(A, B){
+        od <- matrix(-Inf, nrow=nrow(B), ncol=ncol(A))
+        rownames(od) <- rownames(B)
+        colnames(od) <- colnames(A)
+        left <- rbind(A, od)
+        od <- matrix(-Inf, nrow=nrow(A), ncol=ncol(B))
+        rownames(od) <- rownames(A)
+        colnames(od) <- colnames(B)
+        right <- rbind(od, B)
+        cbind(left, right)
+    }
+    res <- Reduce(joinMats, res)
+    res <- exp(res*migsPerTime)
+    d <- as.dist(res)
+    hc <- hclust(d, method='complete')
+    hc
+}
+
+my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2,
+                   lower=-2, relStart=1, nlambda=1, log10LambdaRange=2,
+                   mubar=1, beta=.9, verbose=FALSE, debug=TRUE, initFactor=10){
     niter <- 0
     dim <- length(par)
     parInds <- 1:dim
@@ -167,7 +197,7 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2, lower=
     gF <- grad(F, x=par, method='simple')
     mu <- mubar
     stopifnot(beta >0, beta <1)
-    G <- diag(10*abs(gF), ncol=dim)
+    G <- diag(initFactor * abs(gF), ncol=dim)
     lstart <- max(abs(gF))
     loglstart <- log10(lstart) + relStart
     loglend <- loglstart - log10LambdaRange
@@ -225,19 +255,19 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2, lower=
             if(any(diff(c(F1, unlist(fmlist)))>1e-10)) browser()
             par2 <- par + d
             if (any(par2 > upper) || any(par2 < lower)){
-                if(verbose) print('backtracking: out of bounds')
+                if(verbose) cat('backtracking: out of bounds', '\n')
                 mu <- mu * beta
             } else {
                 Fmod <- d %*% (H/2) %*% d + gF %*% d + F1 - abs(par) %*% lambda + abs(par2) %*% lambda
                 if(Fmod  > F1 && !isTRUE(all.equal(Fmod, F1))) {
                     if (debug) browser()
-                    if(verbose) print('backtracking: poorly solved model')
+                    if(verbose) cat('backtracking: poorly solved model', '\n')
                     mu <- mu * beta
                 } else {
                     try(F2 <- F(par2) + abs(par2) %*% lambda)
                     if(inherits(F2, 'try-error')) browser()
                     if (F2 - F1 > r * (Fmod - F1)){
-                        if(verbose) print('backtracking: insufficient decrease')
+                        if(verbose) cat('backtracking: insufficient decrease', '\n')
                         mu <- mu * beta
                     } else {
                         gF2 <- grad(F, x=par2, method='simple')
@@ -254,7 +284,7 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2, lower=
                             G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
                             if (any(diag(G) <= 0)) browser()
                         } else if(verbose){
-                            print('skipping Hessian update: ys <= 0')
+                            cat('skipping Hessian update: ys <= 0', '\n')
                         }
                         ## update vars
                         k <- k + 1
@@ -288,7 +318,8 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper=2, lower=
 }
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
-par <- c(getInit(), rep(0, nc +1))
+migsPerTime <- getInit()
+par <- c(migsPerTime, rep(0, nc +1))
 system.time(my.ans <- my.opt(F=nll, par=par, r=0.01, maxIter=100, a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
                              nlambda=100, log10LambdaRange=2, relStart=0.1, beta=0.99, mubar=1))
 
@@ -302,6 +333,19 @@ my.path <- sapply(my.ans, '[[', 'par')
 matplot(lambda, t(my.path), type='l', log='x')
 matplot(lambda, t(my.path[-1,]), type='l', log='x')
 #dev.off()
+
+hc <- getClusters(migsPerTime=exp(migsPerTime))
+clusts <- cutree(hc, k=10)
+
+## Check that clusters are spread out on tree tips
+t1 <- read.tree(text=M[['asym']][[1]][[1]]$tree)
+t2 <- read.tree(text=M[['asym']][[2]][[1]]$tree)
+trs <- c(t1, t2)
+plot(trs[[1]], tip.color=clusts[trs[[1]]$tip.label])
+plot(trs[[2]], tip.color=clusts[trs[[2]]$tip.label])
+
+plot(read.tree(text=prune.tree(M[['asym']][[2]][[1]]$tree, names(clusts)[clusts==2])))
+
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
