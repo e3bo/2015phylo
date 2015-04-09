@@ -386,6 +386,41 @@ matplot(foldlambda, t(fold.path), type='l', log='x')
 matplot(foldlambda, t(fold.path[-1,]), type='l', log='x')
 dev.off()
 
+foldnll <- sapply(fold.ans, '[[', 'F')
+foldprednll <- apply(fold.path, 2, nll)
+plot(foldlambda, -foldprednll + foldnll); dev.off()
+fold.path[,which.max(-foldprednll + foldnll)]
+
+cv.phylonet <- function(msal, tmlol, nfolds){
+    totalNll <- function(x) -obj(x, tmlol=tmlol, msal=msal)
+    migsPerTime <- getInit(msal=msal, tmlol=tmlol)
+    nc <- ncol(tmlol[[1]][[1]]$design.matrix)
+    parInit <- c(migsPerTime, rep(0, nc +1))
+    hc <- getClusters(migsPerTime=exp(migsPerTime), tmlol=tmlol)
+    clusts <- cutree(hc, k=nfolds)
+    tmpf <- function(foldid){
+        test <- clusts != foldid
+        keepers <- names(clust)[test]
+        msalF <- filterSeqs(msal, keepers=keepers)
+        tmlolF <- filterTips(tmlol, nms)
+        foldNll <- function(x) -obj(w=x, msal=msalF, tmlol=tmlolF)
+        foldAns <- my.opt(F=foldNll, par=parInit, r=0.01, maxIter=100,
+                           a=0.1, tol=0.001, verbose=FALSE, debug=TRUE,
+                           nlambda=100, log10LambdaRange=2, relStart=0.1,
+                           beta=0.99, mubar=1)
+        fittedNll <- sapply(foldAns, '[[', 'F')
+        conv <- sapply(foldAns, '[[', 'convergence')
+        stopifnot(all(conv=='yes'))
+        lambda
+        k
+        predNll <- apply(foldAns, 2, totalNll)
+        cv <- -predNll - (-fittedNll)
+        
+    }
+    sapply(seq_len(nfolds), )
+}
+
+
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
 system.time(ans[['sym']] <- optim.rphast(obj, tmlol=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
