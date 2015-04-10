@@ -188,10 +188,10 @@ getClusters <- function(tmlol=M[['asym']], migsPerTime=1){
     hc
 }
 
-my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=Inf,
+dtnet <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=Inf,
                    lower.limits=-Inf, relStart=1, lambda=NULL, penalty.factor=NULL,
                    nlambda=1, log10LambdaRange=2, mubar=1, beta=.9, verbose=FALSE,
-                   debug=TRUE, initFactor=10){
+                   debug=TRUE, initFactor=10, alpha=1){
     niter <- 0
     dim <- length(par)
     parInds <- 1:dim
@@ -217,23 +217,26 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=In
     stopifnot(length(upper.limits) %in% c(1, dim))
     if(length(upper.limits) < dim) upper.limits <- rep(upper.limits, dim)
     res <- list()
-    fsg <- function(p, g, l, h) {
+    fsg <- function(p, g, l1, l2, h) {
         if(p==0) {
-            max(abs(g) - l, 0)
+            max(abs(g) - l1, 0)
         } else if (p > 0){
-            (-g - l)/h
+            (-g - l1 - l2*p)/(h + l2)
         } else {
-            (-g + l)/h
+            (-g + l1 - l2*p)/(h + l2)
         }
     }
     for (i in seq_along(lambda)){
-        penalty <- lambda[i]*penalty.factor
+        l1penalty <- lambda[i] * penalty.factor * alpha
+        l2penalty <- lambda[i] * penalty.factor * (1 - alpha)
+        penFunc <- function(par) abs(par) %*% l1penalty + (par^2 %*% l2penalty)/2
         k <- 0
-        F1 <- F(par) + abs(par) %*% penalty
+        F1 <- F(par) + penFunc(par)
         H <- I/(2*mu) + G
-        sg <- mapply(fsg, p=par, g=gF, l=penalty, h=diag(H))
+        sg <- mapply(fsg, p=par, g=gF, l1=l1penalty, l2=l2penalty, h=diag(H))
         nsg <- max(abs(sg))
         while (nsg > tol && k < maxIter){
+            H <- I/(2*mu) + G
             d <- numeric(dim)
             dlist <- list()
             fmlist <- list()
@@ -246,14 +249,14 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=In
                 Hd <- H %*% d
                 gr <- gF[j] + Hd[j]
                 if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
-                    z <- (-gr - penalty[j])/H[j,j]
+                    z <- (-gr - l1penalty[j] - l2penalty[j]*(par[j] + d[j]))/(H[j,j] + l2penalty[j])
                     if (par[j] + d[j] + z < 0){
                         d[j] <- -par[j]
                     } else {
                         d[j] <- d[j] + z
                     }
                 } else {
-                    z <- (-gr + penalty[j])/H[j,j]
+                    z <- (-gr + l1penalty[j] - l2penalty[j]*(par[j] + d[j]))/(H[j,j] + l2penalty[j])
                     if (par[j] + d[j] + z > 0){
                         d[j] <- -par[j]
                     } else {
@@ -261,7 +264,7 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=In
                     }
                 }
                 dlist[[nd]] <- d
-                fmlist[[nd]] <- d %*% (H/2) %*% d + gF %*% d + F1 - abs(par) %*% penalty + abs(par + d) %*% penalty
+                fmlist[[nd]] <- d %*% (H/2) %*% d + gF %*% d + F1 - penFunc(par) + penFunc(par + d)
             }
             if(any(diff(c(F1, unlist(fmlist)))>1e-10)) browser()
             par2 <- par + d
@@ -269,13 +272,13 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=In
                 if(verbose) cat('backtracking: out of bounds', '\n')
                 mu <- mu * beta
             } else {
-                Fmod <- d %*% (H/2) %*% d + gF %*% d + F1 - abs(par) %*% penalty + abs(par2) %*% penalty
+                Fmod <- d %*% (H/2) %*% d + gF %*% d + F1 - penFunc(par) + penFunc(par2)
                 if(Fmod  > F1 && !isTRUE(all.equal(Fmod, F1))) {
                     if (debug) browser()
                     if(verbose) cat('backtracking: poorly solved model', '\n')
                     mu <- mu * beta
                 } else {
-                    try(F2 <- F(par2) + abs(par2) %*% penalty)
+                    try(F2 <- F(par2) + penFunc(par2))
                     if(inherits(F2, 'try-error')) browser()
                     if (F2 - F1 > r * (Fmod - F1)){
                         if(verbose) cat('backtracking: insufficient decrease', '\n')
@@ -304,9 +307,9 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=In
                         dF <- F2 - F1
                         F1 <- F2
                         H <- I/(2*mu) + G
-                        sg <- mapply(fsg, p=par, g=gF, l=penalty, h=diag(H))
+                        sg <- mapply(fsg, p=par, g=gF, l1=l1penalty, l2=l2penalty, h=diag(H))
                         nsg <- max(abs(sg))
-                        if (debug && mu < 1e-8) browser()
+                        if (debug && mu < 1e-8 && nsg > tol) browser()
                         if (verbose) {
                             cat('lambda: ', lambda[i], '\n')
                             cat('k: ', k, '\n')
@@ -329,17 +332,17 @@ my.opt <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=In
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 migsPerTime <- getInit()
-par <- c(migsPerTime, rep(0, nc +1))
-system.time(my.ans <- my.opt(F=nll, par=par, r=0.01, maxIter=100, a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
-                             nlambda=100, log10LambdaRange=2, relStart=0.1, beta=0.99, mubar=1))
+par <- c(migsPerTime, rep(0, nc+1))
+system.time(my.ans08 <- dtnet(F=nll, par=par, r=0.01, maxIter=100, a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
+                             nlambda=100, log10LambdaRange=2, relStart=0.1, beta=0.5, mubar=1, alpha=0.8))
 
-all(sapply(my.ans, '[[', 'convergence')=='yes')
-(lambda <- sapply(my.ans, '[[', 'lambda'))
-(kvec <- sapply(my.ans, '[[', 'k'))
-(sapply(my.ans, '[[', 'nsg'))
-(sapply(my.ans, '[[', 'mu'))
+all(sapply(my.ans08, '[[', 'convergence')=='yes')
+(lambda <- sapply(my.ans08, '[[', 'lambda'))
+(kvec <- sapply(my.ans08, '[[', 'k'))
+(sapply(my.ans08, '[[', 'nsg'))
+(sapply(my.ans08, '[[', 'mu'))
 
-my.path <- sapply(my.ans, '[[', 'par')
+my.path <- sapply(my.ans08, '[[', 'par')
 matplot(lambda, t(my.path), type='l', log='x')
 matplot(lambda, t(my.path[-1,]), type='l', log='x')
 dev.off()
