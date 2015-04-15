@@ -4,6 +4,77 @@ library(ggplot2)
 library(numDeriv)
 library(rphastRegression)
 
+treesim <- function(N, nSamples=2){
+    stopifnot(nSamples <= N)
+    gen <- 0
+    nlin <- nSamples
+    ninternal <- nSamples - 1
+    nnode <- nSamples + ninternal
+    nedge <- 2*ninternal
+    nodeHeights <- numeric(nnode)
+    edge <- matrix(nrow=nedge, ncol=2)
+    edge.length <- numeric(nedge)
+    nodeHeights[1:nSamples] <- 0
+    nextNode <- nnode
+    nextEdge <- 1
+    linIds <- 1:nnode
+    isFuture <- c(rep(TRUE, times=nSamples), rep(FALSE, times=nnode - nSamples))
+    nlin <- sum(isFuture)
+    while(nlin > 1){
+        ancestors <- sample(N, size=nlin, replace=TRUE)
+        gen <- gen+1
+        isCurrent <- isFuture
+        for(i in 1:(nlin - 1)){
+            for(j in (i + 1):nlin){
+                if (ancestors[i] == ancestors[j]){
+                    nodeHeights[nextNode] <- gen
+                    lini <- linIds[isCurrent][i]
+                    linj <- linIds[isCurrent][j]
+                    test <- c(lini, linj) %in% edge[, 2]
+                    if (test[1] && !test[2]){
+                        ind <- which(edge[,2] == lini)
+                        parent <- edge[ind, 1]
+                        edge[nextEdge, ] <- c(parent, linj)
+                        edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[linj]
+                        nextEdge <- nextEdge + 1
+                        isFuture[linj] <- FALSE
+                    } else if (!test[1] && test[2]){
+                        ind <- which(edge[,2] == linj)
+                        parent <- edge[ind, 1]
+                        edge[nextEdge, ] <- c(parent, lini)
+                        edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[lini]
+                        nextEdge <- nextEdge + 1
+                        isFuture[lini] <- FALSE
+                    } else if (!any(test)){
+                        edge[nextEdge, ] <- c(nextNode, lini)
+                        edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[lini]
+                        nextEdge <- nextEdge + 1
+                        edge[nextEdge, ] <- c(nextNode, linj)
+                        edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[linj]
+                        nextEdge <- nextEdge + 1
+                        isFuture[c(lini, linj)] <- FALSE
+                        isFuture[nextNode] <- TRUE
+                        nextNode <- nextNode - 1
+                    }
+                }
+            }
+        }
+        nlin <- sum(isFuture)
+    }
+    if (nextNode != nSamples) {
+        diff <- nextNode - nSamples
+        ninternal <- ninternal - diff
+        nedge <- nedge - diff
+        edge <- edge[1:nedge, ]
+        edge[edge > nSamples] <- edge[edge > nSamples] - diff
+    }
+    res <- list(edge=edge,  Nnode=as.integer(ninternal),
+                tip.label=as.character(1:nSamples),
+                edge.length=edge.length)
+    class(res) <- 'phylo'
+    res
+}
+
 tmpf <- function(){
     tmNames <- system("grep ^TreeLikelihood beast/run1/beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
     uniquePatterns <- system("grep \"unique pattern count\" beast/run1/beast-stdout | cut -d\' \' -f7", inter=TRUE)
@@ -404,7 +475,7 @@ foldprednll <- apply(fold.path, 2, nll)
 plot(foldlambda, -foldprednll + foldnll); dev.off()
 fold.path[,which.max(-foldprednll + foldnll)]
 
-cv.phylonet <- function(msal, tmlol, nfolds){
+cv.dtnet <- function(msal, tmlol, nfolds){
     stopifnot(nfolds >2)
     totalNll <- function(x) -obj(x, tmlol=tmlol, msal=msal)
     migsPerTime <- getInit(msal=msal, tmlol=tmlol)
