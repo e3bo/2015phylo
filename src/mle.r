@@ -20,6 +20,7 @@ treesim <- function(N, nSamples=2){
     linIds <- 1:nnode
     isFuture <- c(rep(TRUE, times=nSamples), rep(FALSE, times=nnode - nSamples))
     nlin <- sum(isFuture)
+    ltt <- list(lineages=list(nlin), jumpTimes=list(gen))
     while(nlin > 1){
         ancestors <- sample(N, size=nlin, replace=TRUE)
         gen <- gen+1
@@ -59,7 +60,12 @@ treesim <- function(N, nSamples=2){
                 }
             }
         }
-        nlin <- sum(isFuture)
+        nlinNext <- sum(isFuture)
+        if(nlinNext != nlin) {
+            ltt$lineages <- c(ltt$lineages, nlinNext)
+            ltt$jumpTimes <- c(ltt$jumpTimes, gen)
+            nlin <- nlinNext
+        }
     }
     if (nextNode != nSamples) {
         diff <- nextNode - nSamples
@@ -72,8 +78,23 @@ treesim <- function(N, nSamples=2){
                 tip.label=as.character(1:nSamples),
                 edge.length=edge.length)
     class(res) <- 'phylo'
+    ltt <- lapply(ltt, unlist)
+    list(phy=res, ltt=ltt)
+}
+
+coalStats <- function(ltt){
+    res <- list()
+    res$ci <- diff(ltt$jumpTimes)
+    k <- ltt$lineages[-length(ltt$lineages)]
+    res$npairs <- k*(k-1)/2
     res
 }
+
+N <- 1e4
+p <- treesim(N,2e2)
+cs <- coalStats(p$ltt)
+y <- cs$ci * cs$npairs/N
+car::qqPlot(y, distribution='exp')
 
 tmpf <- function(){
     tmNames <- system("grep ^TreeLikelihood beast/run1/beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
