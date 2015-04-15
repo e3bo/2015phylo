@@ -4,60 +4,76 @@ library(ggplot2)
 library(numDeriv)
 library(rphastRegression)
 
-treesim <- function(N, nSamples=2){
-    stopifnot(nSamples <= N)
-    gen <- 0
-    nlin <- nSamples
-    ninternal <- nSamples - 1
-    nnode <- nSamples + ninternal
+treesim <- function(N, nSamples=2, samplingGens=0){
+    ord <- order(samplingGens)
+    nSamples <- nSamples[ord]
+    samplingGens <- samplingGens[ord]
+    stopifnot(nSamples[1] <= N)
+    gen <- samplingGens[1]
+    lastSampling <- max(samplingGens)
+    totSamples <- sum(nSamples)
+    ninternal <- totSamples - 1
+    nnode <- totSamples + ninternal
     nedge <- 2*ninternal
     nodeHeights <- numeric(nnode)
     edge <- matrix(nrow=nedge, ncol=2)
     edge.length <- numeric(nedge)
-    nodeHeights[1:nSamples] <- 0
+    nodeHeights[1:nSamples[1]] <- gen
     nextNode <- nnode
+    nextSample <- nSamples[1] + 1
     nextEdge <- 1
     linIds <- 1:nnode
-    isFuture <- c(rep(TRUE, times=nSamples), rep(FALSE, times=nnode - nSamples))
+    isFuture <- c(rep(TRUE, times=nSamples[1]), rep(FALSE, times=nnode - nSamples[1]))
     nlin <- sum(isFuture)
     ltt <- list(lineages=list(nlin), jumpTimes=list(gen))
-    while(nlin > 1){
-        ancestors <- sample(N, size=nlin, replace=TRUE)
+    while(nlin > 1 || gen <= lastSampling){
         gen <- gen+1
-        isCurrent <- isFuture
-        for(i in 1:(nlin - 1)){
-            for(j in (i + 1):nlin){
-                if (ancestors[i] == ancestors[j]){
-                    nodeHeights[nextNode] <- gen
-                    lini <- linIds[isCurrent][i]
-                    linj <- linIds[isCurrent][j]
-                    test <- c(lini, linj) %in% edge[, 2]
-                    if (test[1] && !test[2]){
-                        ind <- which(edge[,2] == lini)
-                        parent <- edge[ind, 1]
-                        edge[nextEdge, ] <- c(parent, linj)
-                        edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[linj]
-                        nextEdge <- nextEdge + 1
-                        isFuture[linj] <- FALSE
-                    } else if (!test[1] && test[2]){
-                        ind <- which(edge[,2] == linj)
-                        parent <- edge[ind, 1]
-                        edge[nextEdge, ] <- c(parent, lini)
-                        edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[lini]
-                        nextEdge <- nextEdge + 1
-                        isFuture[lini] <- FALSE
-                    } else if (!any(test)){
-                        edge[nextEdge, ] <- c(nextNode, lini)
-                        edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[lini]
-                        nextEdge <- nextEdge + 1
-                        edge[nextEdge, ] <- c(nextNode, linj)
-                        edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[linj]
-                        nextEdge <- nextEdge + 1
-                        isFuture[c(lini, linj)] <- FALSE
-                        isFuture[nextNode] <- TRUE
-                        nextNode <- nextNode - 1
+        if(nlin > 1) {
+            ancestors <- sample(N, size=nlin, replace=TRUE)
+            isCurrent <- isFuture
+            for(i in 1:(nlin - 1)){
+                for(j in (i + 1):nlin){
+                    if (i > length(ancestors) || j > length(ancestors)) browser()
+                    if (ancestors[i] == ancestors[j]){
+                        nodeHeights[nextNode] <- gen
+                        lini <- linIds[isCurrent][i]
+                        linj <- linIds[isCurrent][j]
+                        test <- c(lini, linj) %in% edge[, 2]
+                        if (test[1] && !test[2]){
+                            ind <- which(edge[,2] == lini)
+                            parent <- edge[ind, 1]
+                            edge[nextEdge, ] <- c(parent, linj)
+                            edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[linj]
+                            nextEdge <- nextEdge + 1
+                            isFuture[linj] <- FALSE
+                        } else if (!test[1] && test[2]){
+                            ind <- which(edge[,2] == linj)
+                            parent <- edge[ind, 1]
+                            edge[nextEdge, ] <- c(parent, lini)
+                            edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[lini]
+                            nextEdge <- nextEdge + 1
+                            isFuture[lini] <- FALSE
+                        } else if (!any(test)){
+                            edge[nextEdge, ] <- c(nextNode, lini)
+                            edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[lini]
+                            nextEdge <- nextEdge + 1
+                            edge[nextEdge, ] <- c(nextNode, linj)
+                            edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[linj]
+                            nextEdge <- nextEdge + 1
+                            isFuture[c(lini, linj)] <- FALSE
+                            isFuture[nextNode] <- TRUE
+                            nextNode <- nextNode - 1
+                        }
                     }
                 }
+            }
+        }
+        if (gen %in% samplingGens){
+            ind <- which(gen == samplingGens)
+            for (i in 1:nSamples[ind]){
+                isFuture[nextSample] <- TRUE
+                nodeHeights[nextSample] <- gen
+                nextSample <- nextSample + 1
             }
         }
         nlinNext <- sum(isFuture)
@@ -67,15 +83,15 @@ treesim <- function(N, nSamples=2){
             nlin <- nlinNext
         }
     }
-    if (nextNode != nSamples) {
-        diff <- nextNode - nSamples
+    if (nextNode != totSamples) {
+        diff <- nextNode - totSamples
         ninternal <- ninternal - diff
         nedge <- nedge - diff
         edge <- edge[1:nedge, ]
-        edge[edge > nSamples] <- edge[edge > nSamples] - diff
+        edge[edge > totSamples] <- edge[edge > totSamples] - diff
     }
     res <- list(edge=edge,  Nnode=as.integer(ninternal),
-                tip.label=as.character(1:nSamples),
+                tip.label=as.character(1:totSamples),
                 edge.length=edge.length)
     class(res) <- 'phylo'
     ltt <- lapply(ltt, unlist)
@@ -83,18 +99,35 @@ treesim <- function(N, nSamples=2){
 }
 
 coalStats <- function(ltt){
-    res <- list()
-    res$ci <- diff(ltt$jumpTimes)
+    jumps <- diff(ltt$lineages)
+    holdingTimes <- diff(ltt$jumpTimes)
     k <- ltt$lineages[-length(ltt$lineages)]
-    res$npairs <- k*(k-1)/2
-    res
+    npairs <- k*(k-1)/2
+    ci <- list(); cr <- list()
+    i <- 1
+    while(i < length(jumps)){
+        if(jumps[i] < 0) {
+            ci <- c(ci, holdingTimes[i])
+            cr <- c(cr, npairs[i])
+            i <- i + 1
+        } else {
+            stopifnot(jumps[i] > 0)
+            ht <- holdingTimes[c(i, i + 1)]
+            np <- npairs[c(i, i + 1)]
+            holdingTimes[i + 1] <- sum(ht)
+            npairs[i + 1] <- sum(ht*np/sum(ht))
+            i <- i + 1
+        }
+    }
+    list(ci=unlist(ci), cr=unlist(cr))
 }
 
-N <- 1e4
-p <- treesim(N,2e2)
+N <- 1e2
+p <- treesim(N,nSamples=rep(10, 100), samplingGens=10*0:99)
 cs <- coalStats(p$ltt)
-y <- cs$ci * cs$npairs/N
+y <- cs$ci * cs$cr/N
 car::qqPlot(y, distribution='exp')
+plot(p$phy)
 
 tmpf <- function(){
     tmNames <- system("grep ^TreeLikelihood beast/run1/beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
