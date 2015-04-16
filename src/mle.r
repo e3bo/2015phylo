@@ -4,11 +4,13 @@ library(ggplot2)
 library(numDeriv)
 library(rphastRegression)
 
-treesim <- function(N, nSamples=2, samplingGens=0){
+treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1, migProbs=matrix(1, ncol=1,nrow=1)){
+    nPops <- length(N)
+    stopifnot(all(samplingPops %in% 1:nPops))
+    stopifnot(all(dim(migProbs) == nPops))
     ord <- order(samplingGens)
     nSamples <- nSamples[ord]
     samplingGens <- samplingGens[ord]
-    stopifnot(nSamples[1] <= N)
     gen <- samplingGens[1]
     lastSampling <- max(samplingGens)
     totSamples <- sum(nSamples)
@@ -16,54 +18,68 @@ treesim <- function(N, nSamples=2, samplingGens=0){
     nnode <- totSamples + ninternal
     nedge <- 2*ninternal
     nodeHeights <- numeric(nnode)
+    nodePops <- numeric(nnode)
     edge <- matrix(nrow=nedge, ncol=2)
     edge.length <- numeric(nedge)
     nodeHeights[1:nSamples[1]] <- gen
+    nodePops[1:nSamples[1]] <- samplingPops[1]
     nextNode <- nnode
     nextSample <- nSamples[1] + 1
     nextEdge <- 1
     linIds <- 1:nnode
+    linPops <- 1:nnode
     isFuture <- c(rep(TRUE, times=nSamples[1]), rep(FALSE, times=nnode - nSamples[1]))
     nlin <- sum(isFuture)
     ltt <- list(lineages=list(nlin), jumpTimes=list(gen))
+    Nt <- N
     while(nlin > 1 || gen <= lastSampling){
         gen <- gen+1
-        if(nlin > 1) {
-            ancestors <- sample(N, size=nlin, replace=TRUE)
-            isCurrent <- isFuture
-            for(i in 1:(nlin - 1)){
-                for(j in (i + 1):nlin){
-                    if (i > length(ancestors) || j > length(ancestors)) browser()
-                    if (ancestors[i] == ancestors[j]){
-                        nodeHeights[nextNode] <- gen
-                        lini <- linIds[isCurrent][i]
-                        linj <- linIds[isCurrent][j]
-                        test <- c(lini, linj) %in% edge[, 2]
-                        if (test[1] && !test[2]){
-                            ind <- which(edge[,2] == lini)
-                            parent <- edge[ind, 1]
-                            edge[nextEdge, ] <- c(parent, linj)
-                            edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[linj]
-                            nextEdge <- nextEdge + 1
-                            isFuture[linj] <- FALSE
-                        } else if (!test[1] && test[2]){
-                            ind <- which(edge[,2] == linj)
-                            parent <- edge[ind, 1]
-                            edge[nextEdge, ] <- c(parent, lini)
-                            edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[lini]
-                            nextEdge <- nextEdge + 1
-                            isFuture[lini] <- FALSE
-                        } else if (!any(test)){
-                            edge[nextEdge, ] <- c(nextNode, lini)
-                            edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[lini]
-                            nextEdge <- nextEdge + 1
-                            edge[nextEdge, ] <- c(nextNode, linj)
-                            edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[linj]
-                            nextEdge <- nextEdge + 1
-                            isFuture[c(lini, linj)] <- FALSE
-                            isFuture[nextNode] <- TRUE
-                            nextNode <- nextNode - 1
-                        }
+        curPops <- unique(linPops[isCurrent])
+        for (pop in curPops) {
+            test <- linPops[isCurrent] == pop
+            ancestorPops <- sample(nPops, size=sum(test), replace=TRUE, prob=migProbs[pop, ])
+            linPops[isCurrent][test] <- ancestorPops
+        }
+        curPops <- unique(linPops[isCurrent])
+        isCurrent <- isFuture
+        for (pop in curPops) {
+            testPop <- linPops == pop & isCurrent
+            nlinPop <- sum(test)
+            if(nlinPop > 1) {
+                ancestors <- sample(N[pop], size=nlinPop, replace=TRUE)
+                for(i in 1:(nlinPop - 1)){
+                    for(j in (i + 1):nlinPop){
+                        if (ancestors[i] == ancestors[j]){
+                            nodeHeights[nextNode] <- gen
+                            lini <- linIds[testPop][i]
+                            linj <- linIds[testPop][j]
+                            test <- c(lini, linj) %in% edge[, 2]
+                            if (test[1] && !test[2]){
+                                ind <- which(edge[,2] == lini)
+                                parent <- edge[ind, 1]
+                                edge[nextEdge, ] <- c(parent, linj)
+                                edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[linj]
+                                nextEdge <- nextEdge + 1
+                                isFuture[linj] <- FALSE
+                            } else if (!test[1] && test[2]){
+                                ind <- which(edge[,2] == linj)
+                                parent <- edge[ind, 1]
+                                edge[nextEdge, ] <- c(parent, lini)
+                                edge.length[nextEdge] <- nodeHeights[parent] - nodeHeights[lini]
+                                nextEdge <- nextEdge + 1
+                                isFuture[lini] <- FALSE
+                            } else if (!any(test)){
+                                edge[nextEdge, ] <- c(nextNode, lini)
+                                edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[lini]
+                                nextEdge <- nextEdge + 1
+                                edge[nextEdge, ] <- c(nextNode, linj)
+                                edge.length[nextEdge] <- nodeHeights[nextNode] - nodeHeights[linj]
+                                nextEdge <- nextEdge + 1
+                                isFuture[c(lini, linj)] <- FALSE
+                                isFuture[nextNode] <- TRUE
+                                nodePops[nextNode] <- pop
+                                nextNode <- nextNode - 1
+                            }
                     }
                 }
             }
