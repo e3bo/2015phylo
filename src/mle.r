@@ -45,6 +45,7 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
             prob <- migProbs[pop, ]
             size <- sum(test)
             if( is.na(size))  browser()
+            if( length(prob) != nPops) browser()
             ancestorPops <- sample(nPops, size=size, replace=TRUE, prob=prob)
             linPops[isCurrent][test] <- ancestorPops
         }
@@ -99,9 +100,9 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
             for (i in 1:nSamples[ind]){
                 isFuture[nextSample] <- TRUE
                 nodeHeights[nextSample] <- gen
-                nextSample <- nextSample + 1
                 linPops[nextSample] <- samplingPops[ind]
                 nodePops[nextSample] <- samplingPops[ind]
+                nextSample <- nextSample + 1
             }
         }
         nlinNext <- sum(isFuture)
