@@ -118,6 +118,10 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
         nedge <- nedge - diff
         edge <- edge[1:nedge, ]
         edge[edge > totSamples] <- edge[edge > totSamples] - diff
+        edge.length <- edge.length[1:nedge]
+        start <- totSamples + diff + 1
+        end <- start + ninternal - 1
+        nodePops <- c(nodePops[1:totSamples], nodePops[start:end])
     }
     res <- list(edge=edge,  Nnode=as.integer(ninternal),
                 tip.label=as.character(1:totSamples),
@@ -151,8 +155,11 @@ coalStats <- function(ltt){
     list(ci=unlist(ci), cr=unlist(cr))
 }
 
+
+migProbs <- rbind(c(0.99,0.01),
+                  c(0.01,0.99))
 N <- 1e2
-p <- treesim(N,nSamples=rep(10, 100), samplingGens=10*0:99)
+p <- treesim(c(N, N), nSamples=rep(10,10), samplingGens=1000*0:9, samplingPops=rep(1,10), migProbs=migProbs)
 cs <- coalStats(p$ltt)
 y <- cs$ci * cs$cr/N
 car::qqPlot(y, distribution='exp')
