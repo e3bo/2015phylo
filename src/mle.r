@@ -4,10 +4,13 @@ library(ggplot2)
 library(numDeriv)
 library(rphastRegression)
 
-treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1, migProbs=matrix(1, ncol=1,nrow=1)){
+treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
+                    migProbs=matrix(1, ncol=1,nrow=1)){
     nPops <- length(N)
     stopifnot(all(samplingPops %in% 1:nPops))
     stopifnot(all(dim(migProbs) == nPops))
+    stopifnot(length(samplingGens)==length(samplingPops))
+    stopifnot(length(samplingGens)==length(nSamples))
     ord <- order(samplingGens)
     nSamples <- nSamples[ord]
     samplingGens <- samplingGens[ord]
@@ -27,8 +30,10 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1, migProbs=
     nextSample <- nSamples[1] + 1
     nextEdge <- 1
     linIds <- 1:nnode
-    linPops <- 1:nnode
-    isFuture <- c(rep(TRUE, times=nSamples[1]), rep(FALSE, times=nnode - nSamples[1]))
+    linPops <- integer(nnode)
+    isCurrent <- isFuture <- c(rep(TRUE, times=nSamples[1]),
+                               rep(FALSE, times=nnode - nSamples[1]))
+    linPops[isCurrent] <- samplingPops[1]
     nlin <- sum(isFuture)
     ltt <- list(lineages=list(nlin), jumpTimes=list(gen))
     Nt <- N
@@ -37,7 +42,10 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1, migProbs=
         curPops <- unique(linPops[isCurrent])
         for (pop in curPops) {
             test <- linPops[isCurrent] == pop
-            ancestorPops <- sample(nPops, size=sum(test), replace=TRUE, prob=migProbs[pop, ])
+            prob <- migProbs[pop, ]
+            size <- sum(test)
+            if( is.na(size))  browser()
+            ancestorPops <- sample(nPops, size=size, replace=TRUE, prob=prob)
             linPops[isCurrent][test] <- ancestorPops
         }
         curPops <- unique(linPops[isCurrent])
@@ -78,8 +86,10 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1, migProbs=
                                 isFuture[c(lini, linj)] <- FALSE
                                 isFuture[nextNode] <- TRUE
                                 nodePops[nextNode] <- pop
+                                linPops[nextNode] <- pop
                                 nextNode <- nextNode - 1
                             }
+                        }
                     }
                 }
             }
@@ -90,6 +100,8 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1, migProbs=
                 isFuture[nextSample] <- TRUE
                 nodeHeights[nextSample] <- gen
                 nextSample <- nextSample + 1
+                linPops[nextSample] <- samplingPops[ind]
+                nodePops[nextSample] <- samplingPops[ind]
             }
         }
         nlinNext <- sum(isFuture)
@@ -111,7 +123,7 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1, migProbs=
                 edge.length=edge.length)
     class(res) <- 'phylo'
     ltt <- lapply(ltt, unlist)
-    list(phy=res, ltt=ltt)
+    list(phy=res, ltt=ltt, nodePops)
 }
 
 coalStats <- function(ltt){
