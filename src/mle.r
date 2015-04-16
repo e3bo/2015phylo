@@ -52,7 +52,7 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
         isCurrent <- isFuture
         for (pop in curPops) {
             testPop <- linPops == pop & isCurrent
-            nlinPop <- sum(test)
+            nlinPop <- sum(testPop)
             if(nlinPop > 1) {
                 ancestors <- sample(N[pop], size=nlinPop, replace=TRUE)
                 for(i in 1:(nlinPop - 1)){
@@ -123,7 +123,7 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
                 edge.length=edge.length)
     class(res) <- 'phylo'
     ltt <- lapply(ltt, unlist)
-    list(phy=res, ltt=ltt, nodePops)
+    list(phy=res, ltt=ltt, nodePops=nodePops)
 }
 
 coalStats <- function(ltt){
