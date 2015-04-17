@@ -47,7 +47,7 @@ tmpf <- function(x, y) {
 }
 pedvMSA <- mapply(tmpf, seqs, nms, SIMPLIFY=FALSE)
 
-simulationR <- 2
+simulationR <- 1
 tmpf <- function(x) {
     n <- length(x)
     ind <- sample.int(n, size=simulationR, replace=TRUE)
@@ -141,20 +141,14 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
         ll <- ll - scale
         probs <- exp(ll)
         ll <- log(mean(probs)) + scale
+    } else if(length(ll) > 1){
+            ll <- sum(ll)
     }
     ll
 }
 
 objNull <- function(x) obj(c(x, 0))
 system.time(oneParAns <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
-
-Mmin <- M[['asym']]
-MsaMin <- pedvMSA
-Mmin[[2]] <- NULL
-MsaMin[[2]] <- NULL
-Mmin[[1]][[2]] <- NULL
-
-obj(c(-1.49,0), msal=MsaMin, tmlol=Mmin)
 
 #' ## Simulations of trees conditional on a sampling configuration
 
@@ -343,14 +337,13 @@ coalStats <- function(ltt){
 
 #' ### Exponentiality test
 
-Q <- matrix(exp(-1.49), nrow=14, ncol=14)
+Q <- matrix(exp(oneParAns$max), nrow=14, ncol=14)
 diag(Q) <- 0
 diag(Q) <- -sum(Q[1,])
 migProbs <- expm(Q*1/52)
 
 sampleLabels <- nms[[1]]
 sampCfg <- getSampleConfig(sampleLabels, levs)
-
 N <- 5
 p <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
              samplingPops=sampCfg$sp, migProbs=migProbs,
@@ -359,13 +352,35 @@ cs <- coalStats(p$ltt)
 y <- cs$ci * cs$cr
 car::qqPlot(y, distribution='exp')
 
+
+sampleLabels <- nms[[2]]
+sampCfg <- getSampleConfig(sampleLabels, levs)
+p2 <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
+             samplingPops=sampCfg$sp, migProbs=migProbs,
+             sampleLabels=sampleLabels)
+
+
+
 pdf('a.pdf', width=24, height=12)
 plot(p$phy)
 nodelabels(text=levs[p$nodePops], node=seq_along(p$nodePops), col=p$nodePops, adj=c(1,0))
 dev.off()
 
-p2 <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
-             samplingPops=sampCfg$sp, migProbs=migProbs)
+#' ### Examine bias with simulation
+
+msaS <- pedvMSA
+Msim <- list(M[['asym']][[1]], M[['asym']][[2]])
+tree <- p$phy
+tree <- multi2di(tree)
+tree$edge.length <- tree$edge.length/52
+Msim[[1]][[1]]$tree <- write.tree(tree)
+tree <- p2$phy
+tree <- multi2di(tree)
+tree$edge.length <- tree$edge.length/52
+Msim[[2]][[1]]$tree <- write.tree(tree)
+
+objNull <- function(x) obj(c(x, 0), msal=msaS, tmlol=Msim)
+system.time(simAns <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
 
 #' ## Regularized models and cross-validation
 
