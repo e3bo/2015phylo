@@ -177,34 +177,18 @@ getSampleConfig <- function(nm, levs, genTime=as.numeric(ddays(7))){
     sTimes <- max(tipDates) - tipDates
     sGens <- floor(sTimes / genTime)
     tab <- table(sGens, popIds)
-    samplingGens <- list()
-    samplingPops <- list()
-    nSamples <- list()
-    ind <- 1
-    for(i in 1:nrow(tab)){
-        for(j in 1:ncol(tab)){
-            if(tab[i,j] > 0) {
-                nSamples[[ind]] <- tab[i,j]
-                samplingPops[[ind]] <- as.integer(colnames(tab)[j])
-                samplingGens[[ind]] <- as.integer(rownames(tab)[i])
-                ind <- ind + 1
-            }
-        }
-    }
-    list(ns=unlist(nSamples), sg=unlist(samplingGens), sp=unlist(samplingPops))
+    nSamps <- rep(1, length=length(sGens))
+    list(ns=nSamps, sg=sGens, sp=popIds)
 }
 
 treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
-                    migProbs=matrix(1, ncol=1,nrow=1)){
+                    migProbs=matrix(1, ncol=1,nrow=1), sampleLabels=NULL){
     nPops <- length(N)
     stopifnot(all(samplingPops %in% 1:nPops))
     stopifnot(all(dim(migProbs) == nPops))
     stopifnot(length(samplingGens)==length(samplingPops))
     stopifnot(length(samplingGens)==length(nSamples))
-    ord <- order(samplingGens)
-    nSamples <- nSamples[ord]
-    samplingGens <- samplingGens[ord]
-    gen <- samplingGens[1]
+    gen <- min(samplingGens)
     lastSampling <- max(samplingGens)
     totSamples <- sum(nSamples)
     ninternal <- totSamples - 1
@@ -218,6 +202,11 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
     edge.length <- numeric(nedge)
     nextNode <- nnode
     nextEdge <- 1
+    if(!is.null(sampleLabels)){
+        stopifnot(length(sampleLabels) == totSamples)
+        stopifnot(nSamples == 1)
+        tip.label <- character(totSamples)
+    }
     isFuture <- rep(FALSE, length.out=nnode)
     nextSample <- 1
     inds <- which(samplingGens == gen)
@@ -227,6 +216,9 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
             nodeHeights[nextSample] <- gen
             linPops[nextSample] <- samplingPops[ind]
             nodePops[nextSample] <- samplingPops[ind]
+            if(!is.null(sampleLabels)){
+                tip.label[nextSample] <- sampleLabels[ind]
+            }
             nextSample <- nextSample + 1
         }
     }
@@ -299,6 +291,9 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
                     nodeHeights[nextSample] <- gen
                     linPops[nextSample] <- samplingPops[ind]
                     nodePops[nextSample] <- samplingPops[ind]
+                    if(!is.null(sampleLabels)) {
+                        tip.label[nextSample] <- sampleLabels[ind]
+                    }
                     nextSample <- nextSample + 1
                 }
             }
@@ -321,12 +316,15 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
         end <- start + ninternal - 1
         nodePops <- c(nodePops[1:totSamples], nodePops[start:end])
     }
+    if(is.null(sampleLabels)){
+        tip.label <- as.character(1:totSamples)
+    }
     res <- list(edge=edge,  Nnode=as.integer(ninternal),
-                tip.label=as.character(1:totSamples),
+                tip.label=tip.label,
                 edge.length=edge.length)
     class(res) <- 'phylo'
     ltt <- lapply(ltt, unlist)
-    list(phy=res, ltt=ltt, nodePops=nodePops)
+    list(phy=res, ltt=ltt, nodePops=nodePops, nodeHeights=nodeHeights)
 }
 
 coalStats <- function(ltt){
@@ -360,15 +358,31 @@ diag(Q) <- 0
 diag(Q) <- -sum(Q[1,])
 migProbs <- expm(Q*1/52)
 
-sampCfg <- getSampleConfig(nms[[1]], levs)
+sampleLabels <- nms[[1]]
+sampCfg <- getSampleConfig(sampleLabels, levs)
 
-N <- 20
+N <- 5
 p <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
-             samplingPops=sampCfg$sp, migProbs=migProbs)
+             samplingPops=sampCfg$sp, migProbs=migProbs,
+             sampleLabels=sampleLabels)
 cs <- coalStats(p$ltt)
-y <- cs$ci * cs$cr/N
+y <- cs$ci * cs$cr
 car::qqPlot(y, distribution='exp')
+
+pdf('a.pdf', width=24, height=12)
 plot(p$phy)
+
+sp <- p$nodePops[1:78]
+sg <- p$nodeHeights[1:78]
+table(sg, sp)
+
+nodelabels(text=levs[p$nodePops], node=seq_along(p$nodePops), col=p$nodePops, adj=c(1,0))
+dev.off()
+
+p2 <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
+             samplingPops=sampCfg$sp, migProbs=migProbs)
+
+
 
 
 #' ## Regularized models and Cross-validation
