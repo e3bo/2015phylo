@@ -4,6 +4,167 @@ library(ggplot2)
 library(numDeriv)
 library(rphastRegression)
 
+#' ## Data loading
+
+tmpf <- function(){
+    tmNames <- system("grep ^TreeLikelihood beast/run1/beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
+    uniquePatterns <- system("grep \"unique pattern count\" beast/run1/beast-stdout | cut -d\' \' -f7", inter=TRUE)
+    names(uniquePatterns) <- tmNames
+    uniquePatterns
+}
+uniquePatterns <- tmpf()
+
+tnames <- c('nonsIndel', 'sIndel')
+tfiles <- paste0(tnames, '-aligned.fasta-gb.combined.trees')
+trees <- lapply(tfiles, read.nexus)
+
+flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
+
+#' ## Tree-model creation
+
+nms <- lapply(trees, attr, which='TipLabel')
+
+tmpf <- function(x) {
+    x <- strsplit(x, '_')
+    sapply(x, '[', 1)
+}
+abs <- lapply(nms, tmpf)
+
+absF <- factor(unlist(abs))
+levs <- levels(absF)
+n <- length(unlist(levs))
+alph <- LETTERS[seq_len(n)]
+
+absFt <- lapply(abs, factor, levels=levs)
+absFt <- lapply(absFt, 'levels<-', value=alph)
+alph <- paste(alph, collapse='')
+seqs <- lapply(absFt, as.character)
+tmpf <- function(x, y) {
+    msa(seqs=x, names=y, alphabet=alph)
+}
+pedvMSA <- mapply(tmpf, seqs, nms, SIMPLIFY=FALSE)
+
+simulationR <- 2
+tmpf <- function(x) {
+    n <- length(x)
+    ind <- sample.int(n, size=simulationR, replace=TRUE)
+    x <- x[ind]
+    unname(lapply(x, write.tree))
+}
+treeChar <- lapply(trees, tmpf)
+
+pairs <- expand.grid(to=levs, from=levs)
+test <- pairs$from != pairs$to
+pairs <- pairs[test,]
+pairs <- pairs[, c('from', 'to')]
+
+aggFlow <- function(from, to, sym=TRUE, M=flows){
+    tot <- M[from, to]
+    if(sym){
+        tot <- tot + M[to, from]
+    }
+    log10(tot + 1)
+}
+
+pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=TRUE)
+designMatrixSym <- data.matrix(pairFlows)
+
+pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=FALSE)
+designMatrixAsym <- data.matrix(pairFlows)
+
+nr <- nrow(designMatrixAsym)
+nc <- 10
+mNoise <-matrix(runif(nr*nc), nrow=nr)
+designMatrixBigger <- cbind(designMatrixAsym, mNoise)
+designMatrixBigger <- scale(designMatrixBigger)
+
+bg <- rep(1, n)/n
+
+tmpf <- function(x) {
+    lapply(x, tm, subst.mod="UNREST", alphabet=alph, backgd=bg)
+}
+mods <- lapply(treeChar, tmpf)
+
+assignElement <- function(x, nam, val) {
+    tmpf <- function(x) {
+        x[[nam]] <- val
+        x
+    }
+    lapply(x, tmpf)
+}
+mods <- lapply(mods, assignElement, nam='rate.matrix', val=matrix(NA, nrow=n, ncol=n))
+
+M <- list()
+M[['sym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixSym)
+M[['asym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixAsym)
+M[['big']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixBigger)
+
+##' ## Fit 1-parameter model
+
+getRateMatrix <- function(design.matrix, w){
+    scale <- exp(w[1])
+    effects <- w[-1]
+    stopifnot(ncol(design.matrix) == length(effects))
+    eta <- exp(design.matrix %*% effects)
+    eta <- eta / mean(eta) * scale
+    pos <- 1
+    rate.matrix <- matrix(nrow=n, ncol=n)
+    for(i in seq_len(n)){
+        rowSum <- 0
+        for(j in seq_len(n)){
+            if (i != j) {
+                rate.matrix[i,j] <- eta[pos]
+                rowSum <- rowSum + eta[pos]
+                pos <- pos + 1
+            }
+        }
+        rate.matrix[i,i] <- -rowSum
+    }
+    rate.matrix
+}
+
+obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
+    design.matrix <- tmlol[[1]][[1]][['design.matrix']]
+    rate.matrix <- getRateMatrix(design.matrix, w)
+    tmlol <- lapply(tmlol, assignElement, nam='rate.matrix', val=rate.matrix)
+    tmpf <- function(x, tmlist) {
+        treeLogLikGivenMSA <- function(tm) likelihood.msa(x=x, tm=tm)
+        sapply(tmlist, treeLogLikGivenMSA)
+    }
+    ll <- mapply(tmpf, msal, tmlol)
+    ll <- rowSums(ll)
+    scale <- max(ll)
+    ll <- ll - scale
+    probs <- exp(ll)
+    log(mean(probs)) + scale
+}
+
+getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
+    tmpf <- function(x, y){
+        dloc <- outer(y$seq, y$seq, '==')
+        colnames(dloc) <- names(y)
+        rownames(dloc) <- names(y)
+        tmpff <- function(xx) {
+            phy <- read.tree(text=xx$tree)
+            dphy <- cophenetic(phy)
+            dphy <- dphy[rownames(dloc), colnames(dloc)]
+            rdist <- dloc / dphy
+            mean(rdist[upper.tri(rdist)])
+        }
+        lapply(x, tmpff)
+    }
+    res <- mapply(tmpf, x=tmlol, y=msal, SIMPLIFY=FALSE)
+    tmpf <- function(x) mean(unlist(x))
+    res <- sapply(res, tmpf)
+    tmpf <- function(x) length(x$seq)
+    nseq <- sapply(pedvMSA, tmpf)
+    w <- nseq*(nseq - 1)
+    res <- weighted.mean(res, w=w)
+    log(res)
+}
+
+#' ## Simulations of trees conditional on a sampling configuration
+
 treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
                     migProbs=matrix(1, ncol=1,nrow=1)){
     nPops <- length(N)
@@ -157,174 +318,25 @@ coalStats <- function(ltt){
     list(ci=unlist(ci), cr=unlist(cr))
 }
 
+#' ### Exponentiality test
+
 Q <- matrix(exp(-1.49), nrow=14, ncol=14)
 diag(Q) <- 0
 diag(Q) <- -sum(Q[1,])
 migProbs <- expm(Q*1/52)
 
+
 #migProbs <- rbind(c(0.99,0.01),
 #                  c(0.01,0.99))
-N <- 20
+N <- 10
 p <- treesim(rep(N, 14), nSamples=rep(8,10), samplingGens=c(0,rep(1,2),rep(4,3), 8:11), samplingPops=c(1, 2:6, rep(1, 4)), migProbs=migProbs)
 cs <- coalStats(p$ltt)
 y <- cs$ci * cs$cr/N
 car::qqPlot(y, distribution='exp')
 plot(p$phy)
 
-tmpf <- function(){
-    tmNames <- system("grep ^TreeLikelihood beast/run1/beast-stdout | cut -d\'(\' -f2 | cut -d\')\' -f1 | cut -d\'-\' -f1", inter=TRUE)
-    uniquePatterns <- system("grep \"unique pattern count\" beast/run1/beast-stdout | cut -d\' \' -f7", inter=TRUE)
-    names(uniquePatterns) <- tmNames
-    uniquePatterns
-}
-uniquePatterns <- tmpf()
 
-tnames <- c('nonsIndel', 'sIndel')
-tfiles <- paste0(tnames, '-aligned.fasta-gb.combined.trees')
-trees <- lapply(tfiles, read.nexus)
-
-flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
-
-nms <- lapply(trees, attr, which='TipLabel')
-
-tmpf <- function(x) {
-    x <- strsplit(x, '_')
-    sapply(x, '[', 1)
-}
-abs <- lapply(nms, tmpf)
-
-absF <- factor(unlist(abs))
-levs <- levels(absF)
-n <- length(unlist(levs))
-alph <- LETTERS[seq_len(n)]
-
-absFt <- lapply(abs, factor, levels=levs)
-absFt <- lapply(absFt, 'levels<-', value=alph)
-alph <- paste(alph, collapse='')
-seqs <- lapply(absFt, as.character)
-tmpf <- function(x, y) {
-    msa(seqs=x, names=y, alphabet=alph)
-}
-pedvMSA <- mapply(tmpf, seqs, nms, SIMPLIFY=FALSE)
-
-simulationR <- 2
-tmpf <- function(x) {
-    n <- length(x)
-    ind <- sample.int(n, size=simulationR, replace=TRUE)
-    x <- x[ind]
-    unname(lapply(x, write.tree))
-}
-treeChar <- lapply(trees, tmpf)
-
-pairs <- expand.grid(to=levs, from=levs)
-test <- pairs$from != pairs$to
-pairs <- pairs[test,]
-pairs <- pairs[, c('from', 'to')]
-
-aggFlow <- function(from, to, sym=TRUE, M=flows){
-    tot <- M[from, to]
-    if(sym){
-        tot <- tot + M[to, from]
-    }
-    log10(tot + 1)
-}
-
-pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=TRUE)
-designMatrixSym <- data.matrix(pairFlows)
-
-pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=FALSE)
-designMatrixAsym <- data.matrix(pairFlows)
-
-nr <- nrow(designMatrixAsym)
-nc <- 10
-mNoise <-matrix(runif(nr*nc), nrow=nr)
-designMatrixBigger <- cbind(designMatrixAsym, mNoise)
-designMatrixBigger <- scale(designMatrixBigger)
-
-bg <- rep(1, n)/n
-
-tmpf <- function(x) {
-    lapply(x, tm, subst.mod="UNREST", alphabet=alph, backgd=bg)
-}
-mods <- lapply(treeChar, tmpf)
-
-assignElement <- function(x, nam, val) {
-    tmpf <- function(x) {
-        x[[nam]] <- val
-        x
-    }
-    lapply(x, tmpf)
-}
-mods <- lapply(mods, assignElement, nam='rate.matrix', val=matrix(NA, nrow=n, ncol=n))
-
-M <- list()
-M[['sym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixSym)
-M[['asym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixAsym)
-M[['big']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixBigger)
-
-##' ## Fit models
-
-getRateMatrix <- function(design.matrix, w){
-    scale <- exp(w[1])
-    effects <- w[-1]
-    stopifnot(ncol(design.matrix) == length(effects))
-    eta <- exp(design.matrix %*% effects)
-    eta <- eta / mean(eta) * scale
-    pos <- 1
-    rate.matrix <- matrix(nrow=n, ncol=n)
-    for(i in seq_len(n)){
-        rowSum <- 0
-        for(j in seq_len(n)){            
-            if (i != j) {
-                rate.matrix[i,j] <- eta[pos]
-                rowSum <- rowSum + eta[pos]
-                pos <- pos + 1
-            }            
-        }
-        rate.matrix[i,i] <- -rowSum        
-    }
-    rate.matrix
-}
-
-obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
-    design.matrix <- tmlol[[1]][[1]][['design.matrix']]
-    rate.matrix <- getRateMatrix(design.matrix, w)
-    tmlol <- lapply(tmlol, assignElement, nam='rate.matrix', val=rate.matrix)
-    tmpf <- function(x, tmlist) {
-        treeLogLikGivenMSA <- function(tm) likelihood.msa(x=x, tm=tm)
-        sapply(tmlist, treeLogLikGivenMSA)
-    }
-    ll <- mapply(tmpf, msal, tmlol)
-    ll <- rowSums(ll)
-    scale <- max(ll)
-    ll <- ll - scale
-    probs <- exp(ll)
-    log(mean(probs)) + scale
-}
-
-getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
-    tmpf <- function(x, y){
-        dloc <- outer(y$seq, y$seq, '==')
-        colnames(dloc) <- names(y)
-        rownames(dloc) <- names(y)
-        tmpff <- function(xx) {
-            phy <- read.tree(text=xx$tree)
-            dphy <- cophenetic(phy)
-            dphy <- dphy[rownames(dloc), colnames(dloc)]
-            rdist <- dloc / dphy
-            mean(rdist[upper.tri(rdist)])
-        }
-        lapply(x, tmpff)
-    }
-    res <- mapply(tmpf, x=tmlol, y=msal, SIMPLIFY=FALSE)
-    tmpf <- function(x) mean(unlist(x))
-    res <- sapply(res, tmpf)
-    tmpf <- function(x) length(x$seq)
-    nseq <- sapply(pedvMSA, tmpf)
-    w <- nseq*(nseq - 1)
-    res <- weighted.mean(res, w=w)
-    log(res)
-}
+#' ## Regularized models and Cross-validation
 
 getClusters <- function(tmlol=M[['asym']], migsPerTime=1){
     tmpf <- function(x, y){
@@ -616,6 +628,9 @@ plot(cvasym[[2]][[1]][, 'lambda'], EstPredLL, log='x')
 totpath <- sapply(cvasym[[1]], '[[', 'par')
 
 #cvasym <- do.call(rbind, cvasym)
+
+
+#' ## Fit 2-parameter models
 
 ans <- list()
 system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
