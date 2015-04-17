@@ -135,36 +135,26 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
         sapply(tmlist, treeLogLikGivenMSA)
     }
     ll <- mapply(tmpf, msal, tmlol)
-    ll <- rowSums(ll)
-    scale <- max(ll)
-    ll <- ll - scale
-    probs <- exp(ll)
-    log(mean(probs)) + scale
+    if(!is.null(dim(ll))){
+        ll <- rowSums(ll)
+        scale <- max(ll)
+        ll <- ll - scale
+        probs <- exp(ll)
+        ll <- log(mean(probs)) + scale
+    }
+    ll
 }
 
-getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
-    tmpf <- function(x, y){
-        dloc <- outer(y$seq, y$seq, '==')
-        colnames(dloc) <- names(y)
-        rownames(dloc) <- names(y)
-        tmpff <- function(xx) {
-            phy <- read.tree(text=xx$tree)
-            dphy <- cophenetic(phy)
-            dphy <- dphy[rownames(dloc), colnames(dloc)]
-            rdist <- dloc / dphy
-            mean(rdist[upper.tri(rdist)])
-        }
-        lapply(x, tmpff)
-    }
-    res <- mapply(tmpf, x=tmlol, y=msal, SIMPLIFY=FALSE)
-    tmpf <- function(x) mean(unlist(x))
-    res <- sapply(res, tmpf)
-    tmpf <- function(x) length(x$seq)
-    nseq <- sapply(pedvMSA, tmpf)
-    w <- nseq*(nseq - 1)
-    res <- weighted.mean(res, w=w)
-    log(res)
-}
+objNull <- function(x) obj(c(x, 0))
+system.time(oneParAns <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
+
+Mmin <- M[['asym']]
+MsaMin <- pedvMSA
+Mmin[[2]] <- NULL
+MsaMin[[2]] <- NULL
+Mmin[[1]][[2]] <- NULL
+
+obj(c(-1.49,0), msal=MsaMin, tmlol=Mmin)
 
 #' ## Simulations of trees conditional on a sampling configuration
 
@@ -371,21 +361,37 @@ car::qqPlot(y, distribution='exp')
 
 pdf('a.pdf', width=24, height=12)
 plot(p$phy)
-
-sp <- p$nodePops[1:78]
-sg <- p$nodeHeights[1:78]
-table(sg, sp)
-
 nodelabels(text=levs[p$nodePops], node=seq_along(p$nodePops), col=p$nodePops, adj=c(1,0))
 dev.off()
 
 p2 <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
              samplingPops=sampCfg$sp, migProbs=migProbs)
 
+#' ## Regularized models and cross-validation
 
-
-
-#' ## Regularized models and Cross-validation
+getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
+    tmpf <- function(x, y){
+        dloc <- outer(y$seq, y$seq, '==')
+        colnames(dloc) <- names(y)
+        rownames(dloc) <- names(y)
+        tmpff <- function(xx) {
+            phy <- read.tree(text=xx$tree)
+            dphy <- cophenetic(phy)
+            dphy <- dphy[rownames(dloc), colnames(dloc)]
+            rdist <- dloc / dphy
+            mean(rdist[upper.tri(rdist)])
+        }
+        lapply(x, tmpff)
+    }
+    res <- mapply(tmpf, x=tmlol, y=msal, SIMPLIFY=FALSE)
+    tmpf <- function(x) mean(unlist(x))
+    res <- sapply(res, tmpf)
+    tmpf <- function(x) length(x$seq)
+    nseq <- sapply(pedvMSA, tmpf)
+    w <- nseq*(nseq - 1)
+    res <- weighted.mean(res, w=w)
+    log(res)
+}
 
 getClusters <- function(tmlol=M[['asym']], migsPerTime=1){
     tmpf <- function(x, y){
