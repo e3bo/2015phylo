@@ -1,6 +1,9 @@
 library(ape)
 library(boot)
+library(car)
+library(expm)
 library(ggplot2)
+library(lubridate)
 library(numDeriv)
 library(rphastRegression)
 
@@ -165,6 +168,32 @@ getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
 
 #' ## Simulations of trees conditional on a sampling configuration
 
+getSampleConfig <- function(nm, levs, genTime=as.numeric(ddays(7))){
+    splt <- strsplit(nm, split='_')
+    tmpf <- function(x) match(x[[1]], levs)
+    popIds <- sapply(splt, tmpf)
+    tmpf <- function(x) dmy(x[[2]])
+    tipDates <- sapply(splt, tmpf)
+    sTimes <- max(tipDates) - tipDates
+    sGens <- floor(sTimes / genTime)
+    tab <- table(sGens, popIds)
+    samplingGens <- list()
+    samplingPops <- list()
+    nSamples <- list()
+    ind <- 1
+    for(i in 1:nrow(tab)){
+        for(j in 1:ncol(tab)){
+            if(tab[i,j] > 0) {
+                nSamples[[ind]] <- tab[i,j]
+                samplingPops[[ind]] <- as.integer(colnames(tab)[j])
+                samplingGens[[ind]] <- as.integer(rownames(tab)[i])
+                ind <- ind + 1
+            }
+        }
+    }
+    list(ns=unlist(nSamples), sg=unlist(samplingGens), sp=unlist(samplingPops))
+}
+
 treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
                     migProbs=matrix(1, ncol=1,nrow=1)){
     nPops <- length(N)
@@ -182,22 +211,28 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
     nnode <- totSamples + ninternal
     nedge <- 2*ninternal
     nodeHeights <- numeric(nnode)
+    linPops <- integer(nnode)
     nodePops <- numeric(nnode)
+    linIds <- 1:nnode
     edge <- matrix(nrow=nedge, ncol=2)
     edge.length <- numeric(nedge)
-    nodeHeights[1:nSamples[1]] <- gen
-    nodePops[1:nSamples[1]] <- samplingPops[1]
     nextNode <- nnode
-    nextSample <- nSamples[1] + 1
     nextEdge <- 1
-    linIds <- 1:nnode
-    linPops <- integer(nnode)
-    isCurrent <- isFuture <- c(rep(TRUE, times=nSamples[1]),
-                               rep(FALSE, times=nnode - nSamples[1]))
-    linPops[isCurrent] <- samplingPops[1]
+    isFuture <- rep(FALSE, length.out=nnode)
+    nextSample <- 1
+    inds <- which(samplingGens == gen)
+    for (ind in inds){
+        for (i in 1:nSamples[ind]){
+            isFuture[nextSample] <- TRUE
+            nodeHeights[nextSample] <- gen
+            linPops[nextSample] <- samplingPops[ind]
+            nodePops[nextSample] <- samplingPops[ind]
+            nextSample <- nextSample + 1
+        }
+    }
+    isCurrent <- isFuture
     nlin <- sum(isFuture)
     ltt <- list(lineages=list(nlin), jumpTimes=list(gen))
-    Nt <- N
     while(nlin > 1 || gen <= lastSampling){
         gen <- gen+1
         curPops <- unique(linPops[isCurrent])
@@ -325,11 +360,11 @@ diag(Q) <- 0
 diag(Q) <- -sum(Q[1,])
 migProbs <- expm(Q*1/52)
 
+sampCfg <- getSampleConfig(nms[[1]], levs)
 
-#migProbs <- rbind(c(0.99,0.01),
-#                  c(0.01,0.99))
-N <- 10
-p <- treesim(rep(N, 14), nSamples=rep(8,10), samplingGens=c(0,rep(1,2),rep(4,3), 8:11), samplingPops=c(1, 2:6, rep(1, 4)), migProbs=migProbs)
+N <- 20
+p <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
+             samplingPops=sampCfg$sp, migProbs=migProbs)
 cs <- coalStats(p$ltt)
 y <- cs$ci * cs$cr/N
 car::qqPlot(y, distribution='exp')
