@@ -96,13 +96,15 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
             }
         }
         if (gen %in% samplingGens){
-            ind <- which(gen == samplingGens)
-            for (i in 1:nSamples[ind]){
-                isFuture[nextSample] <- TRUE
-                nodeHeights[nextSample] <- gen
-                linPops[nextSample] <- samplingPops[ind]
-                nodePops[nextSample] <- samplingPops[ind]
-                nextSample <- nextSample + 1
+            inds <- which(samplingGens == gen)
+            for (ind in inds){
+                for (i in 1:nSamples[ind]){
+                    isFuture[nextSample] <- TRUE
+                    nodeHeights[nextSample] <- gen
+                    linPops[nextSample] <- samplingPops[ind]
+                    nodePops[nextSample] <- samplingPops[ind]
+                    nextSample <- nextSample + 1
+                }
             }
         }
         nlinNext <- sum(isFuture)
@@ -155,11 +157,15 @@ coalStats <- function(ltt){
     list(ci=unlist(ci), cr=unlist(cr))
 }
 
+Q <- matrix(exp(-1.49), nrow=14, ncol=14)
+diag(Q) <- 0
+diag(Q) <- -sum(Q[1,])
+migProbs <- expm(Q*1/52)
 
-migProbs <- rbind(c(0.99,0.01),
-                  c(0.01,0.99))
-N <- 1e2
-p <- treesim(c(N, N), nSamples=rep(10,10), samplingGens=1000*0:9, samplingPops=rep(1,10), migProbs=migProbs)
+#migProbs <- rbind(c(0.99,0.01),
+#                  c(0.01,0.99))
+N <- 20
+p <- treesim(rep(N, 14), nSamples=rep(8,10), samplingGens=c(0,rep(1,2),rep(4,3), 8:11), samplingPops=c(1, 2:6, rep(1, 4)), migProbs=migProbs)
 cs <- coalStats(p$ltt)
 y <- cs$ci * cs$cr/N
 car::qqPlot(y, distribution='exp')
