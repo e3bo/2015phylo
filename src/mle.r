@@ -150,6 +150,14 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
 objNull <- function(x) obj(c(x, 0))
 system.time(oneParAns <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
 
+#' ## Fit 2-parameter models
+
+ans <- list()
+system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
+system.time(ans[['sym']] <- optim.rphast(obj, tmlol=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
+objNull <- function(x) obj(c(x, 0))
+system.time(ans[['null']] <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
+
 #' ## Simulations of trees conditional on a sampling configuration
 
 getSampleConfig <- function(nm, levs, genTime=as.numeric(ddays(7))){
@@ -170,8 +178,8 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
     nPops <- length(N)
     stopifnot(all(samplingPops %in% 1:nPops))
     stopifnot(all(dim(migProbs) == nPops))
-    stopifnot(length(samplingGens)==length(samplingPops))
-    stopifnot(length(samplingGens)==length(nSamples))
+    stopifnot(length(samplingGens) == length(samplingPops))
+    stopifnot(length(samplingGens) == length(nSamples))
     invMigProbs <- solve(migProbs)
     gen <- min(samplingGens)
     lastSampling <- max(samplingGens)
@@ -213,10 +221,11 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
     Nt <- N
     Ntraj <- list(Nt)
     while(nlin > 1 || gen <= lastSampling){
-        Nt <- round(Nt %*% invMigProbs)
-        Nt[Nt==0] <- 1
-        if (gen %% N[1] == 0) {
-            Ntraj <- c(Ntraj, list(as.integer(Nt)))
+        Ntt <- Nt %*% invMigProbs
+        Ntt[Ntt<1] <- 1
+        Nt <- Ntt*sum(Nt)/sum(Ntt)
+        if (gen %% 10 == 0) {
+            Ntraj <- c(Ntraj, list(as.numeric(Nt)))
         }
         gen <- gen + 1
         curPops <- unique(linPops[isCurrent])
@@ -226,6 +235,7 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
             size <- sum(test)
             if( is.na(size))  browser()
             if( length(prob) != nPops) browser()
+            if( any(prob <=0)) browser()
             ancestorPops <- sample(nPops, size=size, replace=TRUE, prob=prob)
             linPops[isCurrent][test] <- ancestorPops
         }
@@ -235,7 +245,7 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
             testPop <- linPops == pop & isCurrent
             nlinPop <- sum(testPop)
             if(nlinPop > 1) {
-                ancestors <- sample(Nt[pop], size=nlinPop, replace=TRUE)
+                ancestors <- sample(ceiling(Nt[pop]), size=nlinPop, replace=TRUE)
                 for(i in 1:(nlinPop - 1)){
                     for(j in (i + 1):nlinPop){
                         if (ancestors[i] == ancestors[j]){
@@ -346,25 +356,25 @@ coalStats <- function(ltt){
 #' ### Exponentiality test
 
 K <- length(levs)
-Q <- matrix(exp(oneParAns$max), nrow=K, ncol=K)
+                                        #Q <- matrix(exp(oneParAns$max), nrow=K, ncol=K)
+Q <- getRateMatrix(M[['asym']][[1]][[1]]$design.matrix, ans[['asym']]$par)
 gensPerYear <- 52
-diag(Q) <- 0
-diag(Q) <- -sum(Q[1,])
+#diag(Q) <- 0
+#diag(Q) <- -sum(Q[1,])
 migProbs <- expm(Q/gensPerYear)
 
 sampleLabels <- nms[[1]]
 sampCfg <- getSampleConfig(sampleLabels, levs)
 N <- 5
-p <- treesim(rep(N, K), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
-             samplingPops=sampCfg$sp, migProbs=migProbs,
-             sampleLabels=sampleLabels)
+N <- rep(N, K) %*% expm(Q*4)
+p <- treesim(N, nSamples=sampCfg$ns, samplingGens=sampCfg$sg,samplingPops=sampCfg$sp, migProbs=migProbs, sampleLabels=sampleLabels)
 cs <- coalStats(p$ltt)
 y <- cs$ci * cs$cr
-car::qqPlot(y, distribution='exp')
+qqPlot(y, distribution='exp')
 
 sampleLabels <- nms[[2]]
 sampCfg <- getSampleConfig(sampleLabels, levs)
-p2 <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
+p2 <- treesim(N, nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
              samplingPops=sampCfg$sp, migProbs=migProbs,
              sampleLabels=sampleLabels)
 
@@ -385,6 +395,8 @@ tree <- p2$phy
 tree <- multi2di(tree)
 tree$edge.length <- tree$edge.length/52
 Msim[[2]][[1]]$tree <- write.tree(tree)
+
+system.time(ansSim <- optim.rphast(obj, tmlol=Msim, params=c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
 
 objNull <- function(x) obj(c(x, 0), msal=msaS, tmlol=Msim)
 system.time(simAns <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
@@ -707,13 +719,6 @@ totpath <- sapply(cvasym[[1]], '[[', 'par')
 #cvasym <- do.call(rbind, cvasym)
 
 
-#' ## Fit 2-parameter models
-
-ans <- list()
-system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
-system.time(ans[['sym']] <- optim.rphast(obj, tmlol=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
-objNull <- function(x) obj(c(x, 0))
-system.time(ans[['null']] <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
 
 #' ## Check for simulation bias
 #'
