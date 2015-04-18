@@ -172,6 +172,7 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
     stopifnot(all(dim(migProbs) == nPops))
     stopifnot(length(samplingGens)==length(samplingPops))
     stopifnot(length(samplingGens)==length(nSamples))
+    invMigProbs <- solve(migProbs)
     gen <- min(samplingGens)
     lastSampling <- max(samplingGens)
     totSamples <- sum(nSamples)
@@ -209,12 +210,19 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
     isCurrent <- isFuture
     nlin <- sum(isFuture)
     ltt <- list(lineages=list(nlin), jumpTimes=list(gen))
+    Nt <- N
+    Ntraj <- list(Nt)
     while(nlin > 1 || gen <= lastSampling){
-        gen <- gen+1
+        Nt <- round(Nt %*% invMigProbs)
+        Nt[Nt==0] <- 1
+        if (gen %% N[1] == 0) {
+            Ntraj <- c(Ntraj, list(as.integer(Nt)))
+        }
+        gen <- gen + 1
         curPops <- unique(linPops[isCurrent])
         for (pop in curPops) {
             test <- linPops[isCurrent] == pop
-            prob <- migProbs[pop, ]
+            prob <- Nt * migProbs[, pop]
             size <- sum(test)
             if( is.na(size))  browser()
             if( length(prob) != nPops) browser()
@@ -227,7 +235,7 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
             testPop <- linPops == pop & isCurrent
             nlinPop <- sum(testPop)
             if(nlinPop > 1) {
-                ancestors <- sample(N[pop], size=nlinPop, replace=TRUE)
+                ancestors <- sample(Nt[pop], size=nlinPop, replace=TRUE)
                 for(i in 1:(nlinPop - 1)){
                     for(j in (i + 1):nlinPop){
                         if (ancestors[i] == ancestors[j]){
@@ -308,7 +316,7 @@ treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
                 edge.length=edge.length)
     class(res) <- 'phylo'
     ltt <- lapply(ltt, unlist)
-    list(phy=res, ltt=ltt, nodePops=nodePops, nodeHeights=nodeHeights)
+    list(phy=res, ltt=ltt, nodePops=nodePops, nodeHeights=nodeHeights, Ntraj=Ntraj)
 }
 
 coalStats <- function(ltt){
@@ -337,29 +345,28 @@ coalStats <- function(ltt){
 
 #' ### Exponentiality test
 
-Q <- matrix(exp(oneParAns$max), nrow=14, ncol=14)
+K <- length(levs)
+Q <- matrix(exp(oneParAns$max), nrow=K, ncol=K)
+gensPerYear <- 52
 diag(Q) <- 0
 diag(Q) <- -sum(Q[1,])
-migProbs <- expm(Q*1/52)
+migProbs <- expm(Q/gensPerYear)
 
 sampleLabels <- nms[[1]]
 sampCfg <- getSampleConfig(sampleLabels, levs)
 N <- 5
-p <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
+p <- treesim(rep(N, K), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
              samplingPops=sampCfg$sp, migProbs=migProbs,
              sampleLabels=sampleLabels)
 cs <- coalStats(p$ltt)
 y <- cs$ci * cs$cr
 car::qqPlot(y, distribution='exp')
 
-
 sampleLabels <- nms[[2]]
 sampCfg <- getSampleConfig(sampleLabels, levs)
 p2 <- treesim(rep(N, 14), nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
              samplingPops=sampCfg$sp, migProbs=migProbs,
              sampleLabels=sampleLabels)
-
-
 
 pdf('a.pdf', width=24, height=12)
 plot(p$phy)
