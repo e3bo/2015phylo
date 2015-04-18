@@ -142,7 +142,7 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
         probs <- exp(ll)
         ll <- log(mean(probs)) + scale
     } else if(length(ll) > 1){
-            ll <- sum(ll)
+        ll <- sum(ll)
     }
     ll
 }
@@ -371,10 +371,19 @@ ran.gen.tree <- function(data=M[['asym']], pars, msal=pedvMSA, levnames=levs,
         treesim(Ni, nSamples=sampCfg$ns, samplingGens=sampCfg$sg,samplingPops=sampCfg$sp, migProbs=migProbs, sampleLabels=sampleLab)
     }
     p <- mapply(tmpf, sampCfgs, sampleLabels, SIMPLIFY=FALSE)
-    p
+    res <- lapply(data, '[', 1)
+    tmpf <- function(x, y) {
+        tree <- y$phy
+        tree$edge.length <- tree$edge.length / gensPerUnit
+        tree <- multi2di(tree)
+        x[[1]]$tree <- write.tree(tree)
+        x
+    }
+    res <- mapply(tmpf, x=res, y=p, SIMPLIFY=FALSE)
+    res
 }
 
-pl <- ran.gen.tree(pars=ans[['asym']]$par)
+Msim2 <- ran.gen.tree(pars=ans[['asym']]$par)
 
 #' ### Exponentiality test
 
