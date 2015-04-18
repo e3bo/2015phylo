@@ -353,6 +353,29 @@ coalStats <- function(ltt){
     list(ci=unlist(ci), cr=unlist(cr))
 }
 
+ran.gen.tree <- function(data=M[['asym']], pars, msal=pedvMSA, levnames=levs,
+                         genTime=as.numeric(ddays(7)), branchUnits=as.numeric(ddays(365)),
+                         unitsToEvenDist=4, N=70){
+    K <- length(levnames)
+    gensPerUnit <- branchUnits/genTime
+    Z <- data[[1]][[1]]$design.matrix
+    Q <- getRateMatrix(Z, pars)
+    sampleLabels <- lapply(pedvMSA, names)
+    sampCfgs <- lapply(sampleLabels, getSampleConfig, levs=levnames, genTime=genTime)
+    migProbs <- expm(Q/gensPerUnit)
+    Ni <- N/K
+    Ni <- rep(Ni, K) %*% expm(Q*unitsToEvenDist)
+    Ni[Ni < 1] <- 1
+    Ni <- Ni * N / sum(Ni)
+    tmpf <- function(sampCfg, sampleLab){
+        treesim(Ni, nSamples=sampCfg$ns, samplingGens=sampCfg$sg,samplingPops=sampCfg$sp, migProbs=migProbs, sampleLabels=sampleLab)
+    }
+    p <- mapply(tmpf, sampCfgs, sampleLabels, SIMPLIFY=FALSE)
+    p
+}
+
+pl <- ran.gen.tree(pars=ans[['asym']]$par)
+
 #' ### Exponentiality test
 
 K <- length(levs)
@@ -368,7 +391,7 @@ sampCfg <- getSampleConfig(sampleLabels, levs)
 N <- 5
 N <- rep(N, K) %*% expm(Q*4)
 p <- treesim(N, nSamples=sampCfg$ns, samplingGens=sampCfg$sg,samplingPops=sampCfg$sp, migProbs=migProbs, sampleLabels=sampleLabels)
-cs <- coalStats(p$ltt)
+cs <- coalStats(pl[[1]]$ltt)
 y <- cs$ci * cs$cr
 qqPlot(y, distribution='exp')
 
