@@ -383,7 +383,27 @@ ran.gen.tree <- function(data=M[['asym']], pars, msal=pedvMSA, levnames=levs,
     res
 }
 
-Msim2 <- ran.gen.tree(pars=ans[['asym']]$par)
+get.param.stat.tree <- function(data, pars) {
+    ans <- optim.rphast(obj, params=pars, lower=c(-5,-5), upper=c(2,2), tmlol=data)
+    ans$par
+}
+
+bsParamR <- 1e2
+system.time(bsTree <- boot(data=M[['sym']], get.param.stat.tree, R=bsParamR, sim='parametric',
+                           ran.gen=ran.gen.tree, mle=ans[['sym']]$par, pars=ans[['sym']]$par,
+                           parallel='multicore', ncpus=parallel::detectCores()))
+
+# Bootstrap bias and standard error estimates
+
+bsTree
+
+# The distribution of estimates appears close to normal, without any discontinuities
+plot(bsTree, index=1)
+plot(bsTree, index=2)
+
+(ciInt <- boot.ci(bsTree, index=1, type=c('perc', 'norm')))
+(ciFlo <- boot.ci(bsTree, index=2, type=c('perc', 'norm')))
+
 
 #' ### Exponentiality test
 
