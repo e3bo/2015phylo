@@ -353,6 +353,20 @@ coalStats <- function(ltt){
     list(ci=unlist(ci), cr=unlist(cr))
 }
 
+get.ltt.phylo <- function(phy){
+    nd <- node.depth.edgelength(phy)
+    nd <- max(nd) - nd
+    nt <- length(phy$tip.label)
+    delta <- as.integer(c(rep(1, nt), 1 - table(phy$edge[,1])))
+    jumps <- tapply(delta, nd, sum)
+    test <- jumps != 0
+    lin <- cumsum(jumps[test])
+    ltt <- list()
+    ltt$lineages <- unname(lin)
+    ltt$jumpTimes <- as.numeric(names(lin))
+    ltt
+}
+
 ran.gen.tree <- function(data=M[['asym']], pars, msal=pedvMSA, levnames=levs,
                          genTime=as.numeric(ddays(7)), branchUnits=as.numeric(ddays(365)),
                          unitsToEvenDist=4, N=70){
@@ -385,12 +399,24 @@ ran.gen.tree <- function(data=M[['asym']], pars, msal=pedvMSA, levnames=levs,
 
 get.param.stat.tree <- function(data, pars) {
     ans <- optim.rphast(obj, params=pars, lower=c(-5,-5), upper=c(2,2), tmlol=data)
-    ans$par
+    tmpf <- function(x) read.tree(text=x[[1]]$tree)
+    trees <- lapply(data, tmpf)
+    ltt <- lapply(trees, get.ltt.phylo)
+    cs <- lapply(ltt, coalStats)
+    tmpf <- function(c){
+        y <- c$ci * c$cr
+        gini.exp.test(y, simulate=length(y < 30))
+    }
+    htl <- lapply(cs, tmpf)
+    expPvals <- sapply(htl, '[[', 'p.value')
+    rej <- expPvals < 0.05
+    expStats <- sapply(htl, '[[', 'statistic')
+    c(ans$par, rej, expStats)
 }
 
 bsParamR <- 1e2
-system.time(bsTree <- boot(data=M[['sym']], get.param.stat.tree, R=bsParamR, sim='parametric',
-                           ran.gen=ran.gen.tree, mle=ans[['sym']]$par, pars=ans[['sym']]$par,
+system.time(bsTree <- boot(data=M[['asym']], get.param.stat.tree, R=bsParamR, sim='parametric',
+                           ran.gen=ran.gen.tree, mle=ans[['asym']]$par, pars=ans[['asym']]$par,
                            parallel='multicore', ncpus=parallel::detectCores()))
 
 # Bootstrap bias and standard error estimates
@@ -400,6 +426,9 @@ bsTree
 # The distribution of estimates appears close to normal, without any discontinuities
 plot(bsTree, index=1)
 plot(bsTree, index=2)
+
+plot(bsTree, index=5)
+plot(bsTree, index=6)
 
 (ciInt <- boot.ci(bsTree, index=1, type=c('perc', 'norm')))
 (ciFlo <- boot.ci(bsTree, index=2, type=c('perc', 'norm')))
@@ -420,9 +449,11 @@ sampCfg <- getSampleConfig(sampleLabels, levs)
 N <- 5
 N <- rep(N, K) %*% expm(Q*4)
 p <- treesim(N, nSamples=sampCfg$ns, samplingGens=sampCfg$sg,samplingPops=sampCfg$sp, migProbs=migProbs, sampleLabels=sampleLabels)
-cs <- coalStats(pl[[1]]$ltt)
+cs <- coalStats(p$ltt)
 y <- cs$ci * cs$cr
 qqPlot(y, distribution='exp')
+
+pp <- p$phy
 
 sampleLabels <- nms[[2]]
 sampCfg <- getSampleConfig(sampleLabels, levs)
