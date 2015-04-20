@@ -507,7 +507,7 @@ getClusters <- function(tmlol=M[['asym']], migsPerTime=1){
 }
 
 dtlmnet <- function(x, y, alpha=1, nlambda=100, lambda.min.ratio=0.01,
-                    lambda=NULL, standardize=TRUE, intercept=TRUE, thresh=1e-2,
+                    lambda=NULL, standardize=TRUE, intercept=TRUE, thresh=1e-4,
                     dfmax=nvars + 1, pmax=min(dfmax*2 + 20,nvars), exclude,
                     penalty.factor=rep(1, nvars), lower.limits=-Inf,
                     upper.limits=Inf, maxit=100){
@@ -586,14 +586,14 @@ dtlmnet <- function(x, y, alpha=1, nlambda=100, lambda.min.ratio=0.01,
     fit <- dtnet(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
                  ulam, thresh, isd, intr, vnames, maxit)
     fit$call <- this.call
-    fit$nrates <- nobs
+    fit$nrates <- nrates
     class(fit) <- c(class(fit), "dtlmnet")
     fit
 }
 
 dtnet <- function(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
                   ulam, thresh, isd, intr, vnames, maxit, a=0.1, r=0.01,
-                  relStart=1, mubar=1, beta=.9, verbose=TRUE, debug=TRUE,
+                  relStart=1, mubar=1, beta=0.9, verbose=TRUE, debug=TRUE,
                   initFactor=10){
     maxit <- as.integer(maxit)
     niter <- 0
@@ -736,6 +736,8 @@ dtnet <- function(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
     path <- sapply(res, '[[', 'par')
     ret <- list(a0=path[1,])
     beta <- t(path[-1, ])
+    colnames(beta) <- paste("s", seq(ncol(beta)) - 1, sep = "")
+    rownames(beta) <- vnames
     ret$beta <- beta
     ret$lambda <- sapply(res, '[[', 'lambda')
     ret$nll <- sapply(res, '[[', 'nll')
@@ -746,9 +748,68 @@ dtnet <- function(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
     ret
 }
 
+plotCoef <- function (beta, norm, lambda, df, dev, label = FALSE, xvar = c("norm",
+    "lambda", "dev"), xlab = iname, ylab = "Coefficients", ...) {
+    which <- which(rowSums(abs(beta)) > 0)
+    nwhich <- length(which)
+    switch(nwhich + 1, `0` = {
+        warning("No plot produced since all coefficients zero")
+        return()
+    }, `1` = warning("1 or less nonzero coefficients; glmnet plot is not meaningful"))
+    beta = as.matrix(beta[which, , drop = FALSE])
+    xvar = match.arg(xvar)
+    switch(xvar, norm = {
+        index = if (missing(norm)) apply(abs(beta), 2, sum) else norm
+        iname = "L1 Norm"
+        approx.f = 1
+    }, lambda = {
+        index = log(lambda)
+        iname = "Log Lambda"
+        approx.f = 0
+    }, dev = {
+        index = dev
+        iname = "Fraction Deviance Explained"
+        approx.f = 1
+    })
+    dotlist = list(...)
+    type = dotlist$type
+    if (is.null(type))
+        matplot(index, t(beta), lty = 1, xlab = xlab, ylab = ylab,
+            type = "l", ...)
+    else matplot(index, t(beta), lty = 1, xlab = xlab, ylab = ylab,
+        ...)
+    atdf = pretty(index)
+    prettydf = approx(x = index, y = df, xout = atdf, rule = 2,
+        method = "constant", f = approx.f)$y
+    axis(3, at = atdf, labels = prettydf, tcl = NA)
+    if (label) {
+        nnz = length(which)
+        xpos = max(index)
+        pos = 4
+        if (xvar == "lambda") {
+            xpos = min(index)
+            pos = 2
+        }
+        xpos = rep(xpos, nnz)
+        ypos = beta[, ncol(beta)]
+        text(xpos, ypos, paste(which), cex = 0.5, pos = pos)
+    }
+}
+
+plot.dtlmnet <- function (x, xvar = c("norm", "lambda", "dev"),
+                          label = FALSE, ...){
+    xvar = match.arg(xvar)
+    plotCoef(x$beta, lambda = x$lambda, df = x$df, dev = x$dev.ratio,
+             label = label, xvar = xvar, ...)
+}
+
+
 x <- M[[1]][[1]][[1]]$design.matrix
-y <- list(tmlol=M[['asym']], msal=pedvMSA)
+y <- list(tmlol=M[['big']], msal=pedvMSA)
 dfit <- dtlmnet(x=x, y=y)
+plot(dfit, xvar='l')
+
+
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 migsPerTime <- getInit()
