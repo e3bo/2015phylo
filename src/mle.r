@@ -1,7 +1,7 @@
 library(ape)
 library(boot)
-library(car)
 library(expm)
+library(exptest)
 library(ggplot2)
 library(lubridate)
 library(numDeriv)
@@ -419,70 +419,15 @@ system.time(bsTree <- boot(data=M[['asym']], get.param.stat.tree, R=bsParamR, si
                            ran.gen=ran.gen.tree, mle=ans[['asym']]$par, pars=ans[['asym']]$par,
                            parallel='multicore', ncpus=parallel::detectCores()))
 
-# Bootstrap bias and standard error estimates
+#' ### Bootstrap bias and standard error estimates
 
 bsTree
 
-# The distribution of estimates appears close to normal, without any discontinuities
+#' The distributions appears close to normal, without any discontinuities
 plot(bsTree, index=1)
 plot(bsTree, index=2)
-
 plot(bsTree, index=5)
 plot(bsTree, index=6)
-
-(ciInt <- boot.ci(bsTree, index=1, type=c('perc', 'norm')))
-(ciFlo <- boot.ci(bsTree, index=2, type=c('perc', 'norm')))
-
-
-#' ### Exponentiality test
-
-K <- length(levs)
-                                        #Q <- matrix(exp(oneParAns$max), nrow=K, ncol=K)
-Q <- getRateMatrix(M[['asym']][[1]][[1]]$design.matrix, ans[['asym']]$par)
-gensPerYear <- 52
-#diag(Q) <- 0
-#diag(Q) <- -sum(Q[1,])
-migProbs <- expm(Q/gensPerYear)
-
-sampleLabels <- nms[[1]]
-sampCfg <- getSampleConfig(sampleLabels, levs)
-N <- 5
-N <- rep(N, K) %*% expm(Q*4)
-p <- treesim(N, nSamples=sampCfg$ns, samplingGens=sampCfg$sg,samplingPops=sampCfg$sp, migProbs=migProbs, sampleLabels=sampleLabels)
-cs <- coalStats(p$ltt)
-y <- cs$ci * cs$cr
-qqPlot(y, distribution='exp')
-
-pp <- p$phy
-
-sampleLabels <- nms[[2]]
-sampCfg <- getSampleConfig(sampleLabels, levs)
-p2 <- treesim(N, nSamples=sampCfg$ns, samplingGens=sampCfg$sg,
-             samplingPops=sampCfg$sp, migProbs=migProbs,
-             sampleLabels=sampleLabels)
-
-pdf('a.pdf', width=24, height=12)
-plot(p$phy)
-nodelabels(text=levs[p$nodePops], node=seq_along(p$nodePops), col=p$nodePops, adj=c(1,0))
-dev.off()
-
-#' ### Examine bias with simulation
-
-msaS <- pedvMSA
-Msim <- list(M[['asym']][[1]], M[['asym']][[2]])
-tree <- p$phy
-tree <- multi2di(tree)
-tree$edge.length <- tree$edge.length/52
-Msim[[1]][[1]]$tree <- write.tree(tree)
-tree <- p2$phy
-tree <- multi2di(tree)
-tree$edge.length <- tree$edge.length/52
-Msim[[2]][[1]]$tree <- write.tree(tree)
-
-system.time(ansSim <- optim.rphast(obj, tmlol=Msim, params=c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
-
-objNull <- function(x) obj(c(x, 0), msal=msaS, tmlol=Msim)
-system.time(simAns <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
 
 #' ## Regularized models and cross-validation
 
@@ -539,10 +484,96 @@ getClusters <- function(tmlol=M[['asym']], migsPerTime=1){
     hc
 }
 
-dtnet <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=Inf,
-                   lower.limits=-Inf, relStart=1, lambda=NULL, penalty.factor=NULL,
-                   nlambda=1, log10LambdaRange=2, mubar=1, beta=.9, verbose=FALSE,
-                   debug=TRUE, initFactor=10, alpha=1){
+dtlmnet <- function(x, y, par, alpha=1, nlambda=1, lambda.min.ratio=0.01,
+                  lambda=NULL, standardize=TRUE, intercept=TRUE, thresh=1e-2,
+                  dfmax=nvars + 1, exclude, penalty.factor=rep(1, nvars),
+                  lower.limits=-Inf, upper.limits=Inf, maxit=100,  a=0.1, r=0.01,
+                  relStart=1, mubar=1, beta=.9, verbose=FALSE,
+                    debug=TRUE, initFactor=10){
+    # written using glmnet as a template
+    if (alpha > 1) {
+        warning("alpha >1; set to 1")
+        alpha <- 1
+    }
+    if (alpha < 0) {
+        warning("alpha<0; set to 0")
+        alpha <- 0
+    }
+    alpha <- as.double(alpha)
+    this.call <- match.call()
+    nlam <- as.integer(nlambda)
+    np <- dim(x)
+    if (is.null(np) | (np[2] < 1))
+        stop("x should be a matrix with 1 or more columns")
+    nrates <- as.integer(np[1])
+    nvars <- as.integer(np[2])
+    k <- nchar(y$tmlol[[1]][[1]]$alphabet)
+    if (k*(k-1) != nrates)
+        stop(paste("number of ordered pairs of states for trait (", k*(k-1), ") not consistent with the number of predicted transition rates (", nrates, ")", sep = ""))
+    vnames <- colnames(x)
+    if (is.null(vnames))
+        vnames <- paste("V", seq(nvars), sep = "")
+    ne <- as.integer(dfmax)
+    nx <- as.integer(pmax)
+    if (!missing(exclude)) {
+        jd <- match(exclude, seq(nvars), 0)
+        if (!all(jd > 0))
+            stop("Some excluded variables out of range")
+        jd <- as.integer(c(length(jd), jd))
+    }
+    else jd <- as.integer(0)
+    vp <- as.double(penalty.factor)
+    if (any(lower.limits > 0)) {
+        stop("Lower limits should be non-positive")
+    }
+    if (any(upper.limits < 0)) {
+        stop("Upper limits should be non-negative")
+    }
+    if (length(lower.limits) < nvars) {
+        if (length(lower.limits) == 1)
+            lower.limits <- rep(lower.limits, nvars)
+        else stop("Require length 1 or nvars lower.limits")
+    }
+    else lower.limits <- lower.limits[seq(nvars)]
+    if (length(upper.limits) < nvars) {
+        if (length(upper.limits) == 1)
+            upper.limits = rep(upper.limits, nvars)
+        else stop("Require length 1 or nvars upper.limits")
+    }
+    else upper.limits <- upper.limits[seq(nvars)]
+    cl = rbind(lower.limits, upper.limits)
+    if (any(abs(cl) < tol)) {
+        stop("Cannot enforce limits this close to zero")
+    }
+    storage.mode(cl) <- "double"
+    isd <- as.integer(standardize)
+    intr <- as.integer(intercept)
+    thres <- as.double(thresh)
+    if (is.null(lambda)) {
+        if (lambda.min.ratio >= 1)
+            stop("lambda.min.ratio should be less than 1")
+        flmin <- as.double(lambda.min.ratio)
+        ulam <- double(1)
+    }
+    else {
+        flmin <- as.double(1)
+        if (any(lambda < 0))
+            stop("lambdas should be non-negative")
+        ulam <- as.double(rev(sort(lambda)))
+        nlam <- as.integer(length(lambda))
+    }
+    fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
+                 ulam, thresh, isd, intr, vnames, maxit)
+    if (is.null(lambda))
+        fit$lambda = fit$lambda
+    fit$call = this.call
+    fit$nobs = nobs
+    class(fit) = c(class(fit), "dtlmnet")
+    fit
+}
+
+fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
+                 ulam, thresh, isd, intr, vnames, maxit)
     niter <- 0
     dim <- length(par)
     parInds <- 1:dim
@@ -551,6 +582,7 @@ dtnet <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=Inf
     mu <- mubar
     stopifnot(beta >0, beta <1)
     G <- diag(initFactor * abs(gF), ncol=dim)
+    log10LambdaRange <- -log10(lambda.min.ratio)
     if(is.null(lambda)){
         lstart <- max(abs(gF))
         loglstart <- log10(lstart) + relStart
@@ -586,7 +618,7 @@ dtnet <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=Inf
         H <- I/(2*mu) + G
         sg <- mapply(fsg, p=par, g=gF, l1=l1penalty, l2=l2penalty, h=diag(H))
         nsg <- max(abs(sg))
-        while (nsg > tol && k < maxIter){
+        while (nsg > thresh && k < maxit){
             H <- I/(2*mu) + G
             d <- numeric(dim)
             dlist <- list()
@@ -660,7 +692,7 @@ dtnet <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=Inf
                         H <- I/(2*mu) + G
                         sg <- mapply(fsg, p=par, g=gF, l1=l1penalty, l2=l2penalty, h=diag(H))
                         nsg <- max(abs(sg))
-                        if (debug && mu < 1e-8 && nsg > tol) browser()
+                        if (debug && mu < 1e-8 && nsg > thresh) browser()
                         if (verbose) {
                             cat('lambda: ', lambda[i], '\n')
                             cat('k: ', k, '\n')
@@ -674,7 +706,7 @@ dtnet <- function(F, par, maxIter=100, tol=1e-2, a=0.1, r=0.01, upper.limits=Inf
                 }
             }
         }
-        convergence <- ifelse(k == maxIter, 'no', 'yes')
+        convergence <- ifelse(k == maxit, 'no', 'yes')
         res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda[i], convergence=convergence, mu=mu, nsg=nsg, sg=sg)
         mu <- mubar
     }
@@ -736,7 +768,7 @@ filterSeqs <- function(msal, keepers){
 msaFold <- filterSeqs(pedvMSA, keepers=nms)
 foldnll <- function(x) -obj(w=x, msal=msaFold, tmlol=fold)
 
-system.time(fold.ans <- my.opt(F=foldnll, par=par, r=0.01, maxIter=100, a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
+system.time(fold.ans <- dtnet(F=foldnll, par=par, r=0.01, maxIter=100, a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
                              nlambda=100, log10LambdaRange=2, relStart=0.1, beta=0.99, mubar=1))
 
 all(sapply(fold.ans, '[[', 'convergence')=='yes')
@@ -752,7 +784,7 @@ dev.off()
 
 foldnll <- sapply(fold.ans, '[[', 'F')
 foldprednll <- apply(fold.path, 2, nll)
-plot(foldlambda, -foldprednll + foldnll); dev.off()
+plot(foldlambda, -foldprednll + foldnll)
 fold.path[,which.max(-foldprednll + foldnll)]
 
 cv.dtnet <- function(msal, tmlol, nfolds){
@@ -763,7 +795,7 @@ cv.dtnet <- function(msal, tmlol, nfolds){
     parInit <- c(migsPerTime, rep(0, nc))
     hc <- getClusters(migsPerTime=exp(migsPerTime), tmlol=tmlol)
     clusts <- cutree(hc, k=nfolds)
-    totAns <- my.opt(F=totalNll, par=parInit, r=0.01, maxIter=100,
+    totAns <- dtnet(F=totalNll, par=parInit, r=0.01, maxIter=100,
                      a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
                      nlambda=100, log10LambdaRange=2, relStart=0.1,
                      beta=0.99, mubar=1, lower.limits=-5, upper.limits=5)
@@ -774,7 +806,7 @@ cv.dtnet <- function(msal, tmlol, nfolds){
         msalF <- filterSeqs(msal, keepers=keepers)
         tmlolF <- filterTips(tmlol, nms)
         foldNll <- function(x) -obj(w=x, msal=msalF, tmlol=tmlolF)
-        foldAns <- my.opt(F=foldNll, par=parInit, r=0.01, maxIter=100,
+        foldAns <- dtnet(F=foldNll, par=parInit, r=0.01, maxIter=100,
                            a=0.1, tol=0.001, verbose=TRUE, debug=TRUE,
                           lambda=lambda, beta=0.99, mubar=1,
                           lower.limits=-5, upper.limits=5)
@@ -791,7 +823,7 @@ cv.dtnet <- function(msal, tmlol, nfolds){
     list(totAns, cv)
 }
 
-cvasym <- cv.phylonet(msal=pedvMSA, tmlol=M[['asym']], nfolds=10)
+cvasym <- cv.dtnet(msal=pedvMSA, tmlol=M[['asym']], nfolds=10)
 cvs <- sapply(cvasym[[2]], '[[', 'cv')
 EstPredLL <- rowMeans(cvs)
 (PredLLSE <- apply(cvs, 1, sd)/sqrt(ncol(cvs)))
