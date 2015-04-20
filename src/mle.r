@@ -147,6 +147,28 @@ obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
     ll
 }
 
+obj2 <- function(w, x, y){
+    msal <- y$msal
+    tmlol <- y$tmlol
+    rate.matrix <- getRateMatrix(x, w)
+    tmlol <- lapply(tmlol, assignElement, nam='rate.matrix', val=rate.matrix)
+    tmpf <- function(xx, tmlist) {
+        treeLogLikGivenMSA <- function(tm) likelihood.msa(x=xx, tm=tm)
+        sapply(tmlist, treeLogLikGivenMSA)
+    }
+    ll <- mapply(tmpf, msal, tmlol)
+    if(!is.null(dim(ll))){
+        ll <- rowSums(ll)
+        scale <- max(ll)
+        ll <- ll - scale
+        probs <- exp(ll)
+        ll <- log(mean(probs)) + scale
+    } else if(length(ll) > 1){
+        ll <- sum(ll)
+    }
+    ll
+}
+
 objNull <- function(x) obj(c(x, 0))
 system.time(oneParAns <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
 
@@ -484,12 +506,11 @@ getClusters <- function(tmlol=M[['asym']], migsPerTime=1){
     hc
 }
 
-dtlmnet <- function(x, y, par, alpha=1, nlambda=1, lambda.min.ratio=0.01,
-                  lambda=NULL, standardize=TRUE, intercept=TRUE, thresh=1e-2,
-                  dfmax=nvars + 1, exclude, penalty.factor=rep(1, nvars),
-                  lower.limits=-Inf, upper.limits=Inf, maxit=100,  a=0.1, r=0.01,
-                  relStart=1, mubar=1, beta=.9, verbose=FALSE,
-                    debug=TRUE, initFactor=10){
+dtlmnet <- function(x, y, alpha=1, nlambda=100, lambda.min.ratio=0.01,
+                    lambda=NULL, standardize=TRUE, intercept=TRUE, thresh=1e-2,
+                    dfmax=nvars + 1, pmax=min(dfmax*2 + 20,nvars), exclude,
+                    penalty.factor=rep(1, nvars), lower.limits=-Inf,
+                    upper.limits=Inf, maxit=100){
     # written using glmnet as a template
     if (alpha > 1) {
         warning("alpha >1; set to 1")
@@ -542,13 +563,13 @@ dtlmnet <- function(x, y, par, alpha=1, nlambda=1, lambda.min.ratio=0.01,
     }
     else upper.limits <- upper.limits[seq(nvars)]
     cl = rbind(lower.limits, upper.limits)
-    if (any(abs(cl) < tol)) {
+    if (any(abs(cl) < thresh)) {
         stop("Cannot enforce limits this close to zero")
     }
     storage.mode(cl) <- "double"
     isd <- as.integer(standardize)
     intr <- as.integer(intercept)
-    thres <- as.double(thresh)
+    thresh <- as.double(thresh)
     if (is.null(lambda)) {
         if (lambda.min.ratio >= 1)
             stop("lambda.min.ratio should be less than 1")
@@ -562,43 +583,44 @@ dtlmnet <- function(x, y, par, alpha=1, nlambda=1, lambda.min.ratio=0.01,
         ulam <- as.double(rev(sort(lambda)))
         nlam <- as.integer(length(lambda))
     }
-    fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
+    fit <- dtnet(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
                  ulam, thresh, isd, intr, vnames, maxit)
-    if (is.null(lambda))
-        fit$lambda = fit$lambda
-    fit$call = this.call
-    fit$nobs = nobs
-    class(fit) = c(class(fit), "dtlmnet")
+    fit$call <- this.call
+    fit$nrates <- nobs
+    class(fit) <- c(class(fit), "dtlmnet")
     fit
 }
 
-fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
-                 ulam, thresh, isd, intr, vnames, maxit)
+dtnet <- function(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
+                  ulam, thresh, isd, intr, vnames, maxit, a=0.1, r=0.01,
+                  relStart=1, mubar=1, beta=.9, verbose=TRUE, debug=TRUE,
+                  initFactor=10){
+    maxit <- as.integer(maxit)
     niter <- 0
-    dim <- length(par)
-    parInds <- 1:dim
+    if(!intr) stop("not implemented")
+    dim <- nvars + intr
+    parInds <- seq(dim)
     I <- diag(nrow=dim)
-    gF <- grad(F, x=par, method='simple')
+    nll <- function(w){
+        -obj2(w=w, x=x, y=y)
+    }
+    scaleEst <- getInit(msal=y$msal, tmlol=y$tmlol)
+    par <- c(scaleEst, rep(0, nvars))
+    gnll <- grad(nll, x=par, method='simple')
     mu <- mubar
-    stopifnot(beta >0, beta <1)
-    G <- diag(initFactor * abs(gF), ncol=dim)
-    log10LambdaRange <- -log10(lambda.min.ratio)
-    if(is.null(lambda)){
-        lstart <- max(abs(gF))
+    stopifnot(beta>0, beta<1)
+    G <- diag(initFactor * abs(gnll), ncol=dim)
+    if(flmin<1){
+        lstart <- max(abs(gnll))
         loglstart <- log10(lstart) + relStart
+        log10LambdaRange <- -log10(flmin)
         loglend <- loglstart - log10LambdaRange
-        logstep <- (loglend - loglstart)/nlambda
-        lambda <- loglstart + 0:(nlambda - 1)*logstep
+        logstep <- (loglend - loglstart)/nlam
+        lambda <- loglstart + 0:(nlam - 1)*logstep
         lambda <- 10^lambda
+    } else {
+        lambda <- ulam
     }
-    if(is.null(penalty.factor)){
-        penalty.factor <- rep(1, dim)
-        penalty.factor[1] <- 0
-    }
-    stopifnot(length(lower.limits) %in% c(1, dim))
-    if(length(lower.limits) < dim) lower.limits <- rep(lower.limits, dim)
-    stopifnot(length(upper.limits) %in% c(1, dim))
-    if(length(upper.limits) < dim) upper.limits <- rep(upper.limits, dim)
     res <- list()
     fsg <- function(p, g, l1, l2, h) {
         if(p==0) {
@@ -610,13 +632,14 @@ fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
         }
     }
     for (i in seq_along(lambda)){
-        l1penalty <- lambda[i] * penalty.factor * alpha
-        l2penalty <- lambda[i] * penalty.factor * (1 - alpha)
+        l1penalty <- lambda[i] * c(0, vp) * alpha
+        l2penalty <- lambda[i] * c(0, vp) * (1 - alpha)
         penFunc <- function(par) abs(par) %*% l1penalty + (par^2 %*% l2penalty)/2
         k <- 0
-        F1 <- F(par) + penFunc(par)
+        nlp <- nll(par)
+        F1 <- nlp + penFunc(par)
         H <- I/(2*mu) + G
-        sg <- mapply(fsg, p=par, g=gF, l1=l1penalty, l2=l2penalty, h=diag(H))
+        sg <- mapply(fsg, p=par, g=gnll, l1=l1penalty, l2=l2penalty, h=diag(H))
         nsg <- max(abs(sg))
         while (nsg > thresh && k < maxit){
             H <- I/(2*mu) + G
@@ -630,7 +653,7 @@ fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
                 j <- sample.int(n=nInactive, size=1)
                 j <- parInds[inactive][j]
                 Hd <- H %*% d
-                gr <- gF[j] + Hd[j]
+                gr <- gnll[j] + Hd[j]
                 if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
                     z <- (-gr - l1penalty[j] - l2penalty[j]*(par[j] + d[j]))/(H[j,j] + l2penalty[j])
                     if (par[j] + d[j] + z < 0){
@@ -647,34 +670,34 @@ fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
                     }
                 }
                 dlist[[nd]] <- d
-                fmlist[[nd]] <- d %*% (H/2) %*% d + gF %*% d + F1 - penFunc(par) + penFunc(par + d)
+                fmlist[[nd]] <- d %*% (H/2) %*% d + gnll %*% d + F1 - penFunc(par) + penFunc(par + d)
             }
             if(any(diff(c(F1, unlist(fmlist)))>1e-10)) browser()
             par2 <- par + d
-            if (any(par2 > upper.limits) || any(par2 < lower.limits)){
+            if (any(par2 > cl[2, ] || any(par2 < cl[1, ]))){
                 if(verbose) cat('backtracking: out of bounds', '\n')
                 mu <- mu * beta
             } else {
-                Fmod <- d %*% (H/2) %*% d + gF %*% d + F1 - penFunc(par) + penFunc(par2)
+                Fmod <- d %*% (H/2) %*% d + gnll %*% d + F1 - penFunc(par) + penFunc(par2)
                 if(Fmod  > F1 && !isTRUE(all.equal(Fmod, F1))) {
                     if (debug) browser()
                     if(verbose) cat('backtracking: poorly solved model', '\n')
                     mu <- mu * beta
                 } else {
-                    try(F2 <- F(par2) + penFunc(par2))
-                    if(inherits(F2, 'try-error')) browser()
+                    nlp <- nll(par2)
+                    F2 <- nlp + penFunc(par2)
                     if (F2 - F1 > r * (Fmod - F1)){
                         if(verbose) cat('backtracking: insufficient decrease', '\n')
                         mu <- mu * beta
                     } else {
-                        gF2 <- grad(F, x=par2, method='simple')
-                        y <- gF2 - gF
+                        gnll2 <- grad(nll, x=par2, method='simple')
+                        yvec <- gnll2 - gnll
                         s <- d
-                        ys <- y%*%s
+                        ys <- yvec %*% s
                         if (ys > 0){
                             ## Hessian approximation update via BFGS via 8.19 in Nocedal and Wright
                             sColVec <- matrix(s, ncol=1)
-                            yColVec <- matrix(y, ncol=1)
+                            yColVec <- matrix(yvec, ncol=1)
                             M <- G %*% sColVec %*% t(sColVec) %*% G
                             M <- M / as.numeric(t(sColVec) %*% G %*% sColVec)
                             M <- G - M
@@ -686,11 +709,11 @@ fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
                         ## update vars
                         k <- k + 1
                         par <- par2
-                        gF <- gF2
+                        gnll <- gnll2
                         dF <- F2 - F1
                         F1 <- F2
                         H <- I/(2*mu) + G
-                        sg <- mapply(fsg, p=par, g=gF, l1=l1penalty, l2=l2penalty, h=diag(H))
+                        sg <- mapply(fsg, p=par, g=gnll, l1=l1penalty, l2=l2penalty, h=diag(H))
                         nsg <- max(abs(sg))
                         if (debug && mu < 1e-8 && nsg > thresh) browser()
                         if (verbose) {
@@ -698,7 +721,7 @@ fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
                             cat('k: ', k, '\n')
                             cat('F: ', as.numeric(F1), '\n')
                             cat('par: ', signif(par, 3), '\n')
-                            cat('grad: ', signif(gF, 3), '\n')
+                            cat('grad: ', signif(gnll, 3), '\n')
                             cat('nsg: ', signif(nsg, 3), '\n')
                             cat('\n')
                         }
@@ -707,11 +730,25 @@ fit <- dtnet(x y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
             }
         }
         convergence <- ifelse(k == maxit, 'no', 'yes')
-        res[[i]] <- list(par=par, F=F2, k=k, gF=gF2, H=H, lambda=lambda[i], convergence=convergence, mu=mu, nsg=nsg, sg=sg)
+        res[[i]] <- list(par=par, nll=nlp, k=k, lambda=lambda[i], convergence=convergence, mu=mu, nsg=nsg, sg=sg)
         mu <- mubar
     }
-    res
+    path <- sapply(res, '[[', 'par')
+    ret <- list(a0=path[1,])
+    beta <- t(path[-1, ])
+    ret$beta <- beta
+    ret$lambda <- sapply(res, '[[', 'lambda')
+    ret$nll <- sapply(res, '[[', 'nll')
+    ret$df <- colSums(beta > 0)
+    ret$dim <- dim(x)
+    ret$niterations <- sum(sapply(res, '[[', 'k'))
+    ret$jerr <- paste('convergence: ', sapply(res, '[[', 'convergence'))
+    ret
 }
+
+x <- M[[1]][[1]][[1]]$design.matrix
+y <- list(tmlol=M[['asym']], msal=pedvMSA)
+dfit <- dtlmnet(x=x, y=y)
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 migsPerTime <- getInit()
