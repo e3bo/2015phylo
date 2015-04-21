@@ -5,6 +5,7 @@ library(exptest)
 library(ggplot2)
 library(lubridate)
 library(numDeriv)
+library(parallel)
 library(rphastRegression)
 
 #' ## Data loading
@@ -593,7 +594,7 @@ dtlmnet <- function(x, y, alpha=1, nlambda=100, lambda.min.ratio=0.01,
 
 dtnet <- function(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
                   ulam, thresh, isd, intr, vnames, maxit, a=0.1, r=0.01,
-                  relStart=1, mubar=1, beta=0.9, verbose=TRUE, debug=TRUE,
+                  relStart=0.1, mubar=1, beta=0.9, verbose=TRUE, debug=TRUE,
                   initFactor=10){
     maxit <- as.integer(maxit)
     niter <- 0
@@ -674,7 +675,7 @@ dtnet <- function(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
             }
             if(any(diff(c(F1, unlist(fmlist)))>1e-10)) browser()
             par2 <- par + d
-            if (any(par2 > cl[2, ] || any(par2 < cl[1, ]))){
+            if (any(par2[-1] > cl[2, ] || any(par2[-1] < cl[1, ]))){
                 if(verbose) cat('backtracking: out of bounds', '\n')
                 mu <- mu * beta
             } else {
@@ -735,7 +736,7 @@ dtnet <- function(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
     }
     path <- sapply(res, '[[', 'par')
     ret <- list(a0=path[1,])
-    beta <- t(path[-1, ])
+    beta <- path[-1, ]
     colnames(beta) <- paste("s", seq(ncol(beta)) - 1, sep = "")
     rownames(beta) <- vnames
     ret$beta <- beta
@@ -803,13 +804,97 @@ plot.dtlmnet <- function (x, xvar = c("norm", "lambda", "dev"),
              label = label, xvar = xvar, ...)
 }
 
+print.dtlmnet <- function(x, digits = max(3, getOption("digits") - 3), ...){
+    cat("\nCall: ", deparse(x$call), "\n\n")
+    print(cbind(Df = x$df, `ll` = signif(-x$nll, digits),
+        Lambda = signif(x$lambda, digits)))
+}
 
-x <- M[[1]][[1]][[1]]$design.matrix
+x <- M[['big']][[1]][[1]]$design.matrix
 y <- list(tmlol=M[['big']], msal=pedvMSA)
-dfit <- dtlmnet(x=x, y=y)
-plot(dfit, xvar='l')
+dfit <- dtlmnet(x=x, y=y, nlambda=4, alpha=0.8)
+plot(dfit, xvar='l', label=T)
+plot(dfit, xvar='n', label=T)
+plot(dfit, xvar='d', label=T)
 
+xsat <- diag(1, nrow=nrow(x))
+xsat[,1] <- runif(n=nrow(x))- 0.5
+#satfit <- dtlmnet(x=xsat, y=y, nlambda=4, alpha=1)
 
+#' ## Stability selection
+
+filterTips <- function(tmlol, keepers){
+    prune <- function(xx){
+        tr <- xx$tree
+        tr <- prune.tree(tr, keepers, all.but=TRUE)
+        xx$tree <- tr
+        xx
+    }
+    tmpf <- function(x) {
+        lapply(x, prune)
+    }
+    lapply(tmlol, tmpf)
+}
+
+filterSeqs <- function(msal, keepers){
+    tmpf <- function(x){
+        test <- x$names %in% keepers
+        x[test, ]
+    }
+    lapply(msal, tmpf)
+}
+
+dtlmnet.subset <- function (index, subsets, x, y, lambda, weakness, p, ...){
+    nms <- subsets[[index]]
+    tmlol <- filterTips(y$tmlol, nms)
+    msal <- filterSeqs(y$msal, nms)
+    ysub <- list(tmlol=tmlol, msal=msal)
+    dtlmnet(x, ysub, lambda = lambda, penalty.factor = 1/runif(p, weakness, 1), ...)$beta != 0
+}
+
+stabpathDtnet <- function (y, x, size = 0.632, steps = 100, weakness = 1,
+                           mc.cores = getOption("mc.cores", 2L), ...){
+    ## written using c060::stabpath as template
+    fit <- dtlmnet(x, y, ...)
+    p <- ncol(x)
+    tipnames <- sapply(y$msal, names)
+    tmpf <- function(tn){
+        sample(tn, ceiling(length(tn) * size))
+    }
+    tmpff <- function(){
+        unlist(sapply(tipnames, tmpf))
+    }
+    subsets <- replicate(steps, tmpff(), simplify=FALSE)
+    if (.Platform$OS.type != "windows") {
+        res <- mclapply(1:steps, mc.cores = mc.cores, dtlmnet.subset,
+            subsets, x, y, lambda = fit$lambda, weakness, p,
+            ...)
+    }
+    else {
+        cl <- makePSOCKcluster(mc.cores)
+        clusterExport(cl, c("glmnet", "drop0"))
+        res <- parLapply(cl, 1:steps, dtlmnet.subset, subsets,
+            x, y, lambda = fit$lambda, weakness, p, ...)
+        stopCluster(cl)
+    }
+    res <- res[unlist(lapply(lapply(res, dim), function(x) x[2] ==
+        dim(res[[1]])[2]))]
+    x <- as.matrix(res[[1]])
+    qmat <- matrix(ncol = ncol(res[[1]]), nrow = length(res))
+    qmat[1, ] <- colSums(as.matrix(res[[1]]))
+    for (i in 2:length(res)) {
+        qmat[i, ] <- colSums(as.matrix(res[[i]]))
+        x <- x + as.matrix(res[[i]])
+    }
+    x <- x/length(res)
+    qs <- colMeans(qmat)
+    out <- list(fit = fit, x = x, qs = qs)
+    class(out) <- "stabpath"
+    return(out)
+}
+
+sp <- stabpathDtnet(x=x, y=y, steps=20, nlambda=100)
+plot(sp)
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 migsPerTime <- getInit()
