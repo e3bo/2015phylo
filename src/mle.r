@@ -893,7 +893,7 @@ stabpathDtnet <- function (y, x, size = 0.632, steps = 100, weakness = 1,
     return(out)
 }
 
-sp <- stabpathDtnet(x=x, y=y, steps=20, nlambda=100)
+sp <- stabpathDtnet(x=x, y=y, steps=10, nlambda=10, lambda.min.ratio=0.1)
 plot(sp)
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
