@@ -24,6 +24,12 @@ trees <- lapply(tfiles, read.nexus)
 
 flows <- read.csv("shipment-flows-origins-on-rows-dests-on-columns.csv", row.names=1)
 
+balanceSheet <- read.csv('state-hogBalanceSheetDec2011Dec2012.csv',
+                         na.strings='-', row.names=1, colClasses=c(state2='NULL'))
+key <- match(rownames(balanceSheet), state.name)
+balanceSheet$abb <- state.abb[key]
+
+
 #' ## Tree-model creation
 
 nms <- lapply(trees, attr, which='TipLabel')
@@ -70,17 +76,28 @@ aggFlow <- function(from, to, sym=TRUE, M=flows){
     log10(tot + 1)
 }
 
-pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=TRUE)
-designMatrixSym <- data.matrix(pairFlows)
+xi <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=TRUE)
+predMat <- as.matrix(xi)
+rownames(predMat) <- paste0('from', pairs$from, 'to', pairs$to)
+colnames(predMat) <- 'log10undirectedFlow'
+xi <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=FALSE)
+predMat <- cbind(predMat, log10directedFlow=xi)
 
-pairFlows <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=FALSE)
-designMatrixAsym <- data.matrix(pairFlows)
+key <- match(pairs$from, balanceSheet$abb)
+xi <- log10(balanceSheet$inventory2012[key])
+predMat <- cbind(predMat, log10originInventory=xi)
+xi <- log10(balanceSheet$inshipments[key])
+predMat <- cbind(predMat, log10originInshipments=xi)
+xi <- log10(balanceSheet$marketings[key])
+predMat <- cbind(predMat, log10originMarketings=xi)
 
-nr <- nrow(designMatrixAsym)
-nc <- 10
-mNoise <-matrix(runif(nr*nc), nrow=nr)
-designMatrixBigger <- cbind(designMatrixAsym, mNoise)
-designMatrixBigger <- scale(designMatrixBigger)
+key <- match(pairs$to, balanceSheet$abb)
+xi <- log10(balanceSheet$inventory2012[key])
+predMat <- cbind(predMat, log10destinationInventory=xi)
+xi <- log10(balanceSheet$inshipments[key])
+predMat <- cbind(predMat, log10destinationInshipments=xi)
+xi <- log10(balanceSheet$marketings[key])
+predMat <- cbind(predMat, log10destinationMarketings=xi)
 
 bg <- rep(1, n)/n
 
@@ -97,11 +114,6 @@ assignElement <- function(x, nam, val) {
     lapply(x, tmpf)
 }
 mods <- lapply(mods, assignElement, nam='rate.matrix', val=matrix(NA, nrow=n, ncol=n))
-
-M <- list()
-M[['sym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixSym)
-M[['asym']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixAsym)
-M[['big']] <- lapply(mods, assignElement, nam='design.matrix', val=designMatrixBigger)
 
 ##' ## Fit 1-parameter model
 
@@ -127,9 +139,8 @@ getRateMatrix <- function(design.matrix, w){
     rate.matrix
 }
 
-obj <- function(w, msal=pedvMSA, tmlol=M[['asym']]){
-    design.matrix <- tmlol[[1]][[1]][['design.matrix']]
-    rate.matrix <- getRateMatrix(design.matrix, w)
+obj <- function(w, msal=pedvMSA, tmlol=mods, x=as.matrix(predMat[, 'log10directedFlow'])){
+    rate.matrix <- getRateMatrix(x, w)
     tmlol <- lapply(tmlol, assignElement, nam='rate.matrix', val=rate.matrix)
     tmpf <- function(x, tmlist) {
         treeLogLikGivenMSA <- function(tm) likelihood.msa(x=x, tm=tm)
@@ -176,8 +187,9 @@ system.time(oneParAns <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
 #' ## Fit 2-parameter models
 
 ans <- list()
-system.time(ans[['asym']] <- optim.rphast(obj, c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
-system.time(ans[['sym']] <- optim.rphast(obj, tmlol=M[['sym']], c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
+system.time(ans[['asym']] <- optim.rphast(obj, par=c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
+system.time(ans[['sym']] <- optim.rphast(obj, x=as.matrix(predMat[, 'log10undirectedFlow']),
+            par=c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
 objNull <- function(x) obj(c(x, 0))
 system.time(ans[['null']] <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
 
@@ -390,7 +402,7 @@ get.ltt.phylo <- function(phy){
     ltt
 }
 
-ran.gen.tree <- function(data=M[['asym']], pars, msal=pedvMSA, levnames=levs,
+ran.gen.tree <- function(data=mods, pars, msal=pedvMSA, levnames=levs,
                          genTime=as.numeric(ddays(7)), branchUnits=as.numeric(ddays(365)),
                          unitsToEvenDist=4, N=70){
     K <- length(levnames)
@@ -438,7 +450,7 @@ get.param.stat.tree <- function(data, pars) {
 }
 
 bsParamR <- 1e2
-system.time(bsTree <- boot(data=M[['asym']], get.param.stat.tree, R=bsParamR, sim='parametric',
+system.time(bsTree <- boot(data=mods, get.param.stat.tree, R=bsParamR, sim='parametric',
                            ran.gen=ran.gen.tree, mle=ans[['asym']]$par, pars=ans[['asym']]$par,
                            parallel='multicore', ncpus=parallel::detectCores()))
 
@@ -454,7 +466,7 @@ plot(bsTree, index=6)
 
 #' ## Regularized models and cross-validation
 
-getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
+getInit <- function(msal=pedvMSA, tmlol=mods){
     tmpf <- function(x, y){
         dloc <- outer(y$seq, y$seq, '==')
         colnames(dloc) <- names(y)
@@ -478,7 +490,7 @@ getInit <- function(msal=pedvMSA, tmlol=M[['asym']]){
     log(res)
 }
 
-getClusters <- function(tmlol=M[['asym']], migsPerTime=1){
+getClusters <- function(tmlol=mods, migsPerTime=1){
     tmpf <- function(x, y){
         tmpff <- function(xx) {
             phy <- read.tree(text=xx$tree)
@@ -810,9 +822,10 @@ print.dtlmnet <- function(x, digits = max(3, getOption("digits") - 3), ...){
         Lambda = signif(x$lambda, digits)))
 }
 
-x <- M[['big']][[1]][[1]]$design.matrix
-y <- list(tmlol=M[['big']], msal=pedvMSA)
-dfit <- dtlmnet(x=x, y=y, nlambda=4, alpha=0.8)
+x <- scale(predMat)
+x[is.na(x)] <- 0
+y <- list(tmlol=mods, msal=pedvMSA)
+dfit <- dtlmnet(x=x, y=y, nlambda=20, alpha=0.8)
 plot(dfit, xvar='l', label=T)
 plot(dfit, xvar='n', label=T)
 plot(dfit, xvar='d', label=T)
@@ -893,8 +906,8 @@ stabpathDtnet <- function (y, x, size = 0.632, steps = 100, weakness = 1,
     return(out)
 }
 
-sp <- stabpathDtnet(x=x, y=y, steps=10, nlambda=10, lambda.min.ratio=0.1)
-plot(sp)
+sp3 <- stabpathDtnet(x=x3, y=y, steps=10, nlambda=10, lambda.min.ratio=0.01)
+plot(sp3, type='pcer', error=0.05, xvar='n')
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 migsPerTime <- getInit()
