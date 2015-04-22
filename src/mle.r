@@ -410,11 +410,10 @@ get.ltt.phylo <- function(phy){
 
 ran.gen.tree <- function(data=mods, pars, msal=pedvMSA, levnames=levs,
                          genTime=as.numeric(ddays(7)), branchUnits=as.numeric(ddays(365)),
-                         unitsToEvenDist=4, N=70){
+                         unitsToEvenDist=4, N=70, designMatrix){
     K <- length(levnames)
     gensPerUnit <- branchUnits/genTime
-    Z <- data[[1]][[1]]$design.matrix
-    Q <- getRateMatrix(Z, pars)
+    Q <- getRateMatrix(designMatrix, pars)
     sampleLabels <- lapply(pedvMSA, names)
     sampCfgs <- lapply(sampleLabels, getSampleConfig, levs=levnames, genTime=genTime)
     migProbs <- expm(Q/gensPerUnit)
@@ -459,6 +458,8 @@ bsParamR <- 1e2
 system.time(bsTree <- boot(data=mods, get.param.stat.tree, R=bsParamR, sim='parametric',
                            ran.gen=ran.gen.tree, mle=ans[['asym']]$par, pars=ans[['asym']]$par,
                            parallel='multicore', ncpus=parallel::detectCores()))
+
+
 
 #' ### Bootstrap bias and standard error estimates
 
@@ -832,9 +833,17 @@ print.dtlmnet <- function(x, digits = max(3, getOption("digits") - 3), ...){
 x <- scale(predMat)
 x[is.na(x)] <- 0
 y <- list(tmlol=mods, msal=pedvMSA)
-dfit <- dtlmnet(x=x, y=y, nlambda=20, alpha=0.8)
+dfit <- dtlmnet(x=x, y=y, nlambda=4, alpha=0.8)
 plot(dfit, xvar='l', label=T)
 plot(dfit, xvar='n', label=T)
+
+#' ## Simulation test of using sample sizes as predictors
+
+modSim <- ran.gen.tree(pars=c(-1.4, 0.5), designMatrix=as.matrix(x[, 2]))
+simFit2 <- dtlmnet(x=x, penalty.factor=c(1e2, 1, rep(1e2, 8)), y=list(tmlol=modSim, msal=pedvMSA))
+simFit <- dtlmnet(x=x, penalty.factor=c(1e2, 1, rep(1e2, 6), 1, 1), y=list(tmlol=modSim, msal=pedvMSA), alpha=0.8)
+plot(simFit2, label=T, type='l') 
+
 
 xsat <- diag(1, nrow=nrow(x))
 xsat[,1] <- runif(n=nrow(x))- 0.5
