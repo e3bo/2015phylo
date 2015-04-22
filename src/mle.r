@@ -62,7 +62,7 @@ tmpf <- function(x, y) {
 }
 pedvMSA <- mapply(tmpf, seqs, nms, SIMPLIFY=FALSE)
 
-simulationR <- 1
+simulationR <- 2
 tmpf <- function(x) {
     n <- length(x)
     ind <- sample.int(n, size=simulationR, replace=TRUE)
@@ -93,7 +93,7 @@ predMat <- cbind(predMat, log10directedFlow=xi)
 
 xi <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to),
              MoreArgs=list(sym=TRUE, M=flowBal))
-predMat <- cbind(predMat, log10directedFlowBal=xi)
+predMat <- cbind(predMat, log10undirectedFlowBal=xi)
 xi <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to),
              MoreArgs=list(sym=FALSE, M=flowBal))
 predMat <- cbind(predMat, log10directedFlowBal=xi)
@@ -164,7 +164,7 @@ getRateMatrix <- function(design.matrix, w){
     rate.matrix
 }
 
-obj <- function(w, msal=pedvMSA, tmlol=mods, x=as.matrix(predMat[, 'log10directedFlow'])){
+obj <- function(w, msal=pedvMSA, tmlol=mods, x){
     rate.matrix <- getRateMatrix(x, w)
     tmlol <- lapply(tmlol, assignElement, nam='rate.matrix', val=rate.matrix)
     tmpf <- function(x, tmlist) {
@@ -206,17 +206,26 @@ obj2 <- function(w, x, y){
     ll
 }
 
-objNull <- function(x) obj(c(x, 0))
-system.time(oneParAns <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
-
 #' ## Fit 2-parameter models
 
-ans <- list()
-system.time(ans[['asym']] <- optim.rphast(obj, par=c(.001,.002), lower=c(-4,-2), upper=c(2,2)))
-system.time(ans[['sym']] <- optim.rphast(obj, x=as.matrix(predMat[, 'log10undirectedFlow']),
-            par=c(-1,.4), lower=c(-4,-2), upper=c(2,2)))
-objNull <- function(x) obj(c(x, 0))
-system.time(ans[['null']] <- optimize(objNull, interval=c(-4,2), maximum=TRUE))
+x <- scale(predMat)
+x[is.na(x)] <- 0
+
+preds <- list(asym='log10directedFlowBal', inship='log10destinationInshipments')
+tmpf <- function(preds){
+    ret <- as.matrix(x[, preds])
+    colnames(ret) <- preds
+    ret
+}
+dMats <- lapply(preds, tmpf)
+
+tmpf <- function(dMat){
+    optim.rphast(obj, x=dMat, par=c(-1,0), lower=c(-4,-2), upper=c(2,2))
+}
+ans <- lapply(dMats, tmpf)
+              
+objNull <- function(scale, x) obj(c(scale, 0), x=dMats[[1]])
+ans[['null']] <- optimize(objNull, interval=c(-4,2), x=dMats[[1]], maximum=TRUE)
 
 #' ## Simulations of trees conditional on a sampling configuration
 
@@ -234,7 +243,7 @@ getSampleConfig <- function(nm, levs, genTime=as.numeric(ddays(7))){
 }
 
 treesim <- function(N=100, nSamples=2, samplingGens=0, samplingPops=1,
-                    migProbs=matrix(1, ncol=1,nrow=1), sampleLabels=NULL){
+                    migProbs=matrix(1, ncol=1, nrow=1), sampleLabels=NULL){
     nPops <- length(N)
     stopifnot(all(samplingPops %in% 1:nPops))
     stopifnot(all(dim(migProbs) == nPops))
@@ -427,13 +436,12 @@ get.ltt.phylo <- function(phy){
     ltt
 }
 
-ran.gen.tree <- function(data=mods, pars, msal=pedvMSA, levnames=levs,
-                         genTime=as.numeric(ddays(7)), branchUnits=as.numeric(ddays(365)),
-                         unitsToEvenDist=4, N=70, designMatrix){
+ran.gen.tree <- function(data, pars, levnames=levs, genTime=as.numeric(ddays(7)),
+                         branchUnits=as.numeric(ddays(365)), unitsToEvenDist=4, N=70){
     K <- length(levnames)
     gensPerUnit <- branchUnits/genTime
-    Q <- getRateMatrix(designMatrix, pars)
-    sampleLabels <- lapply(pedvMSA, names)
+    Q <- getRateMatrix(data$dm, pars)
+    sampleLabels <- lapply(data$msal, names)
     sampCfgs <- lapply(sampleLabels, getSampleConfig, levs=levnames, genTime=genTime)
     migProbs <- expm(Q/gensPerUnit)
     Ni <- N/K
@@ -444,7 +452,7 @@ ran.gen.tree <- function(data=mods, pars, msal=pedvMSA, levnames=levs,
         treesim(Ni, nSamples=sampCfg$ns, samplingGens=sampCfg$sg,samplingPops=sampCfg$sp, migProbs=migProbs, sampleLabels=sampleLab)
     }
     p <- mapply(tmpf, sampCfgs, sampleLabels, SIMPLIFY=FALSE)
-    res <- lapply(data, '[', 1)
+    res <- lapply(data$tmlol, '[', 1)
     tmpf <- function(x, y) {
         tree <- y$phy
         tree$edge.length <- tree$edge.length / gensPerUnit
@@ -453,32 +461,44 @@ ran.gen.tree <- function(data=mods, pars, msal=pedvMSA, levnames=levs,
         x
     }
     res <- mapply(tmpf, x=res, y=p, SIMPLIFY=FALSE)
-    res
+    data$tmlol <- res
+    data
 }
 
-get.param.stat.tree <- function(data, pars) {
-    ans <- optim.rphast(obj, params=pars, lower=c(-5,-5), upper=c(2,2), tmlol=data)
-    tmpf <- function(x) read.tree(text=x[[1]]$tree)
-    trees <- lapply(data, tmpf)
-    ltt <- lapply(trees, get.ltt.phylo)
-    cs <- lapply(ltt, coalStats)
-    tmpf <- function(c){
-        y <- c$ci * c$cr
-        gini.exp.test(y, simulate=length(y < 30))
-    }
-    htl <- lapply(cs, tmpf)
-    expPvals <- sapply(htl, '[[', 'p.value')
-    rej <- expPvals < 0.05
-    expStats <- sapply(htl, '[[', 'statistic')
-    c(ans$par, rej, expStats)
+get.param.stat.tree <- function(data, exponentialityStats=FALSE, altDm) {
+    np <- ncol(data$dm)
+    pars <- c(-1, rep(0, np))
+    ans <- optim.rphast(obj, params=pars, lower=rep(-5, np + 1), upper=rep(2, np + 1),
+                        tmlol=data$tmlol, x=data$dm, msal=data$msal)
+    np <- ncol(altDm)
+    pars <- c(-1, rep(0, np))
+    altans <- optim.rphast(obj, params=pars, lower=rep(-5, np + 1), upper=rep(2, np + 1),
+                           tmlol=data$tmlol, x=altDm, msal=data$msal)
+    if(exponentialityStats){
+        tmpf <- function(x) read.tree(text=x[[1]]$tree)
+        trees <- lapply(data$tmlol, tmpf)
+        ltt <- lapply(trees, get.ltt.phylo)
+        cs <- lapply(ltt, coalStats)
+        tmpf <- function(c){
+            y <- c$ci * c$cr
+            gini.exp.test(y, simulate=length(y < 30))
+        }
+        htl <- lapply(cs, tmpf)
+        expPvals <- sapply(htl, '[[', 'p.value')
+        rej <- expPvals < 0.05
+        expStats <- sapply(htl, '[[', 'statistic')
+        c(ans$par, altans$par, rej, expStats)
+    } else c(ans$par, altans$par)
 }
 
 bsParamR <- 1e2
-system.time(bsTree <- boot(data=mods, get.param.stat.tree, R=bsParamR, sim='parametric',
-                           ran.gen=ran.gen.tree, mle=ans[['asym']]$par, pars=ans[['asym']]$par,
-                           parallel='multicore', ncpus=parallel::detectCores()))
-
-
+modData <- list(tmlol=mods, msal=pedvMSA, dm=dMats[['inship']])
+dMats[['inshipSamp']] <- cbind(dMats[['inship']], x[, grep('Samples$', colnames(x))])
+system.time(
+bsTree <- boot(data=modData, statistic=get.param.stat.tree, R=bsParamR, sim='parametric',
+               ran.gen=ran.gen.tree, mle=ans[['inship']]$par, parallel='multicore',
+               ncpus=detectCores(), exponentialityStats=TRUE, altDm=dMats[['inshipSamp']])
+)
 
 #' ### Bootstrap bias and standard error estimates
 
@@ -849,11 +869,10 @@ print.dtlmnet <- function(x, digits = max(3, getOption("digits") - 3), ...){
         Lambda = signif(x$lambda, digits)))
 }
 
-x <- scale(predMat)
-x[is.na(x)] <- 0
 y <- list(tmlol=mods, msal=pedvMSA)
 samplingInds <- grep("Samples$", colnames(x))
-dfit <- dtlmnet(x=x[, -samplingInds], y=y, nlambda=4, alpha=0.8)
+inshipInds <- grep("Inshipments$", colnames(x))
+dfit <- dtlmnet(x=x[, -c(samplingInds, inshipInds)], y=y, nlambda=10, alpha=0.8)
 plot(dfit, xvar='l', label=T)
 plot(dfit, xvar='n', label=T)
 
@@ -940,7 +959,7 @@ stabpathDtnet <- function (y, x, size = 0.632, steps = 100, weakness = 1,
     return(out)
 }
 
-system.time(sp <- stabpathDtnet(x=x[, -samplingInds], y=y, steps=4, nlambda=10, lambda.min.ratio=0.01, alpha=0.8))
+system.time(sp <- stabpathDtnet(x=x[, -samplingInds], y=y, steps=2, nlambda=10, lambda.min.ratio=0.05, alpha=0.8))
 plot(sp, type='pfer', error=1, xvar='l')
 plot(sp, type='pcer', error=0.05, xvar='l')
 
