@@ -469,11 +469,11 @@ ran.gen.tree <- function(data, pars, levnames=levs, genTime=as.numeric(ddays(7))
 get.param.stat.tree <- function(data, exponentialityStats=FALSE, altDm) {
     np <- ncol(data$dm)
     pars <- c(-0.5, rep(0, np))
-    ans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=rep(2, np + 1),
+    ans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=c(0, rep(1.5, np)),
                         tmlol=data$tmlol, x=data$dm, msal=data$msal)
     np <- ncol(altDm)
     pars <- c(-0.5, rep(0, np))
-    altans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=rep(2, np + 1),
+    altans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=c(0, rep(1.5, np)),
                            tmlol=data$tmlol, x=altDm, msal=data$msal)
     if(exponentialityStats){
         tmpf <- function(x) read.tree(text=x[[1]]$tree)
@@ -511,9 +511,10 @@ tmpf <- function(){
                             'Samples\nfrom origin', 'Samples\nfrom destination')
     plotData <- melt(plotData)
     g <- ggplot(data=plotData, aes_string(x='Var2', y='value'))
+    g <- g + geom_hline(yintercept=ans[['inship']]$par[2], col='red')
+    g <- g + geom_hline(yintercept=0, col='grey')
     g <- g + geom_boxplot()
     g <- g + labs(x='\nVariable', y='Bootstrap effect estimates\n')
-    g <- g + geom_hline(yintercept=ans[['inship']]$par[2], col='red')
     g <- g + theme_classic()
     g
 }
