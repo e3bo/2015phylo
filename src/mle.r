@@ -6,6 +6,7 @@ library(ggplot2)
 library(lubridate)
 library(numDeriv)
 library(parallel)
+library(reshape2)
 library(rphastRegression)
 
 #' ## Data loading
@@ -467,12 +468,12 @@ ran.gen.tree <- function(data, pars, levnames=levs, genTime=as.numeric(ddays(7))
 
 get.param.stat.tree <- function(data, exponentialityStats=FALSE, altDm) {
     np <- ncol(data$dm)
-    pars <- c(-1, rep(0, np))
-    ans <- optim.rphast(obj, params=pars, lower=rep(-5, np + 1), upper=rep(2, np + 1),
+    pars <- c(-0.5, rep(0, np))
+    ans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=rep(2, np + 1),
                         tmlol=data$tmlol, x=data$dm, msal=data$msal)
     np <- ncol(altDm)
-    pars <- c(-1, rep(0, np))
-    altans <- optim.rphast(obj, params=pars, lower=rep(-5, np + 1), upper=rep(2, np + 1),
+    pars <- c(-0.5, rep(0, np))
+    altans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=rep(2, np + 1),
                            tmlol=data$tmlol, x=altDm, msal=data$msal)
     if(exponentialityStats){
         tmpf <- function(x) read.tree(text=x[[1]]$tree)
@@ -491,7 +492,9 @@ get.param.stat.tree <- function(data, exponentialityStats=FALSE, altDm) {
     } else c(ans$par, altans$par)
 }
 
-bsParamR <- 1e2
+#' ### Parametric bootstrap to study bias from sample variables, exponentiality of trees
+
+bsParamR <- 3e2
 modData <- list(tmlol=mods, msal=pedvMSA, dm=dMats[['inship']])
 dMats[['inshipSamp']] <- cbind(dMats[['inship']], x[, grep('Samples$', colnames(x))])
 system.time(
@@ -500,15 +503,21 @@ bsTree <- boot(data=modData, statistic=get.param.stat.tree, R=bsParamR, sim='par
                ncpus=detectCores(), exponentialityStats=TRUE, altDm=dMats[['inshipSamp']])
 )
 
-#' ### Bootstrap bias and standard error estimates
-
 bsTree
 
-#' The distributions appears close to normal, without any discontinuities
-plot(bsTree, index=1)
-plot(bsTree, index=2)
-plot(bsTree, index=5)
-plot(bsTree, index=6)
+tmpf <- function(){
+    plotData <- bsTree$t[, c(2, 4:6)]
+    colnames(plotData) <- c('Inshipments\nto destination,\nalone', 'Inshipments\nto destination,\nwith sample counts',
+                            'Samples\nfrom origin', 'Samples\nfrom destination')
+    plotData <- melt(plotData)
+    g <- ggplot(data=plotData, aes_string(x='Var2', y='value'))
+    g <- g + geom_boxplot()
+    g <- g + labs(x='\nVariable', y='Bootstrap effect estimates\n')
+    g <- g + geom_hline(yintercept=ans[['inship']]$par[2], col='red')
+    g <- g + theme_classic()
+    g
+}
+ggsave(plot=tmpf(), filename='tree-bootstrap-boxplot.pdf', width=7, height=5, pointsize=12)
 
 #' ## Regularized models and cross-validation
 
