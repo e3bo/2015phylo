@@ -39,7 +39,7 @@ tmpf <- function(x) {
     sapply(x, '[', 1)
 }
 abs <- lapply(nms, tmpf)
-
+sampCounts <- table(unlist(abs))
 absF <- factor(unlist(abs))
 levs <- levels(absF)
 n <- length(unlist(levs))
@@ -98,6 +98,12 @@ xi <- log10(balanceSheet$inshipments[key])
 predMat <- cbind(predMat, log10destinationInshipments=xi)
 xi <- log10(balanceSheet$marketings[key])
 predMat <- cbind(predMat, log10destinationMarketings=xi)
+
+xi <- log10(sampCounts[pairs$from])
+predMat <- cbind(predMat, log10originSamples=xi)
+
+xi <- log10(sampCounts[pairs$to])
+predMat <- cbind(predMat, log10destinationSamples=xi)
 
 bg <- rep(1, n)/n
 
@@ -754,10 +760,11 @@ dtnet <- function(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
     ret$beta <- beta
     ret$lambda <- sapply(res, '[[', 'lambda')
     ret$nll <- sapply(res, '[[', 'nll')
-    ret$df <- colSums(beta > 0)
+    ret$df <- colSums(abs(beta) > 0)
     ret$dim <- dim(x)
     ret$niterations <- sum(sapply(res, '[[', 'k'))
     ret$jerr <- paste('convergence: ', sapply(res, '[[', 'convergence'))
+    if(verbose) cat('Completed regularization path', '\n')
     ret
 }
 
@@ -828,7 +835,6 @@ y <- list(tmlol=mods, msal=pedvMSA)
 dfit <- dtlmnet(x=x, y=y, nlambda=20, alpha=0.8)
 plot(dfit, xvar='l', label=T)
 plot(dfit, xvar='n', label=T)
-plot(dfit, xvar='d', label=T)
 
 xsat <- diag(1, nrow=nrow(x))
 xsat[,1] <- runif(n=nrow(x))- 0.5
@@ -906,8 +912,9 @@ stabpathDtnet <- function (y, x, size = 0.632, steps = 100, weakness = 1,
     return(out)
 }
 
-sp3 <- stabpathDtnet(x=x3, y=y, steps=10, nlambda=10, lambda.min.ratio=0.01)
-plot(sp3, type='pcer', error=0.05, xvar='n')
+system.time(sp <- stabpathDtnet(x=x, y=y, steps=8, nlambda=10, lambda.min.ratio=0.01, alpha=0.8))
+plot(sp, type='pfer', error=1, xvar='l')
+plot(sp, type='pcer', error=0.05, xvar='l')
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 migsPerTime <- getInit()
