@@ -29,6 +29,14 @@ balanceSheet <- read.csv('state-hogBalanceSheetDec2011Dec2012.csv',
 key <- match(rownames(balanceSheet), state.name)
 balanceSheet$abb <- state.abb[key]
 
+flowBal <- flows
+key <- match(colnames(flowBal), balanceSheet$abb)
+bs <- balanceSheet$inshipments[key]
+cs <- colSums(flowBal)
+for(j in seq(ncol(flowBal))){
+    if (cs[j] > 0) flowBal[, j] <- flowBal[, j] * 1000*bs[j]/cs[j]
+}
+stopifnot(isTRUE(all.equal(sum(abs(colSums(flowBal)[cs > 0] - 1000*bs[cs > 0]), na.rm=TRUE), 0)))
 
 #' ## Tree-model creation
 
@@ -83,6 +91,13 @@ colnames(predMat) <- 'log10undirectedFlow'
 xi <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to), sym=FALSE)
 predMat <- cbind(predMat, log10directedFlow=xi)
 
+xi <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to),
+             MoreArgs=list(sym=TRUE, M=flowBal))
+predMat <- cbind(predMat, log10directedFlowBal=xi)
+xi <- mapply(aggFlow, from=as.character(pairs$from), to=as.character(pairs$to),
+             MoreArgs=list(sym=FALSE, M=flowBal))
+predMat <- cbind(predMat, log10directedFlowBal=xi)
+
 key <- match(pairs$from, balanceSheet$abb)
 xi <- log10(balanceSheet$inventory2012[key])
 predMat <- cbind(predMat, log10originInventory=xi)
@@ -90,6 +105,8 @@ xi <- log10(balanceSheet$inshipments[key])
 predMat <- cbind(predMat, log10originInshipments=xi)
 xi <- log10(balanceSheet$marketings[key])
 predMat <- cbind(predMat, log10originMarketings=xi)
+xi <- log10(balanceSheet$pigCrop[key])
+predMat <- cbind(predMat, log10originPigCrop=xi)
 
 key <- match(pairs$to, balanceSheet$abb)
 xi <- log10(balanceSheet$inventory2012[key])
@@ -98,6 +115,8 @@ xi <- log10(balanceSheet$inshipments[key])
 predMat <- cbind(predMat, log10destinationInshipments=xi)
 xi <- log10(balanceSheet$marketings[key])
 predMat <- cbind(predMat, log10destinationMarketings=xi)
+xi <- log10(balanceSheet$pigCrop[key])
+predMat <- cbind(predMat, log10destinationPigCrop=xi)
 
 xi <- log10(sampCounts[pairs$from])
 predMat <- cbind(predMat, log10originSamples=xi)
@@ -613,7 +632,7 @@ dtlmnet <- function(x, y, alpha=1, nlambda=100, lambda.min.ratio=0.01,
 
 dtnet <- function(x, y, alpha, nobs, nvars, jd, vp, cl, ne, nx, nlam, flmin,
                   ulam, thresh, isd, intr, vnames, maxit, a=0.1, r=0.01,
-                  relStart=0.1, mubar=1, beta=0.9, verbose=TRUE, debug=TRUE,
+                  relStart=0.1, mubar=1, beta=0.9, verbose=FALSE, debug=TRUE,
                   initFactor=10){
     maxit <- as.integer(maxit)
     niter <- 0
@@ -833,7 +852,8 @@ print.dtlmnet <- function(x, digits = max(3, getOption("digits") - 3), ...){
 x <- scale(predMat)
 x[is.na(x)] <- 0
 y <- list(tmlol=mods, msal=pedvMSA)
-dfit <- dtlmnet(x=x, y=y, nlambda=4, alpha=0.8)
+samplingInds <- grep("Samples$", colnames(x))
+dfit <- dtlmnet(x=x[, -samplingInds], y=y, nlambda=4, alpha=0.8)
 plot(dfit, xvar='l', label=T)
 plot(dfit, xvar='n', label=T)
 
@@ -843,7 +863,6 @@ modSim <- ran.gen.tree(pars=c(-1.4, 0.5), designMatrix=as.matrix(x[, 2]))
 simFit2 <- dtlmnet(x=x, penalty.factor=c(1e2, 1, rep(1e2, 8)), y=list(tmlol=modSim, msal=pedvMSA))
 simFit <- dtlmnet(x=x, penalty.factor=c(1e2, 1, rep(1e2, 6), 1, 1), y=list(tmlol=modSim, msal=pedvMSA), alpha=0.8)
 plot(simFit2, label=T, type='l') 
-
 
 xsat <- diag(1, nrow=nrow(x))
 xsat[,1] <- runif(n=nrow(x))- 0.5
@@ -921,9 +940,12 @@ stabpathDtnet <- function (y, x, size = 0.632, steps = 100, weakness = 1,
     return(out)
 }
 
-system.time(sp <- stabpathDtnet(x=x, y=y, steps=8, nlambda=10, lambda.min.ratio=0.01, alpha=0.8))
+system.time(sp <- stabpathDtnet(x=x[, -samplingInds], y=y, steps=4, nlambda=10, lambda.min.ratio=0.01, alpha=0.8))
 plot(sp, type='pfer', error=1, xvar='l')
 plot(sp, type='pcer', error=0.05, xvar='l')
+
+
+
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
 migsPerTime <- getInit()

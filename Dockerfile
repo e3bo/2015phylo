@@ -32,6 +32,8 @@ EXPOSE 22
 RUN install2.r --error \
   ape \
   coda \
+  expm \
+  exptest \
   knitr \
   ggplot2 \
   lubridate \
