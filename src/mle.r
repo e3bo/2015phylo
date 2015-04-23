@@ -499,12 +499,12 @@ get.param.stat.tree <- function(data, exponentialityStats=FALSE, altDm) {
 
 #' ### Parametric bootstrap to study bias from sample variables, exponentiality of trees
 
-bsParamR <- 3e2
+bsParamR <- 1e3
 modData <- list(tmlol=mods, msal=pedvMSA, dm=dMats[['inship']])
 dMats[['inshipSamp']] <- cbind(dMats[['inship']], x[, grep('Samples$', colnames(x))])
 system.time(
 bsTree <- boot(data=modData, statistic=get.param.stat.tree, R=bsParamR, sim='parametric',
-               ran.gen=ran.gen.tree, mle=ans[['inship']]$par, parallel='no',
+               ran.gen=ran.gen.tree, mle=ans[['inship']]$par, parallel='multicore',
                ncpus=detectCores(), exponentialityStats=TRUE, altDm=dMats[['inshipSamp']])
 )
 
@@ -892,7 +892,7 @@ print.dtlmnet <- function(x, digits = max(3, getOption("digits") - 3), ...){
 y <- list(tmlol=mods, msal=pedvMSA)
 samplingInds <- grep("Samples$", colnames(x))
 inshipInds <- grep("Inshipments$", colnames(x))
-dfit <- dtlmnet(x=x[, -samplingInds], y=y, nlambda=10, alpha=0.8)
+system.time(dfit <- dtlmnet(x=x[, -samplingInds], y=y, nlambda=100, alpha=0.8))
 plot(dfit, xvar='n', label=T)
 
 #' ## Stability selection

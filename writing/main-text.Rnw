@@ -358,6 +358,12 @@ rejection of the hypothesis that flows had no effect $(\chi^2_1 =
       can bias estimates of true parameters.}  }\label{boxplot}
 \end{figure}
 
+\begin{figure}[h]
+  \includegraphics{fig5}
+  \caption{{\bf Regularization and stability paths for balance sheet
+      variables and flows.}  }\label{boxplot}
+\end{figure}
+
 \section*{Discussion}
 
 Using time- and location-tagged sequences, we have fitted a simple

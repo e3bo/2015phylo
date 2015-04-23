@@ -35,8 +35,8 @@ RUN install2.r --error \
   coda \
   expm \
   exptest \
-  knitr \
   ggplot2 \
+  knitr \
   lubridate \
   numDeriv \
   phangorn \
