@@ -466,14 +466,18 @@ ran.gen.tree <- function(data, pars, levnames=levs, genTime=as.numeric(ddays(7))
     data
 }
 
+get.exp.stats <- function(tree){
+}
+
 get.param.stat.tree <- function(data, exponentialityStats=FALSE, altDm) {
     np <- ncol(data$dm)
     pars <- c(-0.5, rep(0, np))
-    ans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=c(0, rep(1.5, np)),
+    ans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=c(0, rep(5, np)),
                         tmlol=data$tmlol, x=data$dm, msal=data$msal)
+    if(ans$par[2] > .95) browser()
     np <- ncol(altDm)
     pars <- c(-0.5, rep(0, np))
-    altans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=c(0, rep(1.5, np)),
+    altans <- optim.rphast(obj, params=pars, lower=rep(-3, np + 1), upper=c(0, rep(5, np)),
                            tmlol=data$tmlol, x=altDm, msal=data$msal)
     if(exponentialityStats){
         tmpf <- function(x) read.tree(text=x[[1]]$tree)
@@ -499,11 +503,16 @@ modData <- list(tmlol=mods, msal=pedvMSA, dm=dMats[['inship']])
 dMats[['inshipSamp']] <- cbind(dMats[['inship']], x[, grep('Samples$', colnames(x))])
 system.time(
 bsTree <- boot(data=modData, statistic=get.param.stat.tree, R=bsParamR, sim='parametric',
-               ran.gen=ran.gen.tree, mle=ans[['inship']]$par, parallel='multicore',
+               ran.gen=ran.gen.tree, mle=ans[['inship']]$par, parallel='no',
                ncpus=detectCores(), exponentialityStats=TRUE, altDm=dMats[['inshipSamp']])
 )
 
 bsTree
+
+#' ## Check for normality, any signs something is wrong with simulations
+
+tmpf <- function(x) plot(bsTree, index=x)
+invisible(sapply(seq(ncol(bsTree$t)), tmpf))
 
 tmpf <- function(){
     plotData <- bsTree$t[, c(2, 4:6)]
@@ -520,7 +529,7 @@ tmpf <- function(){
 }
 ggsave(plot=tmpf(), filename='tree-bootstrap-boxplot.pdf', width=7, height=5, pointsize=12)
 
-#' ## Regularized models and cross-validation
+#' ## Functions for elastic-net regularization paths
 
 getInit <- function(msal=pedvMSA, tmlol=mods){
     tmpf <- function(x, y){
@@ -882,20 +891,8 @@ print.dtlmnet <- function(x, digits = max(3, getOption("digits") - 3), ...){
 y <- list(tmlol=mods, msal=pedvMSA)
 samplingInds <- grep("Samples$", colnames(x))
 inshipInds <- grep("Inshipments$", colnames(x))
-dfit <- dtlmnet(x=x[, -c(samplingInds, inshipInds)], y=y, nlambda=10, alpha=0.8)
-plot(dfit, xvar='l', label=T)
+dfit <- dtlmnet(x=x[, -samplingInds], y=y, nlambda=10, alpha=0.8)
 plot(dfit, xvar='n', label=T)
-
-#' ## Simulation test of using sample sizes as predictors
-
-modSim <- ran.gen.tree(pars=c(-1.4, 0.5), designMatrix=as.matrix(x[, 2]))
-simFit2 <- dtlmnet(x=x, penalty.factor=c(1e2, 1, rep(1e2, 8)), y=list(tmlol=modSim, msal=pedvMSA))
-simFit <- dtlmnet(x=x, penalty.factor=c(1e2, 1, rep(1e2, 6), 1, 1), y=list(tmlol=modSim, msal=pedvMSA), alpha=0.8)
-plot(simFit2, label=T, type='l') 
-
-xsat <- diag(1, nrow=nrow(x))
-xsat[,1] <- runif(n=nrow(x))- 0.5
-#satfit <- dtlmnet(x=xsat, y=y, nlambda=4, alpha=1)
 
 #' ## Stability selection
 
@@ -969,11 +966,15 @@ stabpathDtnet <- function (y, x, size = 0.632, steps = 100, weakness = 1,
     return(out)
 }
 
-system.time(sp <- stabpathDtnet(x=x[, -samplingInds], y=y, steps=2, nlambda=10, lambda.min.ratio=0.05, alpha=0.8))
+system.time(sp <- stabpathDtnet(x=x[, -samplingInds], y=y, steps=20, nlambda=10, lambda.min.ratio=0.05, alpha=0.8))
 plot(sp, type='pfer', error=1, xvar='l')
 plot(sp, type='pcer', error=0.05, xvar='l')
 
+pdf('stability-path.pdf')
+plot(sp, type='pcer', error=0.05, xvar='l')
+dev.off()
 
+if(FALSE){
 
 
 nll <- function(x) -obj(x, tmlol=M[["big"]])
@@ -1236,5 +1237,7 @@ plot(c(inds, inds[1]), c(parSeq[2, ], simPars$asym[2]), type='n',
      ylab='Flow effect\n(log{rate multiplier} / log {flow})')
 points(inds, parSeq[2, ], type='b')
 abline(h=simPars$asym[2])
+
+}
 
 save.image('mle.RData')

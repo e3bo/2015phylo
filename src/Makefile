@@ -14,7 +14,7 @@ all: flagMleReport posteriors-and-priors.pdf
 posteriors-and-priors.pdf: plot-posteriors-and-priors.r beast/priors/pedv-priors.log beast/run1/pedv.log beast/run2/pedv.log beast/run3/pedv.log beast/run4/pedv.log nonsIndel-aligned.fasta-gb sIndel-aligned.fasta-gb
 	$<
 
-flagMleReport: mle.r convergence-check.html shipment-flows-origins-on-rows-dests-on-columns.csv flagData
+flagMleReport: mle.r convergence-check.html shipment-flows-origins-on-rows-dests-on-columns.csv flagData state-hogBalanceSheetDec2011Dec2012.csv
 	cp $< . && $(RS) -e "library(knitr); spin(\"$(<F)\")" >$(<F).stdout 2>$(<F).stderr && touch $@
 
 convergence-check.html: convergence-check.r beast/run1/pedv.log beast/run2/pedv.log beast/run3/pedv.log beast/run4/pedv.log

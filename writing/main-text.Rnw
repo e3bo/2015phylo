@@ -100,17 +100,18 @@ protein~\cite{lawrence2014,oka2014}.
 Several of these sequences had a characteristic indel in their spike
 gene. These are referred to as S INDEL sequences, and they are
 divergent enough from the strains lacking the indel that it is likely
-that their most recent common ancestor predates their introduction to
-North America~\cite{vlasova2014}. For our anlaysis we are primarily
-interested in the evolutionary history of the strains within North
-America ans thus we generated separate alignments for S INDEL and
-non-S INDEL sequences and estimate separate trees for them.  We used
-mafft to generate the alignments~\cite{katoh2013}. The alignments were
-run through Gblocks~\cite{castresana2000} to identify any very poorly
-conserved, potentially misleading segments. Gblocks removed only
-regions with many gaps such as the ends of the alignment and
-indels. The alignments were also checked visually for evidence of
-alignment errors using CLUSTAL~X~\cite{thompson1997}.
+that the most recent common ancestor of these two groups predates
+their introduction to North America~\cite{vlasova2014}. For our
+anlaysis we are primarily interested in the evolutionary history of
+the strains within North America and thus we generated separate
+alignments for S INDEL and non-S INDEL sequences and estimate separate
+trees for them.  We used mafft to generate the
+alignments~\cite{katoh2013}. The alignments were run through
+Gblocks~\cite{castresana2000} to identify any very poorly conserved,
+potentially misleading segments. Gblocks removed only regions with
+many gaps such as the ends of the alignment and indels. The alignments
+were also checked visually for evidence of alignment errors using
+CLUSTAL~X~\cite{thompson1997}.
 
 We used BEAST~\cite{drummond2012} to obtain from our sequence
 alignments a posterior sample of rooted trees with branch lengths
@@ -349,6 +350,12 @@ rejection of the hypothesis that flows had no effect $(\chi^2_1 =
   geographic transition rates and the error bars represent 95\%
   parametric bootstrap percentile confidence
   intervals.}\label{llsurface}
+\end{figure}
+
+\begin{figure}[h]
+  \includegraphics{fig4}
+  \caption{{\bf Including predictors based on the number of samples
+      can bias estimates of true parameters.}  }\label{boxplot}
 \end{figure}
 
 \section*{Discussion}
