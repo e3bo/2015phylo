@@ -1,5 +1,6 @@
 library(ape)
 library(boot)
+library(c060)
 library(expm)
 library(exptest)
 library(ggplot2)
