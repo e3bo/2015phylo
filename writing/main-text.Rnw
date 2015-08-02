@@ -16,17 +16,18 @@
 \usepackage{breakurl}
 \usepackage{bm}
 \usepackage{setspace}
-\usepackage{relsize}
+\doublespacing
 \frenchspacing
+\usepackage[round,author-year]{natbib}
 \bibliographystyle{plos2009}
 \usepackage{amsmath}
 
 \begin{document}
 
-\title{Phylogeographic analysis of porcine epidemic diarrhea virus in
-  North America}
+\title{Computation and advantages of stability and regularization paths for
+  phylogeographic models}
 
-\author{Eamon O'Dea}
+\author{Eamon O'Dea \and Shweta Bansal}
 
 \maketitle
 
@@ -58,7 +59,7 @@ have shown that several strains of PEDV are circulating in North
 America. Here, we take advantage of the available sequence data to
 estimate rates of interstate migration of the virus with a
 phylogeographic approach as in
-Refs.~\cite{nelson2011,lemey2014,magee2014,nelson2015} . A regression model is
+~\citet{nelson2011,lemey2014,magee2014,nelson2015} . A regression model is
 used to relate these rates to interstate transport flows of swine, as
 contamination of transport trailers has been implicated in
 farm-to-farm spread~\cite{lowe2014,thomas2015}. We use simulation to
@@ -68,217 +69,9 @@ States, we look for evidence of multiple introductions by comparing
 estimated ages of common ancestors of two clades with the first known
 outbreak of PEDV in the United States.
 
-\section*{Methods}
-
-<<load-results,include=FALSE>>=
+\section*{New approaches}
 
 
-load("mle.RData")
-
-@
-
-\subsection*{Phylogenetic estimation}
-
-We obtained a set of nucleotide sequences by searching the National
-Center for Biotechnology Information's Nucleotide database with the
-query ``Porcine epidemic diarrhea virus[Organism] AND (country=USA OR
-country=Mexico OR country=Canada)''. We refined these results to whole
-genome sequences that had a ``collection\_date'' features in their
-GenBank records. Further, we checked that the sequences were from
-field strains. That is, we checked that the sequences were from
-samples collected from farms experiencing
-outbreaks. Refs.~\cite{marthaler_complete_2013,hoang2013,huang2013,chen_isolation_2013,stevenson2013,vlasova2014,oka2014,wang_new_2014}
-were used in this regard, and for sequence with accession KJ584361 we
-relied on a comment in the GenBank record to verify that it was a
-field strain. Those references and other fields in the GenBank records
-were also used to determine the U.S. state of collection for some
-sequences. We excluded any sequences that were known to have come from
-viruses passaged in cell culture because such passaging has been found
-to lead to alterations in the spike
-protein~\cite{lawrence2014,oka2014}.
-
-Several of these sequences had a characteristic indel in their spike
-gene. These are referred to as S INDEL sequences, and they are
-divergent enough from the strains lacking the indel that it is likely
-that the most recent common ancestor of these two groups predates
-their introduction to North America~\cite{vlasova2014}. For our
-anlaysis we are primarily interested in the evolutionary history of
-the strains within North America and thus we generated separate
-alignments for S INDEL and non-S INDEL sequences and estimate separate
-trees for them.  We used mafft to generate the
-alignments~\cite{katoh2013}. The alignments were run through
-Gblocks~\cite{castresana2000} to identify any very poorly conserved,
-potentially misleading segments. Gblocks removed only regions with
-many gaps such as the ends of the alignment and indels. The alignments
-were also checked visually for evidence of alignment errors using
-CLUSTAL~X~\cite{thompson1997}.
-
-We used BEAST~\cite{drummond2012} to obtain from our sequence
-alignments a posterior sample of rooted trees with branch lengths
-measured in calendar years. To guard against overfitting and to limit
-the computational demands of our analysis, we chose relatively
-low-parameter model components. We used a constant--population-size
-coalescent model~\cite{kingman1982,drummond2002} as a prior density
-for the times of ancestral nodes of the tree. We assumed that
-substitutions occur according to a molecular clock with a constant
-rate and that the relative transition rates of among different bases
-occur according to the HKY85 model~\cite{hasegawa1985}. We allow for
-random variation in rates among sites using the standard approximation
-to the gamma distribution~\cite{yang1994}, with four discrete rate
-categories in our approximation.
-
-In setting up our BEAST analysis, we deemed the default priors in the
-configuration generator BEAUTi~\cite{drummond2012} acceptable for the
-substitution model parameters, as previous estimates from severe acute
-respiratory syndrome (SARS) coronavirus~\cite{salemi2004} were in
-relatively high density locations of the priors. We placed a normal
-prior on the rate of the molecular clock with a mean of $7 \times
-10^{-4}$ and a standard deviation of $1 \times 10^{-4}$ based on the
-estimate of Ref.~\cite{sanchez1992} for transmissible gastroenteritis
-virus (TGEV), which is another alphacoronavirus that infects
-swine. This prior was truncated at zero since these rates must be
-positive.  For a prior on the coalescent population size, we used a
-gamma distribution with a shape of 3 and a scale of 0.3. This prior
-was chosen based on our belief that it is unlikely that the most
-recent common ancestor of either the S INDEL and non-S INDEL sequences
-existed much earlier than the date of the first known
-U.S. outbreak. In other words, we consider a small number of
-introductions to be more likely because PEDV has not frequently
-detected in North America before 2013. For two sequences not having
-month and days of collection, we placed a uniform prior on their day
-of collection over a window of 86 days considered likely to include
-the true collection date. Our BEAST XML input files have been archived
-on the web (TODO make sure full build is working, make archive, add
-citation).
-
-We ran BEAST four times, each time with different initial parameter
-values sampled from the prior. We discarded the first 50 percent of
-samples from each run as burn-in, and checked for convergence problems
-as follows. We plotted the potential scale reduction
-factor~\cite{gelman1992} over increasing fractions of our sample and
-confirmed that it was steadily below 1.01 for all parameters. We
-confirmed visually that all marginal posterior densities seemed smooth
-and all traces appeared to have constant means and variances. We
-verified that all effective sample sizes exceeded 200.
-
-We also computed for each tree estimate, for all clades occurring in
-10 percent or more of the sampled trees from any one of our runs, the
-averaged standard deviation of clade frequencies (ASDCF), where
-standard deviations are of the frequencies of clades across runs. We
-plotted the ASDCF with increasing fractions of our posterior sample to
-confirm that it was steadily below 1.01. This diagnostic was based on
-that of the popular Mr.~Bayes program~\cite{ronquist2012} for Bayesian
-phylogenetics. We also made density plots of the samples of
-trees~\cite{bouckaert2010} from each run and compared them visually to
-detect any qualitative differences in trees among runs.
-
-\subsection*{Regression modeling of geographic transition rates}
-
-In the next few paragraphs, we describe our approach to fitting the
-sequence location data. It is a maximum simulated likelihood
-(MSL)~\cite{hajivassiliou2000} variant of the fully Bayesian approach
-introduced in Ref.~\cite{lemey2014}.
-
-We consider that the true trees are unosbserved, multivariate random
-variables and suppose that our BEAST MCMC sampler accurately simulates
-random draws of these variables. Recall that each tree
-represents the genealogy of a set of sampled sequences in time. For
-some unknown tree, we assume that the ancestral virus' locations at
-points along each of the branches in the genealogy is determined by a
-continuous-time Markov chain with $K$ discrete states. The
-infinitesimal rates of change for transition probabilities in this
-Markov chain are collected in a $K \times K$ matrix $\bm{\Lambda}$,
-where $\Lambda_{i,j}$ gives the rate of change from state $i$ to state
-$j$. We assume these infinitesimals are independent of time. The
-diagonal elements are determined by the mathematical requirement that
-each row sums to zero but the off-diagonal elements may vary
-freely. For a given setting of $\Lambda$, the likelihood of the
-observed data for a given tree may be efficiently calculated with the
-same dynamic programming algorithm used to calculate the likelihood of
-a column in a sequence alignment for a given substitution model. We
-then take the average of these likelihoods over some number $R$ of
-simulated trees to approximately integrate out random
-variation resulting from uncertainty in the tree. The resulting
-likelihood is a simulated likelihood.
-
-For finite $R$, the simulated likelihood varies randomly around the
-true likelihood. Although this variation has mean zero, it follows
-from Jensen's inequality that the variation of the simulated log
-likelihood around the true log likelihood will not have mean
-zero. Consequently, estimates obtained by maximising the log simulated
-likelihood have some bias. To allow for fast evaluation of our
-simulated likelihood, we chose $R=2$ and checked that the bias was
-small relative to the uncertainty in our estimates as follows.  Using
-our MSL estimates for parameters, we generated 1000 replicates of
-simulated data using steps described later in this section. The key
-point for this diagnostic is that these simulations were generated by
-sampling using our full posterior sample of 20,000 trees, which was
-much larger than our $R$. For each simulated data set, we numerically
-calculated the gradient of the log simulated likelihood at the MSL
-estimates and estimated the mean and variance of these gradients. For
-the true log likelihood under standard regularity conditions, these
-gradients would have normal distributions with mean zero. We thus
-conducted a Wald chi-square test of the hypothesis that the means were
-zero and confirmed that the p-value was above 0.1.
-
-For many data sets there is likely not enough information to reliably
-estimate all estimate pairwise transition rates
-$\Lambda_{i,j}$. Further we are less interested in these rates than in
-how they may depend on other variables related to mechanisms of spread
-or data collection. Thus we employ a linear model to scale the space
-of all pairwise transition rates down to the space spanned by a set of
-$P$ predictive variables that we derived based on hypotheses of such
-mechanisms and a scale parameter $\beta_0$ that controls the average
-value of all pairwise transition rates. Let $x_{i,j,w}$ be the value
-for predictor $w$ that corresponds to $\Lambda_{i,j}$, and let
-$\beta_w$ be the regression coefficient for predictor $w$. Our model
-parameters $\bm{\beta}$ determine our transition rates $\Lambda_{i,j}$
-according to
-\begin{align}
-  \log \lambda_{i,j} &= \sum_{w=1}^P x_{i,j,w} \beta_w, \\
-       \bar{\lambda} &= \sum_{i \neq j} \lambda_{i,j} / [n (n -
-         1)], \\ 
-  \Lambda_{i,j} &= \lambda_{i,j} \mathrm{e}^{\beta_0} / \bar{\lambda}.
-\end{align}
-
-We found the MSL estimates $\hat{\bm{\beta}}$ by optimizing the log
-simulated likelihood with the \texttt{optim.rphast} function in the
-rPhast package~\cite{rphast}, which is essentially an implementation
-of the BFGS method~\cite{nocedal1999}. Confidence intervals were
-obtained from a parametric bootstrap as follows. We simulated a tree
-by sampling with replacement from our postior sample of 20,000
-trees. On the simulated tree, the Markov process was initialized by
-choosing one of the $K$ locations uniformly at random and assigning it
-to the root node. Then the locations of all descendant nodes were
-simulated recursively by sampling from the transition probabilities
-for location along each branch, as determined by the best-fit
-model. The output was a set of locations for the tips of the tree. We
-employed the \texttt{simulate.msa} function of rPhast to carry out
-\Sexpr{bs$R} of these simulations. For each simulation replicate, we
-obtained MSL estimates of the regression coefficients. Confidence
-intervals for each coefficient were calculated as the interval spanned
-by the middle 95\% of these bootstrap estimates.
-
-\subsection*{Choice of predictors and geographic states}
-
-In our application, we matched the states of the geographic model to
-the unique collection locations of sequences. This choice gave us a
-total of $K =\Sexpr{nchar(M[['asym']][[1]][[1]]$alphabet)}$ unique model states,
-each of which corresponded to an area governed by either a U.S. state
-or the nation of Mexico.
-
-For a predictor of movement from one state to another, we used the
-logarithm of the estimated annual flow of swine transported for
-feeding or breeding purposes. These estimates came from year 2001
-government records of interstate livestock movements~\cite{ers2003}.
-
-\subsection*{Reproducibility}
-
-We have scripted the main steps of our analysis to promote
-reproducibility. The Docker framework~\cite{boettiger2015} has been
-used to script and package a setup of the required software
-environment as well. These scripts have been archived on the web (TODO
-add zenodo citation).
 
 \section*{Results}
 
@@ -385,19 +178,20 @@ sets of a similar size and shape to a real data set supports the
 continued development and application of these methods for
 phylogeographic data sets.
 
-Our methods diverged from Refs.~\cite{lemey2014,magee2014} in finding
-maximum simulated likelihood (MSL) estimates for regression
-coefficients rather than posterior distributions. The MSL estimates
-are not as informative as the posterior distributions, but they may be
-sufficient for many analyses and have the advantage of being faster to
-calculate. That advantage allowed us to generate bootstrap confidence
-intervals in minutes on a standard workstation (TODO verify these
-stats at end). Also, speed may be essential in shortening the often
-numerous rounds of model fitting that occur when analyzing large and
-complex data sets.
+Our methods diverged from previous
+approaches~\cite{lemey2014,magee2014} in finding maximum simulated
+likelihood (MSL) estimates for regression coefficients rather than
+posterior distributions. The MSL estimates are not as informative as
+the posterior distributions, but they may be sufficient for many
+analyses and have the advantage of being faster to calculate. That
+advantage allowed us to generate bootstrap confidence intervals in
+minutes on a standard workstation (TODO verify these stats at
+end). Also, speed may be essential in shortening the often numerous
+rounds of model fitting that occur when analyzing large and complex
+data sets.
 
 The finding that flows have a positive effect on geographic transition
-rates is consistent with the finding of Ref.~\cite{nelson2011}. They
+rates is consistent with the finding of~\citet{nelson2011}. They
 used the same flow data and found it to provide the best model for
 migration rates of H1 influenza A virus among swine. Together, these
 results provide empirical evidence that data on animal movements may
@@ -426,6 +220,222 @@ estimation of the tree, additional data collection, and the
 development of predictive variables relevant to sampling and
 transmission mechanisms could all improve the accuracy of our
 estimates and the predictive performance of our model.
+
+\section*{Materials and Methods}
+
+<<load-results,include=FALSE,eval=FALSE>>=
+
+
+load("mle.RData")
+
+@
+
+\subsection*{Phylogenetic estimation}
+
+We obtained a set of nucleotide sequences by searching the National
+Center for Biotechnology Information's Nucleotide database with the
+query ``Porcine epidemic diarrhea virus[Organism] AND (country=USA OR
+country=Mexico OR country=Canada)''. We refined these results to whole
+genome sequences that had a ``collection\_date'' features in their
+GenBank records. Further, we checked that the sequences were from
+field strains. That is, we checked that the sequences were from
+samples collected from farms experiencing
+outbreaks. The literature~\cite{marthaler_complete_2013,hoang2013,huang2013,chen_isolation_2013,stevenson2013,vlasova2014,oka2014,wang_new_2014}
+was used in this regard, and for sequence with accession KJ584361 we
+relied on a comment in the GenBank record to verify that it was a
+field strain. Those references and other fields in the GenBank records
+were also used to determine the U.S. state of collection for some
+sequences. We excluded any sequences that were known to have come from
+viruses passaged in cell culture because such passaging has been found
+to lead to alterations in the spike
+protein~\cite{lawrence2014,oka2014}.
+
+Several of these sequences had a characteristic indel in their spike
+gene. These are referred to as S INDEL sequences, and they are
+divergent enough from the strains lacking the indel that it is likely
+that the most recent common ancestor of these two groups predates
+their introduction to North America~\cite{vlasova2014}. For our
+anlaysis we are primarily interested in the evolutionary history of
+the strains within North America and thus we generated separate
+alignments for S INDEL and non-S INDEL sequences and estimate separate
+trees for them.  We used mafft to generate the
+alignments~\cite{katoh2013}. The alignments were run through
+Gblocks~\cite{castresana2000} to identify any very poorly conserved,
+potentially misleading segments. Gblocks removed only regions with
+many gaps such as the ends of the alignment and indels. The alignments
+were also checked visually for evidence of alignment errors using
+CLUSTAL~X~\cite{thompson1997}.
+
+We used BEAST~\cite{drummond2012} to obtain from our sequence
+alignments a posterior sample of rooted trees with branch lengths
+measured in calendar years. To guard against overfitting and to limit
+the computational demands of our analysis, we chose relatively
+low-parameter model components. We used a constant--population-size
+coalescent model~\cite{kingman1982,drummond2002} as a prior density
+for the times of ancestral nodes of the tree. We assumed that
+substitutions occur according to a molecular clock with a constant
+rate and that the relative transition rates of among different bases
+occur according to the HKY85 model~\cite{hasegawa1985}. We allow for
+random variation in rates among sites using the standard approximation
+to the gamma distribution~\cite{yang1994}, with four discrete rate
+categories in our approximation.
+
+In setting up our BEAST analysis, we deemed the default priors in the
+configuration generator BEAUTi~\cite{drummond2012} acceptable for the
+substitution model parameters, as previous estimates from severe acute
+respiratory syndrome (SARS) coronavirus~\cite{salemi2004} were in
+relatively high density locations of the priors. We placed a normal
+prior on the rate of the molecular clock with a mean of $7 \times
+10^{-4}$ and a standard deviation of $1 \times 10^{-4}$ based on the
+estimate of~\citet{sanchez1992} for transmissible gastroenteritis
+virus (TGEV), which is another alphacoronavirus that infects
+swine. This prior was truncated at zero since these rates must be
+positive.  For a prior on the coalescent population size, we used a
+gamma distribution with a shape of 3 and a scale of 0.3. This prior
+was chosen based on our belief that it is unlikely that the most
+recent common ancestor of either the S INDEL and non-S INDEL sequences
+existed much earlier than the date of the first known
+U.S. outbreak. In other words, we consider a small number of
+introductions to be more likely because PEDV has not frequently
+detected in North America before 2013. For two sequences not having
+month and days of collection, we placed a uniform prior on their day
+of collection over a window of 86 days considered likely to include
+the true collection date. Our BEAST XML input files have been archived
+on the web (TODO make sure full build is working, make archive, add
+citation).
+
+We ran BEAST four times, each time with different initial parameter
+values sampled from the prior. We discarded the first 50 percent of
+samples from each run as burn-in, and checked for convergence problems
+as follows. We plotted the potential scale reduction
+factor~\cite{gelman1992} over increasing fractions of our sample and
+confirmed that it was steadily below 1.01 for all parameters. We
+confirmed visually that all marginal posterior densities seemed smooth
+and all traces appeared to have constant means and variances. We
+verified that all effective sample sizes exceeded 200.
+
+We also computed for each tree estimate, for all clades occurring in
+10 percent or more of the sampled trees from any one of our runs, the
+averaged standard deviation of clade frequencies (ASDCF), where
+standard deviations are of the frequencies of clades across runs. We
+plotted the ASDCF with increasing fractions of our posterior sample to
+confirm that it was steadily below 1.01. This diagnostic was based on
+that of the popular Mr.~Bayes program~\cite{ronquist2012} for Bayesian
+phylogenetics. We also made density plots of the samples of
+trees~\cite{bouckaert2010} from each run and compared them visually to
+detect any qualitative differences in trees among runs.
+
+\subsection*{Regression modeling of geographic transition rates}
+
+In the next few paragraphs, we describe our approach to fitting the
+sequence location data. It is a maximum simulated likelihood
+(MSL)~\cite{hajivassiliou2000} variant of the fully Bayesian approach
+introduced in~\citet{lemey2014}.
+
+We consider that the true trees are unosbserved, multivariate random
+variables and suppose that our BEAST MCMC sampler accurately simulates
+random draws of these variables. Recall that each tree
+represents the genealogy of a set of sampled sequences in time. For
+some unknown tree, we assume that the ancestral virus' locations at
+points along each of the branches in the genealogy is determined by a
+continuous-time Markov chain with $K$ discrete states. The
+infinitesimal rates of change for transition probabilities in this
+Markov chain are collected in a $K \times K$ matrix $\bm{\Lambda}$,
+where $\Lambda_{i,j}$ gives the rate of change from state $i$ to state
+$j$. We assume these infinitesimals are independent of time. The
+diagonal elements are determined by the mathematical requirement that
+each row sums to zero but the off-diagonal elements may vary
+freely. For a given setting of $\Lambda$, the likelihood of the
+observed data for a given tree may be efficiently calculated with the
+same dynamic programming algorithm used to calculate the likelihood of
+a column in a sequence alignment for a given substitution model. We
+then take the average of these likelihoods over some number $R$ of
+simulated trees to approximately integrate out random
+variation resulting from uncertainty in the tree. The resulting
+likelihood is a simulated likelihood.
+
+For finite $R$, the simulated likelihood varies randomly around the
+true likelihood. Although this variation has mean zero, it follows
+from Jensen's inequality that the variation of the simulated log
+likelihood around the true log likelihood will not have mean
+zero. Consequently, estimates obtained by maximising the log simulated
+likelihood have some bias. To allow for fast evaluation of our
+simulated likelihood, we chose $R=2$ and checked that the bias was
+small relative to the uncertainty in our estimates as follows.  Using
+our MSL estimates for parameters, we generated 1000 replicates of
+simulated data using steps described later in this section. The key
+point for this diagnostic is that these simulations were generated by
+sampling using our full posterior sample of 20,000 trees, which was
+much larger than our $R$. For each simulated data set, we numerically
+calculated the gradient of the log simulated likelihood at the MSL
+estimates and estimated the mean and variance of these gradients. For
+the true log likelihood under standard regularity conditions, these
+gradients would have normal distributions with mean zero. We thus
+conducted a Wald chi-square test of the hypothesis that the means were
+zero and confirmed that the p-value was above 0.1.
+
+For many data sets there is likely not enough information to reliably
+estimate all estimate pairwise transition rates
+$\Lambda_{i,j}$. Further we are less interested in these rates than in
+how they may depend on other variables related to mechanisms of spread
+or data collection. Thus we employ a linear model to scale the space
+of all pairwise transition rates down to the space spanned by a set of
+$P$ predictive variables that we derived based on hypotheses of such
+mechanisms and a scale parameter $\beta_0$ that controls the average
+value of all pairwise transition rates. Let $x_{i,j,w}$ be the value
+for predictor $w$ that corresponds to $\Lambda_{i,j}$, and let
+$\beta_w$ be the regression coefficient for predictor $w$. Our model
+parameters $\bm{\beta}$ determine our transition rates $\Lambda_{i,j}$
+according to
+\begin{align}
+  \log \lambda_{i,j} &= \sum_{w=1}^P x_{i,j,w} \beta_w, \\
+       \bar{\lambda} &= \sum_{i \neq j} \lambda_{i,j} / [n (n -
+         1)], \\
+  \Lambda_{i,j} &= \lambda_{i,j} \mathrm{e}^{\beta_0} / \bar{\lambda}.
+\end{align}
+
+We found the MSL estimates $\hat{\bm{\beta}}$ by optimizing the log
+simulated likelihood with the \texttt{optim.rphast} function in the
+rPhast package~\cite{rphast}, which is essentially an implementation
+of the BFGS method~\cite{nocedal1999}. Confidence intervals were
+obtained from a parametric bootstrap as follows. We simulated a tree
+by sampling with replacement from our posterior sample of 20,000
+trees. On the simulated tree, the Markov process was initialized by
+choosing one of the $K$ locations uniformly at random and assigning it
+to the root node. Then the locations of all descendant nodes were
+simulated recursively by sampling from the transition probabilities
+for location along each branch, as determined by the best-fit
+model. The output was a set of locations for the tips of the tree. We
+employed the \texttt{simulate.msa} function of rPhast to carry out
+\Sexpr{bs$R} of these simulations. For each simulation replicate, we
+obtained MSL estimates of the regression coefficients. Confidence
+intervals for each coefficient were calculated as the interval spanned
+by the middle 95\% of these bootstrap estimates.
+
+\subsection*{Choice of predictors and geographic states}
+
+In our application, we matched the states of the geographic model to
+the unique collection locations of sequences. This choice gave us a
+total of $K =\Sexpr{nchar(M[['asym']][[1]][[1]]$alphabet)}$ unique model states,
+each of which corresponded to an area governed by either a U.S. state
+or the nation of Mexico.
+
+For a predictor of movement from one state to another, we used the
+logarithm of the estimated annual flow of swine transported for
+feeding or breeding purposes. These estimates came from year 2001
+government records of interstate livestock movements~\cite{ers2003}.
+
+\subsection*{Reproducibility}
+
+We have scripted the main steps of our analysis to promote
+reproducibility. The Docker framework~\cite{boettiger2015} has been
+used to script and package a setup of the required software
+environment as well. These scripts have been archived on the web (TODO
+add zenodo citation).
+
+\section*{Acknowledgments}
+
+This work was supported by the United States Department of Homeland Security.
 
 \bibliography{pedv}
 
