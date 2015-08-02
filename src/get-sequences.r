@@ -12,7 +12,7 @@ marthalerComplete2013 <- 'KF272920.1'
 wangNew2014 <- c('KJ399978.1', 'KJ408801.1')
 marthalerThird2014 <- 'KM077139.1'
 stevensonEmergence2013 <- c('KF452322.1', 'KF452323.1')
-chenIsolation2013noPassage <- c('KF650370.1', 'KF650373.1') 
+chenIsolation2013noPassage <- c('KF650370.1', 'KF650373.1')
 hoangFull2013 <- 'KF804028.1'
 wangGenbank <- 'KJ584361.1' # note in Genbank record identifies this as a case
 
@@ -23,7 +23,8 @@ foo <- sapply(foo, tmpf)
 foo[foo=='NorthCarolina'] <- 'North Carolina'
 foo[foo=='Tennesse'] <- 'Tennessee'
 foo[foo=='CO'] <- 'Colorado'
-stopifnot(foo %in% c(state.name, 'Canada', 'USA', 'Mexico'))
+foo[foo=='HI'] <- 'Hawaii'
+stopifnot(foo %in% c(state.name, state.abb, 'Canada', 'USA', 'Mexico'))
 ind <- match(foo, state.name)
 feats$abb <- state.abb[ind]
 feats$loc <- ifelse(is.na(feats$abb), feats$country, feats$abb)
