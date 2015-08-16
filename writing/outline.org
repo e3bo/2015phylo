@@ -30,6 +30,28 @@ migration parameters
    
 ** why we did it
 
+1. To improve the speed of fitting phylogeographic models to the point
+   where simulation studies were practical and provide a faster
+   alternative to previously used Bayesian approaches , we developed
+   an algorithm for estimating regularization paths for regression
+   models of transition rates in discrete trait models of molecular
+   evolution.
+2. To estimate the distribution of phylogenies consistent with the
+   molecular sequences of PEDV collected, we performed a BEAST
+   analysis.
+3. To determine what variables might be associated with the movement
+   of PEDV between states, we performed stability selection.
+4. To estimate uncertainty of estimates due to the random variation
+   inherent in the model, we generated parametric bootstrap confidence
+   intervals conditional on the estimated trees.
+5. To estimate how ignoring the dependence of geographic traits and
+   coalescence rates may be biasing our estimates and determine if our
+   estimates were self-consistent, we fit our model to data simulated
+   in a structured coalescent model, both with and without a
+   previously used method of bias correction.
+
+** what resulted
+
 
 
 * Submission questions
