@@ -24,9 +24,10 @@
 
 \begin{document}
 
-\title{Computation and advantages of stability and regularization paths for
-  phylogeographic models}
-
+\title{A regularization approach to efficiently fitting regression
+  models of the transition rates of discrete traits with an
+  application to viral phylogeography}
+  
 \author{Eamon O'Dea \and Shweta Bansal}
 
 \maketitle
