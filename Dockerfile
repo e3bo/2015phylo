@@ -1,9 +1,10 @@
-FROM r-base:3.1.2
+FROM r-base
 MAINTAINER Eamon O'Dea <odea35@gmail.com>
 
 RUN apt-get update && apt-get install -y -q --no-install-recommends \
   curl \
   git \
+  libcurl4-openssl-dev \
   mafft \
   openjdk-8-jre-headless \
   openssh-server \
