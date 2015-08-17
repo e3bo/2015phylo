@@ -1,0 +1,109 @@
+
+* outline
+
+** the main point
+
+A regularization approach to efficiently fitting regression models of
+the transition rates of discrete traits and verification that
+locations of molecular samples may be modeled this way to infer
+migration parameters
+
+** the narrative arc
+
+- summary of the new approach
+- phylogenetic fit of PEDV data
+ - high diversity by time of first known outbreak
+- stability selection of predictors of migration rates
+ - balance sheet variables stable
+- simulation study showing that modeling approach is reasonable
+ - including number of samples can bias estimates
+
+** what we did
+
+1. developed algorithm for estimating regularization paths for
+   discrete trait models 
+2. BEAST analysis of whole-genome PEDV sequences
+3. stability selection on predictors of PEDV movement
+4. examine distribution of estimates with simulation of traits conditional on tree
+5. examine distribution of estimates with simulation of trees
+   conditional on traits
+   
+** why we did it
+
+1. To improve the speed of fitting phylogeographic models to the point
+   where simulation studies were practical and provide a faster
+   alternative to previously used Bayesian approaches , we developed
+   an algorithm for estimating regularization paths for regression
+   models of transition rates in discrete trait models of molecular
+   evolution.
+2. To estimate the distribution of phylogenies consistent with the
+   molecular sequences of PEDV collected, we performed a BEAST
+   analysis.
+3. To determine what variables might be associated with the movement
+   of PEDV between states, we performed stability selection.
+4. To estimate uncertainty of estimates due to the random variation
+   inherent in the model, we generated parametric bootstrap confidence
+   intervals conditional on the estimated trees.
+5. To estimate how ignoring the dependence of geographic traits and
+   coalescence rates may be biasing our estimates and determine if our
+   estimates were self-consistent, we fit our model to data simulated
+   in a structured coalescent model, both with and without a
+   previously used method of bias correction.
+
+** what resulted
+
+
+
+* Submission questions
+
+** List significant discoveries reported in this manuscript, if any. (Not more than 150 words)
+
+- balance sheet variable are stable predictors of the movement of PEDV
+- phylogenetic modeling suggests multiple strands of PEDV were present
+  before the first reported us outbreak
+
+** List significant methodological or theoretical advances reported, if any. (Not more than 150 words)  ￼
+
+- method to determine number of phylogenetic trees to necessary to average over in
+  phylogeographic analysis
+- demonstration of how previous practice of including number of
+  samples as predictors can introduce bias
+- new method has lower complexity than previous MCMC methods and thereby
+  makes practical simulation tests of performance for specific
+  applications 
+- simulations show that that the estimated parameters are accurate for
+  a structured coalescent model for the parameters that we estimated
+  in our application to real data, while previous work has raised
+  concern about whether geographic attributes may be modeled as
+  discrete traits
+
+** List significant new or updated tools or resources reported, if any. (Not more than 150 words)  ￼
+
+- algorithms for fitting phylogeographic regression models with
+  elastic net penalties, which exploits warm-starts to efficiently  fit
+  models along a regularization path
+- R scripts with functions implementing these algorithms available
+  online at github 
+
+** Describe how this work will have broad impact on science or on the community. (Not more than 150 words)  ￼
+
+- Phylogeographic analyses are increasingly being used to understand
+  how pathogens are spreading with increasing larger data sets, and
+  some have raised concerns about the validity of the models
+  used. This work describes an established statistical approach widely
+  used in other domains that should scale better than some current
+  phylogeographic approaches and provides a practical algorithm
+  implementing it. We further show that for the parameters we
+  estimated from a real data set, the method can recover similar
+  parameters from simulated data and that including the number of
+  samples as predictors, although done in several previous analyses,
+  is not necessary and in fact likely to bias estimates. In short, we
+  provide a faster way of performing phylogeogrpahic anlayses, which
+  should permit larger-scale analyses and simulation studies of the
+  statistical properties of the results, and demonstrate both of these
+  activities with an application to a pathogen of recent economic
+  consequence.
+  
+  
+
+** Any other relevant information you wish to provide. (Not more than 150 words)
