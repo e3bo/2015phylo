@@ -61,15 +61,39 @@ given the uncertainty of the extimes
 
 ** what resulted
 
-1. A tested algorithm and an R implementation for estimating regularization paths for discrete trait models
-2. Posterior distribution for MRCAs
-3. Stability paths and a set of variables considered stable
+1. A tested algorithm and an R implementation for estimating
+   regularization paths for discrete trait models
+
+x := model parameters
+\mu := prox parameter
+G := Hessian in quadratic model to full likelihood
+r := ratio of decrease in likelihood to decrease in quadratic model
+considered sufficient
+k := iteration counter
+a := parameter that determine how accuracy of subproblem solution
+should grow with k
+beta := parameter that determine how to update prox parameter when necessary
+
+algorithm: based on Tang and Scheinberg
+1. choose 0 < r \leq 1, a > 0, x^0
+for k in 0, 1, 2, ... do
+  choose 0 < \mu_k, \theta_k > 0, G_k positive semidefinite
+  Find H_k = G_k + 1 / (2 \mu_k) I and x^{k + 1} by applying prox
+  parameter update with randomized coordinate descent
+  
+BFGS instead of L-BFGS
+keep hessian est between lambda but allow for larger neighborhood to
+be searched
+
+
+2. Posterior distribution for MRCAs (figure)
+3. Stability paths and a set of variables considered stable (figure)
 4. percentile confidence intervals for parameter estimates with
-   pre-specified models
-4.1 determination that number of trees was adequate
+   pre-specified models (knitr output)
+4.1 determination that number of trees was adequate (knitr output)
 5. determination that bias was lower than without attempted
    correction, and an explanation for the observed nonexponentiality
-   of coalescent intervals
+   of coalescent intervals (knitr output)
 
 ** findings
 
