@@ -3,16 +3,19 @@
 
 ** the main point
 
-A regularization approach to efficiently fitting regression models of
-the transition rates of discrete traits and verification that
-locations of molecular samples may be modeled this way to infer
-migration parameters
+Introduction of a regularization approach to efficiently fitting
+regression models of the transition rates of discrete traits and
+verification that locations of molecular samples may be modeled this
+way to infer migration parameters
 
 ** the narrative arc
 
 - summary of the new approach
+- background on pedv
 - phylogenetic fit of PEDV data
  - high diversity by time of first known outbreak
+- simulated likelihood ratio test of effect of flows
+ - reject null 
 - stability selection of predictors of migration rates
  - balance sheet variables stable
 - simulation study showing that modeling approach is reasonable
