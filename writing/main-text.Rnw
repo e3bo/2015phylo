@@ -436,7 +436,12 @@ add zenodo citation).
 
 \section*{Acknowledgments}
 
-This work was supported by the United States Department of Homeland Security.
+This work was supported by the RAPIDD Program of the Science \&
+Technology Directorate, Department of Homeland Security and the
+Fogarty International Center, National Institutes of Health; as well
+as the Department of Homeland Security Science \& Technology
+Directorate Foreign Animal Disease Modeling Program through contract
+\# HSHQDC-12-C-0014.
 
 \bibliography{pedv}
 
