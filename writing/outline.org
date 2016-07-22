@@ -3,10 +3,8 @@
 
 ** the main point
 
-A regularization approach to efficiently fitting regression models of
-the transition rates of discrete traits and verification that
-locations of molecular samples may be modeled this way to infer
-migration parameters
+How to use regularization to efficiently fitting regression models of
+the transition rates of discrete traits on an evolutionary tree.
 
 ** the narrative arc
 
@@ -117,10 +115,12 @@ Bayesian stochastic search variable selection used previously
 
 ** problem items
 ** responses to problems
+** conclusion paragraph
 ** purpose sentence for each paragraph
+** splice in figures
 ** opening and conclusion for each paragraph
 ** fill in supporting sentences
-** conclusion paragraph
+
 
 
 * Submission questions
