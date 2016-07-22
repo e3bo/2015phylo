@@ -3,14 +3,19 @@
 
 ** the main point
 
-How to use regularization to efficiently fitting regression models of
-the transition rates of discrete traits on an evolutionary tree.
+Introduction of a regularization approach to efficiently fitting
+regression models of the transition rates of discrete traits and
+verification that locations of molecular samples may be modeled this
+way to infer migration parameters
 
 ** the narrative arc
 
 - summary of the new approach
+- background on pedv
 - phylogenetic fit of PEDV data
  - high diversity by time of first known outbreak
+- simulated likelihood ratio test of effect of flows
+ - reject null 
 - stability selection of predictors of migration rates
  - balance sheet variables stable
 - simulation study showing that modeling approach is reasonable
@@ -110,18 +115,81 @@ Bayesian stochastic search variable selection used previously
  - balance sheet variables are relevant variables: 3
 
 ** introduction draft
+*** establishing a research territory
+**** centrality
+- better understanding of patterns of disease spread could improve
+  control measures
 
+- amount of sequence data likely to increase as technology becomes
+  cheaper
+ - molecular methods can perform well when other surveillance methods
+   are subject to bias
+- applications exist outside of disease for understanding species
+  migration dispersal
+- large number of studies have used phylogeographic models
+**** review of methodolgical literature
+- parsimony methods
+- BEAST phylogeogrphraphic method with BSSVS
+- continuous diffusion
+- minimum spanning tree methods
+ - potn
+ - jombart et al.
+- structured coalescent 
+ - STRUCTURE and 
+ - PLoS genetics 
+**** review of applications
+- papers introducing method
+- US swine paper
+- global swine paper
+- influenza and air travel paper
+- etc.
 
+*** establishing a niche
+
+- regularization approach not considered as alternative to BSSVS
+- conditions under which geography may be modeled as as a discrete trait disputed
+- ability of including number of samples as predictors to account for
+  sampling bias unstudied
+
+*** occupying the niche
+
+ The purpose of this paper is to introduce a regularization approach
+ to fitting discrete trait models and also to further demonstrate that
+ they can provide accurate estimates of parameters for how a pathogen
+ moves between areas.
 
 ** problem items
+
+1. systematic comparison of regularization approach to BSSVS method
+   not presented
+2. proof not presented for results that bias correction may backfire
+3. analytic results not presented for when geographic traits may be
+   modeled independently of coalescent process
+
 ** responses to problems
+
+1-3: Further analysis and simulation can establish the generality of our
+findings. However, we have demonstrated that under at least one
+realistic scenario are findings are valid.
+
 ** conclusion paragraph
+   
+We have introduced a new approach to fitting phylogeographic models
+and demonstrated its usefulness for understanding the spread of a
+recent emerging pathogen of livestock. We have found that, although
+the modeling framework employed neglects to account for the spatial
+distribution of lineages on coalescence rates, it can for data
+simulated with the estimated parameters perform well. Clearly there
+are some phylogeographic conditions under which the proposed approach
+is valid and may be preferred for its speed, and simulation can be
+used to assess performance for any particular condition. The question
+we defer to future work is therefore not if this approach may be
+usefully applied in phylogeography, but when.
+
 ** purpose sentence for each paragraph
 ** splice in figures
 ** opening and conclusion for each paragraph
 ** fill in supporting sentences
-
-
 
 * Submission questions
 
