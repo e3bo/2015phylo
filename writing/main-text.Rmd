@@ -1,0 +1,103 @@
+---
+title: "A regularization approach to fitting regression models of the
+transition rates of discrete traits and its application to viral
+phylogeography"
+author: 
+ - Eamon B. O'Dea 
+ - Shweta Bansal
+bibliography: pedv.bib
+---
+
+# Abstract
+
+TODO write abstract
+
+# Introduction
+
+<!---
+introduces phylogeography as an important and active research area
+--->
+
+<!---
+describe gaps in the methodological literature
+--->
+
+<!---
+describe purpose of paper
+--->
+
+# New Approaches
+
+<!---
+clear and succinct presentation of regularization approach, with minial equations
+--->
+
+# Results and Discussion
+
+<!---
+ outline structure of results and discussion
+--->
+
+<!---
+ introduction to PEDV data used in application
+--->
+
+Porcine epidemic diarrhea virus (PEDV) emerged in the United States in
+2013, rapidly spread throughout much of the country, and was later
+detected in neighboring Canada and Mexico [@hill2014;@efsa2014]. A
+U.S. strain has been confirmed to cause severe watery diarrhea and
+vomiting [@jung_pathology_2014], characteristic symptoms of
+porcine epidemic diarrhea (PED). Morbidity during a PED outbreak can
+be extremely high, and more than 90 percent of unweaned pigs may
+die [@stevenson2013]. Those pigs that do survive have been found
+to be less productive [@alvarez2015].
+
+Greater understanding of how PEDV spreads among farms could likely
+identify weak points in current control measures. That unidentified
+weak points exist is clear from the occurrence of PED outbreaks
+without any clear cause on farms with rigorous biosecurity
+programs [@stevenson2013]. At a larger scale, although it seems
+that a U.S. strain originated from a recombination of strains
+circulating in China [@tian2014], the location and manner through
+which PEDV was introduced into the United States remains unknown,
+indicating an unidentified weak point in the nation's border security.
+
+Genomic analyses
+[@chen_isolation_2013;@hoang2013;@huang2013;@marthaler_complete_2013;@stevenson2013;@marthaler2014;@oka2014;@vlasova2014;@wang_new_2014]
+have shown that several strains of PEDV are circulating in North
+America. Here, we take advantage of the available sequence data to
+estimate rates of interstate migration of the virus with a
+phylogeographic approach as in
+[@nelson2011;@lemey2014;@magee2014;@nelson2015]. A regression model is
+used to relate these rates to interstate transport flows of swine, as
+contamination of transport trailers has been implicated in
+farm-to-farm spread [@lowe2014;@thomas2015]. We use simulation to
+verify our ability to accurately estimate parameters for our assumed
+model. Regarding the nature of PEDV's introduction to the United
+States, we look for evidence of multiple introductions by comparing
+estimated ages of common ancestors of two clades with the first known
+outbreak of PEDV in the United States.
+
+<!---
+describe phylogentic fit to data
+--->
+
+
+
+
+# Materials and Methods
+
+# Figure Captions
+
+
+
+# Acknowledgments
+
+This work was supported by the RAPIDD Program of the Science &
+Technology Directorate, Department of Homeland Security and the
+Fogarty International Center, National Institutes of Health; as well
+as the Department of Homeland Security Science & Technology
+Directorate Foreign Animal Disease Modeling Program through contract
+\# HSHQDC-12-C-0014.
+
+# References
