@@ -126,8 +126,8 @@ a set of virus sequences. We found that the logarithm of transport
 flows had a positive effect on transition rates
 (Fig. 3). A simulated likelihood ratio test supported
 rejection of the hypothesis that flows had no effect $(\chi^2_1 =
-`r signif(Dasym, 3)`, p<`r 10^ceiling(log10(1 - pchisq(Dasym,
-  df=1)))`)$.
+`r signif(Dasym, 3)`, p<10^{`r ceiling(log10(1 - pchisq(Dasym,
+  df=1)))`})$.
 
 <!---
 describe and discuss results that number of samples does not correct bias
@@ -235,7 +235,7 @@ were also used to determine the U.S. state of collection for some
 sequences. We excluded any sequences that were known to have come from
 viruses passaged in cell culture because such passaging has been found
 to lead to alterations in the spike
-protein [@lawrence2014;oka2014].
+protein [@lawrence2014;@oka2014].
 
 Several of these sequences had a characteristic indel in their spike
 gene. These are referred to as S INDEL sequences, and they are
@@ -327,7 +327,7 @@ some unknown tree, we assume that the ancestral virus' locations at
 points along each of the branches in the genealogy is determined by a
 continuous-time Markov chain with $K$ discrete states. The
 infinitesimal rates of change for transition probabilities in this
-Markov chain are collected in a $K \times K$ matrix $\bm{\Lambda}$,
+Markov chain are collected in a $K \times K$ matrix $\mathbf{\Lambda}$,
 where $\Lambda_{i,j}$ gives the rate of change from state $i$ to state
 $j$. We assume these infinitesimals are independent of time. The
 diagonal elements are determined by the mathematical requirement that
@@ -372,7 +372,7 @@ mechanisms and a scale parameter $\beta_0$ that controls the average
 value of all pairwise transition rates. Let $x_{i,j,w}$ be the value
 for predictor $w$ that corresponds to $\Lambda_{i,j}$, and let
 $\beta_w$ be the regression coefficient for predictor $w$. Our model
-parameters $\bm{\beta}$ determine our transition rates $\Lambda_{i,j}$
+parameters $\mathbf{\beta}$ determine our transition rates $\Lambda_{i,j}$
 according to
 \begin{align}
   \log \lambda_{i,j} &= \sum_{w=1}^P x_{i,j,w} \beta_w, \\
@@ -381,10 +381,10 @@ according to
   \Lambda_{i,j} &= \lambda_{i,j} \mathrm{e}^{\beta_0} / \bar{\lambda}.
 \end{align}
 
-We found the MSL estimates $\hat{\bm{\beta}}$ by optimizing the log
-simulated likelihood with the \texttt{optim.rphast} function in the
-rPhast package~[@rphast], which is essentially an implementation
-of the BFGS method~[@nocedal1999]. Confidence intervals were
+We found the MSL estimates of $\mathbf{\beta}$ by optimizing the log
+simulated likelihood with the optim.rphast function in the
+rPhast package [@rphast], which is essentially an implementation
+of the BFGS method [@nocedal1999]. Confidence intervals were
 obtained from a parametric bootstrap as follows. We simulated a tree
 by sampling with replacement from our posterior sample of 20,000
 trees. On the simulated tree, the Markov process was initialized by
@@ -393,7 +393,7 @@ to the root node. Then the locations of all descendant nodes were
 simulated recursively by sampling from the transition probabilities
 for location along each branch, as determined by the best-fit
 model. The output was a set of locations for the tips of the tree. We
-employed the \texttt{simulate.msa} function of rPhast to carry out
+employed the simulate.msa function of rPhast to carry out
 `r bs$R` of these simulations. For each simulation replicate, we
 obtained MSL estimates of the regression coefficients. Confidence
 intervals for each coefficient were calculated as the interval spanned
