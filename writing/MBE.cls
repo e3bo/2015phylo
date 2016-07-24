@@ -2386,7 +2386,7 @@ urlbordercolor=0 0 0,bookmarks,bookmarksopen=true,bookmarksnumbered=true,pdfpage
 \multiply\minutes by 60
 \advance\minutes by \time
 \def\timenow{\two@digits{\the\hours}:\two@digits{\the\minutes}}
-\font\slugfont=CMR10 at 6pt
+\font\slugfont=cmr10 at 6pt
 %
 \IfFileExists{crop.cfg}{}{%
   \renewcommand*\CROP@@info{\slugfont%

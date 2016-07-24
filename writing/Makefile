@@ -1,7 +1,7 @@
 RS = '/usr/bin/Rscript'
 
-main-text.pdf: main-text.tex pedv.bib
-	latexmk -pdf $<
+main-text.odt: main-text.md pedv.bib
+	pandoc --filter pandoc-citeproc -t odt -o main-text.odt $<
 
-main-text.tex: main-text.Rnw
-	$(RS) -e "knitr::knit(\"main-text.Rnw\")"
+main-text.md: main-text.Rmd
+	$(RS) -e "knitr::knit(\"main-text.Rmd\")"

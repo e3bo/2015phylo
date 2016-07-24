@@ -8,6 +8,12 @@ author:
 bibliography: pedv.bib
 ---
 
+```{r load-results,include=FALSE,eval=TRUE}
+
+load("mle.RData")
+
+```
+
 # Abstract
 
 TODO write abstract
@@ -120,8 +126,8 @@ a set of virus sequences. We found that the logarithm of transport
 flows had a positive effect on transition rates
 (Fig. 3). A simulated likelihood ratio test supported
 rejection of the hypothesis that flows had no effect $(\chi^2_1 =
-\Sexpr{signif(Dasym, 3)}, p<\Sexpr{10^ceiling(log10(1 - pchisq(Dasym,
-  df=1)))})$.
+`r signif(Dasym, 3)`, p<`r 10^ceiling(log10(1 - pchisq(Dasym,
+  df=1)))`)$.
 
 <!---
 describe and discuss results that number of samples does not correct bias
@@ -215,9 +221,9 @@ usefully applied in phylogeography, but when.
 
 We obtained a set of nucleotide sequences by searching the National
 Center for Biotechnology Information's Nucleotide database with the
-query ``Porcine epidemic diarrhea virus[Organism] AND (country=USA OR
-country=Mexico OR country=Canada)''. We refined these results to whole
-genome sequences that had a ``collection\_date'' features in their
+query "Porcine epidemic diarrhea virus[Organism] AND (country=USA OR
+country=Mexico OR country=Canada)". We refined these results to whole
+genome sequences that had a "collection_date" features in their
 GenBank records. Further, we checked that the sequences were from
 field strains. That is, we checked that the sequences were from
 samples collected from farms experiencing
@@ -388,7 +394,7 @@ simulated recursively by sampling from the transition probabilities
 for location along each branch, as determined by the best-fit
 model. The output was a set of locations for the tips of the tree. We
 employed the \texttt{simulate.msa} function of rPhast to carry out
-\Sexpr{bs$R} of these simulations. For each simulation replicate, we
+`r bs$R` of these simulations. For each simulation replicate, we
 obtained MSL estimates of the regression coefficients. Confidence
 intervals for each coefficient were calculated as the interval spanned
 by the middle 95% of these bootstrap estimates.
@@ -397,7 +403,7 @@ by the middle 95% of these bootstrap estimates.
 
 In our application, we matched the states of the geographic model to
 the unique collection locations of sequences. This choice gave us a
-total of $K =\Sexpr{nchar(M[['asym']][[1]][[1]]$alphabet)}$ unique model states,
+total of $K =`r nchar(M[['asym']][[1]][[1]]$alphabet)`$ unique model states,
 each of which corresponded to an area governed by either a U.S. state
 or the nation of Mexico.
 
@@ -424,8 +430,8 @@ citation).
       depths, producing a blurred image of webs and
       multifurcations. (B) The tree for the S INDEL sequences is well
       resolved. These trees were based on
-      \Sexpr{uniquePatterns['nonsIndel']} and
-      \Sexpr{uniquePatterns['sIndel']} unique columns in the
+      `r uniquePatterns['nonsIndel']` and
+      `r uniquePatterns['sIndel']` unique columns in the
       alignments of the non-S INDEL and S INDEL sequences,
       respectively.
 
