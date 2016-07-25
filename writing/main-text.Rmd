@@ -29,21 +29,8 @@ describe gaps in the methodological literature
 --->
 
 <!---
-describe purpose of paper
+brief background and knowledge gaps for PEDV
 --->
-
-# New Approaches
-
-<!---
-clear and succinct presentation of regularization approach, with minial equations
---->
-
-# Results
-
-<!---
- outline structure of results and discussion
---->
-
 <!---
  introduction to PEDV data used in application
 --->
@@ -84,9 +71,30 @@ States, we look for evidence of multiple introductions by comparing
 estimated ages of common ancestors of two clades with the first known
 outbreak of PEDV in the United States.
 
+
+<!---
+describe purpose of paper
+--->
+
+# New Approaches
+
+<!---
+clear and succinct presentation of regularization approach, with minial equations
+--->
+
+# Results
+
+<!---
+ outline structure of results and discussion
+--->
+
+
+
 <!---
 describe phylogentic fit to data
 --->
+
+## Phylogenetic analysis
 
 As a prerequisite to fitting our geographic model, we obtained a
 posterior samples of evolutionary trees from a set of PEDV sequences
@@ -110,9 +118,14 @@ farther back than these root nodes. Thus these results are consistent
 with our assumption that this node likely occurred outside of North
 America and therefore could be excluded from our model.
 
+## Discrete trait analysis
+
 <!---
 % describe and discuss results of test that number of trees was adequate
 --->
+
+
+
 
 <!---
 % describe and discuss results of likelihood ratio test
@@ -142,6 +155,10 @@ describe and dicuss results that estimates are consistent with structure coalesc
 --->
 
 # Discussion
+
+<!---
+ Summarize main findings 
+--->
 
 Using time- and location-tagged sequences, we have fitted a simple
 linear model to rates of interstate migration of PEDV. We found that
@@ -184,6 +201,10 @@ parameters for such models. At present, such parameters are often
 highly uncertain and based on expert
 opinion [@mcreynolds2014;@martinez-lopez2014].
 
+<!---
+review limitations and defend them
+--->
+
 Of course, we cannot from this analysis conclude that the association
 of shipment flows with migration rates is a necessary, causal one. For
 example, unequal sampling probabilities among states could be biasing
@@ -202,6 +223,10 @@ estimation of the tree, additional data collection, and the
 development of predictive variables relevant to sampling and
 transmission mechanisms could all improve the accuracy of our
 estimates and the predictive performance of our model.
+
+<!---
+conclude with a statement regarding how this work changes the field
+--->
 
 We have introduced a new approach to fitting phylogeographic models
 and demonstrated its usefulness for understanding the spread of a

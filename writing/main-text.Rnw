@@ -1,37 +1,60 @@
-\documentclass{article}
-\usepackage[sc]{mathpazo}
-\usepackage[utf8]{inputenc}
-\usepackage{cite}
-\usepackage{geometry}
-\geometry{verbose,tmargin=2.5cm,bmargin=2.5cm,lmargin=2.5cm,rmargin=2.5cm}
-\setcounter{secnumdepth}{2}
-\setcounter{tocdepth}{2}
+\documentclass[nogrid]{MBE}%
+
 \usepackage{url}
-\usepackage[unicode=true,pdfusetitle,
- bookmarks=true,bookmarksnumbered=true,bookmarksopen=true,bookmarksopenlevel=2,
- breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=false]
- {hyperref}
-\hypersetup{
- pdfstartview={XYZ null null 1}}
-\usepackage{breakurl}
-\usepackage{bm}
-\usepackage{setspace}
-\usepackage{graphicx}
-\doublespacing
-\frenchspacing
-\usepackage[round,authoryear]{natbib}
-\bibliographystyle{plos2009}
-\usepackage{amsmath}
+
+\jshort{mst}
+
+\volname{}
+
+\jvolume{0}
+
+\jvol{}
+
+\jissue{0}
+
+\pubyear{2013}
+
+\mstype{Article}
+
+\artid{012}
+
+\access{Advance Access publication March 3, 2013}
+
+\bibliographystyle{natbib}
 
 \begin{document}
 
-\title{A regularization approach to fitting regression models of the
-  transition rates of discrete traits and its application to viral
-  phylogeography}
+<<load-results,include=FALSE,eval=TRUE>>=
 
-\author{Eamon O'Dea \and Shweta Bansal}
 
-\maketitle
+load("mle.RData")
+
+@
+
+
+\title[Regularization of transition rates]{A regularization approach
+  to fitting regression models of the transition rates of discrete
+  traits and its application to viral phylogeography}
+
+\author[O'Dea and Bansal]{Eamon B.~O'Dea$^{1}$ and Shweta Bansal$^{\ast,1,2}$}
+
+\address{$^{1}$Department of Biology, Georgetown University,
+  Department of Biology, Washington, DC, 20057 \\ $^{2}$ National
+  Institutes of Health, Fogarty International Center, Bethesda,
+  Maryland, 20892}
+
+\history{NA}
+
+\coresp{E-mail: shweta@sbansal.com}
+
+\datade{NA}
+
+
+\editor{NA}
+
+\abstract{TODO write abstract}
+
+\keyword{NA, NA.}
 
 \section*{Introduction}
 
@@ -40,8 +63,6 @@
 % describe gaps in the methodological literature
 
 % describe purpose of paper
-
-
 
 \section*{New approaches}
 
@@ -264,13 +285,6 @@ we defer to future work is therefore not if this approach may be
 usefully applied in phylogeography, but when.
 
 \section*{Materials and Methods}
-
-<<load-results,include=FALSE,eval=FALSE>>=
-
-
-load("mle.RData")
-
-@
 
 \subsection*{Phylogenetic estimation}
 
