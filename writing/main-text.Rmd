@@ -121,15 +121,17 @@ America and therefore could be excluded from our model.
 ## Discrete trait analysis
 
 <!---
+Describe results of stability selection
+--->
+
+<!---
 % describe and discuss results of test that number of trees was adequate
 --->
 
 
-
-
 <!---
-% describe and discuss results of likelihood ratio test
---->
+% MAYBE describe and discuss results of likelihood ratio test
+
 
 To gain insight into drivers of the geographic spread of PEDV, we
 fitted a regression model of geographic transition rates. As described
@@ -141,6 +143,9 @@ flows had a positive effect on transition rates
 rejection of the hypothesis that flows had no effect $(\chi^2_1 =
 `r signif(Dasym, 3)`, p<10^{`r ceiling(log10(1 - pchisq(Dasym,
   df=1)))`})$.
+--->
+
+
 
 <!---
 describe and discuss results that number of samples does not correct bias
@@ -148,10 +153,6 @@ describe and discuss results that number of samples does not correct bias
 
 <!---
 describe and dicuss results that estimates are consistent with structure coalescent model
---->
-
-<!---
- describe results of stability selection
 --->
 
 # Discussion
@@ -241,6 +242,10 @@ we defer to future work is therefore not if this approach may be
 usefully applied in phylogeography, but when.
 
 # Materials and Methods
+
+<!---
+This subsection describes how we made the trees
+--->
 
 ## Phylogenetic estimation
 
@@ -337,12 +342,16 @@ phylogenetics. We also made density plots of the samples of trees
 [@bouckaert2010] from each run and compared them visually to detect
 any qualitative differences in trees among runs.
 
-## Regression modeling of geographic transition rates
+<!---
+This subsection describes the regression model in detail
+--->
 
-In the next few paragraphs, we describe our approach to fitting the
-sequence location data. It is a maximum simulated likelihood
-(MSL) [@hajivassiliou2000] variant of the fully Bayesian approach
-introduced in [@lemey2014].
+## Regression modeling of transition rates
+
+In the next few paragraphs, we describe our basic approach to fitting
+the sequence location data. It is a maximum simulated likelihood (MSL)
+[@hajivassiliou2000] variant of the fully Bayesian approach introduced
+in [@lemey2014].
 
 We consider that the true trees are unosbserved, multivariate random
 variables and suppose that our BEAST MCMC sampler accurately simulates
@@ -436,6 +445,20 @@ For a predictor of movement from one state to another, we used the
 logarithm of the estimated annual flow of swine transported for
 feeding or breeding purposes. These estimates came from year 2001
 government records of interstate livestock movements [@ers2003].
+
+<!---
+This subsection describes the fitting of the regularization path in detail
+--->
+
+<!---
+This subsection describes the simulation study in detail
+--->
+
+
+<!---
+This subsection describes how readers can obtain code and reproduce analysis
+--->
+
 
 ## Reproducibility
 
