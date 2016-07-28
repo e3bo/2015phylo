@@ -109,11 +109,10 @@ a regularization term that controls the complexity of the model.
 
 # Results
 
-<!---
-describe phylogentic fit to data
---->
-
 ## Phylogenetic analysis
+
+<!--- describe trees that the model of geographic transitions will be
+conditional on --->
 
 As a prerequisite to fitting our geographic model, we obtained a
 posterior samples of evolutionary trees from a set of PEDV sequences
@@ -121,6 +120,9 @@ collected from outbreaks. See Materials and Methods for
 details. Figure 1 displays these trees. Although the
 tree is not fully resolved, several deep and shallow parts of it are
 and permit further analysis.
+
+<!--- answer question about the number of introductions into the
+U.S. --->
 
 A tree parameter of interest regarding the introduction of PEDV into
 the United States is the age of the root nodes. If these ages
@@ -140,12 +142,13 @@ America and therefore could be excluded from our model.
 ## Discrete trait analysis
 
 <!---
-Describe results of stability selection
+Say what important variables were identified by stability selection
 --->
 
-<!---
-% describe and discuss results of test that number of trees was adequate
---->
+We used stability selection to identify variables important for the
+prediction the rates of state-to-state movement of PEDV.
+
+
 
 
 <!---
@@ -164,15 +167,24 @@ rejection of the hypothesis that flows had no effect $(\chi^2_1 =
   df=1)))`})$.
 --->
 
+<!---
+describe results that estimates are consistent with structure coalescent model
+--->
+
+To verify that it was appropriate to treat geographic location as a
+discrete trait, we checked whether we could recover the identified
+model from data simulated according to it.
+
 
 
 <!---
-describe and discuss results that number of samples does not correct bias
+describe result that number of samples does not correct bias
 --->
 
-<!---
-describe and dicuss results that estimates are consistent with structure coalescent model
---->
+We further used simulation to evaluate the effects of including
+predictors based on the number of samples collected in an area as a
+bias correction method.
+
 
 # Discussion
 
@@ -414,6 +426,10 @@ gradients would have normal distributions with mean zero. We thus
 conducted a Wald chi-square test of the hypothesis that the means were
 zero and confirmed that the p-value was above 0.1.
 
+<!---
+Describe rule used to ensure that p-value was high enough in analysis
+--->
+
 For many data sets there is likely not enough information to reliably
 estimate all estimate pairwise transition rates
 $\Lambda_{i,j}$. Further we are less interested in these rates than in
@@ -468,6 +484,9 @@ government records of interstate livestock movements [@ers2003].
 <!---
 This subsection describes the fitting of the regularization path in detail
 --->
+
+
+
 
 <!---
 This subsection describes the simulation study in detail
