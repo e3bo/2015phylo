@@ -1,7 +1,6 @@
 ---
-title: "A regularization approach to fitting regression models of the
-transition rates of discrete traits and its application to viral
-phylogeography"
+title: "A regularization approach to fitting models of discrete trait evolution and its application to viral
+phylogeography of PEDV"
 author: 
  - Eamon B. O'Dea 
  - Shweta Bansal
@@ -21,14 +20,11 @@ TODO write abstract
 # Introduction
 
 <!---
-brief background and knowledge gaps for PEDV
---->
-<!---
- introduction to PEDV data used in application
+ This paragraph introduces PEDV and the problems it caused
 --->
 
 A recent porcine epidemic diarrhea virus (PEDV) outbreak provides a
-fine example of a system in which phylogeographic methods could be
+fine example of a situation in which phylogeographic methods could be
 useful.  PEDV emerged in the United States in 2013, rapidly spread
 throughout much of the country, and was later detected in neighboring
 Canada and Mexico [@hill2014;@efsa2014]. A U.S. strain has been
@@ -38,6 +34,11 @@ diarrhea (PED). Morbidity during a PED outbreak can be extremely high,
 and more than 90 percent of unweaned pigs may die
 [@stevenson2013]. Those pigs that do survive have been found to be
 less productive [@alvarez2015].
+
+<!---
+ This paragraph explains how answer scientific questions about PEDV
+ could have widespread practical benefits
+--->
 
 Greater understanding of how PEDV spreads among farms could likely
 identify weak points in current control measures. That unidentified
@@ -49,31 +50,21 @@ circulating in China [@tian2014], the location and manner through
 which PEDV was introduced into the United States remains unknown,
 indicating an unidentified weak point in the nation's border security.
 
+<!---
+ This paragraph explains how phylogeographic approaches can be used to
+ answer questions about PEDV and reviews existing methods
+--->
+
 Genomic analyses
 [@chen_isolation_2013;@hoang2013;@huang2013;@marthaler_complete_2013;@stevenson2013;@marthaler2014;@oka2014;@vlasova2014;@wang_new_2014]
 have shown that several strains of PEDV are circulating in North
-America. Here, we take advantage of the available sequence data to
-estimate rates of interstate migration of the virus with a
-phylogeographic approach as in
-[@nelson2011;@lemey2014;@magee2014;@nelson2015]. A regression model is
-used to relate these rates to interstate transport flows of swine, as
-contamination of transport trailers has been implicated in
-farm-to-farm spread [@lowe2014;@thomas2015]. We use simulation to
-verify our ability to accurately estimate parameters for our assumed
-model. Regarding the nature of PEDV's introduction to the United
-States, we look for evidence of multiple introductions by comparing
-estimated ages of common ancestors of two clades with the first known
-outbreak of PEDV in the United States.
+America.
+
+Therefore, a natural way of answering the above questions about PEDV
+is to employ the growing number of phylogeographic methods such as in
+references [@nelson2011;@lemey2014;@magee2014;@nelson2015].
 
 
-
-
-<!---
-introduces phylogeography as an important and active research area
---->
-
-Molecular methods are increasingly playing a role in the determination
-of how and by what modes a pathogen spreads from place to place.
 
 <!---
 describe gaps in the methodological literature
@@ -85,22 +76,38 @@ of migration rates, many questions about this approach remain.
 
 
 <!---
-describe purpose of paper
+describe purpose and outline of paper
 --->
+
+Here, we introduce a new approach to identification of phylogeographic
+models, provide and example of its application on PEDV data, and
+evaluate the performance of the method with simulation.
+
+A regression model is
+used to relate these rates to interstate transport flows of swine, as
+contamination of transport trailers has been implicated in
+farm-to-farm spread [@lowe2014;@thomas2015].
+
+
+
+We use simulation to verify our ability to accurately estimate
+parameters for our assumed model. Regarding the nature of PEDV's
+introduction to the United States, we look for evidence of multiple
+introductions by comparing estimated ages of common ancestors of two
+clades with the first known outbreak of PEDV in the United States.
+
 
 # New Approaches
 
 <!---
-clear and succinct presentation of regularization approach, with minial equations
+clear and succinct presentation of regularization approach, with minimal equations
 --->
+
+We propose a method of fitting linear models of transition rates with
+a regularization term that controls the complexity of the model.
+
 
 # Results
-
-<!---
- outline structure of results and discussion
---->
-
-
 
 <!---
 describe phylogentic fit to data
