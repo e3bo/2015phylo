@@ -550,17 +550,21 @@ citation).
     earliest known outbreak. The posteriors are more peaked and
     shifted back in time relative to the priors.
 
-*Figure 3* Flows have a positive effect on geographic transition
-    rates. The red point indicates the maximum simulated likelihood
-    estimate for regression coefficients in our linear predictor of
-    geographic transition rates and the error bars represent 95%
-    parametric bootstrap percentile confidence intervals.
+*Figure 3* Regularization and stability paths for balance sheet
+      variables and flows. Log $\lambda$ is the log of the
+      regularization parameter that controls the complexity of the
+      model. The regularization path in the top plots the estimates of
+      regression coefficients $\beta_i$ as function of the
+      regularization parameter. The stability path on the lower panel
+      plots the estimates of the probability $\Pi$ that a variable has
+      a non-zero coefficient when a regularization path is computed
+      from a random subsample of the data. The horizontal line
+      indicates the threshold applied to these probabilities to filter
+      out unimportant variables. The vertical line indicates the value
+      of $\lambda$ where the threshold was applied.
 
 *Figure 4* Including predictors based on the number of samples can
       bias estimates of true parameters.
-
-*Figure 5* Regularization and stability paths for balance sheet
-      variables and flows.
 
 # Acknowledgments
 
