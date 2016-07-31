@@ -23,17 +23,17 @@ TODO write abstract
  This paragraph introduces PEDV and the problems it caused
 --->
 
-A recent porcine epidemic diarrhea virus (PEDV) outbreak provides a
-fine example of a situation in which phylogeographic methods could be
-useful.  PEDV emerged in the United States in 2013, rapidly spread
-throughout much of the country, and was later detected in neighboring
-Canada and Mexico [@hill2014;@efsa2014]. A U.S. strain has been
-confirmed to cause severe watery diarrhea and vomiting
-[@jung_pathology_2014], characteristic symptoms of porcine epidemic
-diarrhea (PED). Morbidity during a PED outbreak can be extremely high,
-and more than 90 percent of unweaned pigs may die
+Porcine epidemic diarrhea virus (PEDV) emerged in the United States in
+2013, rapidly spread throughout much of the country, and was later
+detected in neighboring Canada and Mexico [@hill2014;@efsa2014]. A
+U.S. strain has been confirmed to cause severe watery diarrhea and
+vomiting [@jung_pathology_2014], characteristic symptoms of porcine
+epidemic diarrhea (PED). Morbidity during a PED outbreak can be
+extremely high, and more than 90 percent of unweaned pigs may die
 [@stevenson2013]. Those pigs that do survive have been found to be
-less productive [@alvarez2015].
+less productive [@alvarez2015]. In short, a pathogen that was
+previously largely unknown to western producers quickly became one of
+their major concerns.
 
 <!---
  This paragraph explains how answer scientific questions about PEDV
@@ -43,28 +43,18 @@ less productive [@alvarez2015].
 Greater understanding of how PEDV spreads among farms could likely
 identify weak points in current control measures. That unidentified
 weak points exist is clear from the occurrence of PED outbreaks
-without any clear cause on farms with rigorous biosecurity
-programs [@stevenson2013]. At a larger scale, although it seems
-that a U.S. strain originated from a recombination of strains
-circulating in China [@tian2014], the location and manner through
-which PEDV was introduced into the United States remains unknown,
-indicating an unidentified weak point in the nation's border security.
-
-<!---
- This paragraph explains how phylogeographic approaches can be used to
- answer questions about PEDV and reviews existing methods
---->
-
-Genomic analyses
+without any clear cause on farms with rigorous biosecurity programs
+[@stevenson2013]. At a larger scale, although it seems that a
+U.S. strain originated from a recombination of strains circulating in
+China [@tian2014], the location and manner through which PEDV was
+introduced into the United States remains unknown
+[TODO cite root cause study], indicating an unidentified weak point in
+the nation's border security. Since genomic analyses
 [@chen_isolation_2013;@hoang2013;@huang2013;@marthaler_complete_2013;@stevenson2013;@marthaler2014;@oka2014;@vlasova2014;@wang_new_2014]
 have shown that several strains of PEDV are circulating in North
-America.
-
-Therefore, a natural way of answering the above questions about PEDV
-is to employ the growing number of phylogeographic methods such as in
-references [@nelson2011;@lemey2014;@magee2014;@nelson2015].
-
-
+America, a natural way of answering such questions is to employ the
+growing number of phylogeographic methods
+[@nelson2011;@lemey2014;@magee2014;@nelson2015].
 
 <!---
 describe gaps in the methodological literature
