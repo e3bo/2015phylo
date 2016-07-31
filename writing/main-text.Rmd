@@ -62,8 +62,8 @@ describe gaps in the methodological literature
 
 Of the available methods, those that allow the movement of lineages
 between areas to be associated with predictive variables seem most
-likely to shed light on mechanisms of spread, but these methods are
-not yet fully developed.
+likely to shed light on mechanisms of spread but these methods are not
+yet fully developed.
 
 In sum, fundamental questions remain about the level of detail needed
 in process models, the best way to identify and fit regression models,
@@ -95,6 +95,8 @@ clear and succinct presentation of regularization approach, with minimal equatio
 We propose a method of fitting linear models of transition rates with
 a regularization term that controls the complexity of the model.
 
+
+This method is described in detail in Materials and Methods.
 
 # Results
 
@@ -135,10 +137,10 @@ Say what important variables were identified by stability selection
 --->
 
 We used stability selection to identify variables important for the
-prediction the rates of state-to-state movement of PEDV.
+prediction of rates of state-to-state movement of PEDV.
 
 
-
+Among our candidate predictors, 
 
 <!---
 % MAYBE describe and discuss results of likelihood ratio test
@@ -165,6 +167,10 @@ discrete trait, we checked whether we could recover the identified
 model from data simulated according to it.
 
 
+In spite of neglecting some of the details of the population
+structure, our approach succeeded in recovering the estimated
+parameters from simulated data.
+
 
 <!---
 describe result that number of samples does not correct bias
@@ -173,6 +179,12 @@ describe result that number of samples does not correct bias
 We further used simulation to evaluate the effects of including
 predictors based on the number of samples collected in an area as a
 bias correction method.
+
+
+For the model parameters considered, attempting to correct for bias by
+including the number of samples collected as predictors is
+counterproductive.
+
 
 
 # Discussion
