@@ -564,7 +564,15 @@ citation).
       of $\lambda$ where the threshold was applied.
 
 *Figure 4* Including predictors based on the number of samples can
-      bias estimates of true parameters.
+      decrease the accuracy of estimates. The leftmost box displays
+      the distribution of estimates when fitting a model containing
+      the predictor used to simulate the data. The other boxes display
+      the distribution of estimates for a larger model that includes
+      predictors based on the number of samples collected from the
+      origin or destination of a pair. The horizontal red line
+      indicates the value of the coefficient used to simulate the
+      data. The leftmost distribution has the lowest scatter around
+      this line.
 
 # Acknowledgments
 
