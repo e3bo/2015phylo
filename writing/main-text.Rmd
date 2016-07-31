@@ -60,32 +60,31 @@ growing number of phylogeographic methods
 describe gaps in the methodological literature
 --->
 
-Although several papers have pioneered the area of regression modeling
-of migration rates, many questions about this approach remain.
+Of the available methods, those that allow the movement of lineages
+between areas to be associated with predictive variables seem most
+likely to shed light on mechanisms of spread, but these methods are
+not yet fully developed.
 
+In sum, fundamental questions remain about the level of detail needed
+in process models, the best way to identify and fit regression models,
+and how to account for potential sampling biases.
 
 
 <!---
 describe purpose and outline of paper
 --->
 
-Here, we introduce a new approach to identification of phylogeographic
-models, provide and example of its application on PEDV data, and
-evaluate the performance of the method with simulation.
-
-A regression model is
-used to relate these rates to interstate transport flows of swine, as
-contamination of transport trailers has been implicated in
-farm-to-farm spread [@lowe2014;@thomas2015].
-
-
-
-We use simulation to verify our ability to accurately estimate
-parameters for our assumed model. Regarding the nature of PEDV's
-introduction to the United States, we look for evidence of multiple
-introductions by comparing estimated ages of common ancestors of two
-clades with the first known outbreak of PEDV in the United States.
-
+Here, we introduce a new approach to identification and fitting of
+phylogeographic models, provide an example of its application on PEDV
+data, and evaluate the performance of the method with simulation.  A
+regression model is used to relate these rates to interstate transport
+flows of swine, as contamination of transport trailers has been
+implicated in farm-to-farm spread [@lowe2014;@thomas2015].  We use
+simulation to verify our ability to accurately estimate parameters for
+our assumed model. Regarding the nature of PEDV's introduction to the
+United States, we look for evidence of multiple introductions by
+comparing estimated ages of common ancestors of two clades with the
+first known outbreak of PEDV in the United States.
 
 # New Approaches
 
