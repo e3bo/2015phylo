@@ -51,11 +51,12 @@ fit <- mle2(obj_fun, start=list(lnbeta=log(parms_truth$beta*.75), lnI0=log(1)),
 
 ## Now with two demes
 
-parms_truth <- c(beta11=0.0002, beta12=0.0002, beta21=0.0002, beta22=0.0002,
+beta <- 2e-4
+parms_truth <- c(beta11=beta, beta12=beta, beta21=beta, beta22=beta,
                  gamma=1, S1_0=9999, S2_0=9999, t0=2012, I1_0=1, I2_0=1)
 INFECTEDNAMES <- c('I1', 'I2')
-births <- rbind(c('parms$beta11 * I1 * S1 / (S1 + I1)', 'parms$beta12 * I1 * S2 / (S2 + I2)'),
-                c('parms$beta21 * I2 * S1 / (S1 + I1)', 'parms$beta22 * I2 * S2 / (S2 + I2)'))
+births <- rbind(c('parms$beta11 * I1 * S1', 'parms$beta12 * I1 * S2'),
+                c('parms$beta21 * I2 * S1', 'parms$beta22 * I2 * S2'))
 rownames(births) <- colnames(births) <- INFECTEDNAMES
 
 deaths <- c(I1='parms$gamma * I1', I2='parms$gamma * I2')
@@ -75,20 +76,40 @@ sampleStates[isIA, 2] <- 1
 
 bdt <- binaryDatedTree(phylo=tree, sampleTimes=sampleTimes, sampleStates=sampleStates)
 
-coalescent.log.likelihood(bdt, births, deaths, nonDemeDynamics, t0=2012.15,
-                          x0=c(I1=100, I2=100, S1=8000, S2=8000), migrations=migrations,
+coalescent.log.likelihood(bdt, births, deaths, nonDemeDynamics, t0=2011,
+                          x0=c(I1=1, I2=1, S1=9999, S2=9999), migrations=migrations,
                           parms=as.list(parms_truth), fgyResolution=1000, integrationMethod='rk4')
 
-obj_fun <- function(lnbw, lnba){
+obj_fun <- function(lnbw, lnprop){
     parms <- as.list(parms_truth)
     parms$beta11 <- parms$beta22 <- exp(lnbw)
-    parms$beta12 <- parms$beta21 <- exp(lnba)
-    nll <- -coalescent.log.likelihood(bdt, births, deaths, nonDemeDynamics, t0=2012,
-                          x0=c(I1=1000, I2=1000, S1=9999, S2=9999), migrations=migrations,
-                                      parms=as.list(parms_truth), fgyResolution=1000, integrationMethod='rk4')
-    print(c(nll, exp(lnbw), exp(lnba)))
+    parms$beta12 <- parms$beta21 <- exp(lnbw) * exp(lnprop)
+    t0max <- bdt$maxSampleTime - bdt$maxHeight
+    t0 <- t0max - 0.1
+    nll <- -coalescent.log.likelihood(bdt, births, deaths, nonDemeDynamics, t0=t0,
+                          x0=c(I1=1, I2=1, S1=9999, S2=9999), migrations=migrations,
+                                      parms=parms, fgyResolution=1000, integrationMethod='rk4')
+    #print(c(nll, exp(x[1]), exp(x[2])))
     nll
 }
 
-fit <- mle2(obj_fun, start=list(lnbw=log(parms_truth["beta11"]), lnba=log(parms_truth["beta22"])),
+pars <- c(log(2e-4), log(1))
+foo <- optim(pars, fn=obj, method="Nelder-Mead")
+
+fit <- mle2(obj_fun, start=list(lnbw=log(3e-4), lnprop=log(0.2)),
             method='Nelder-Mead', optimizer='optim', control=list(trace=6, reltol=1e-8))
+
+## simulations
+
+birthsSim <- gsub("parms\\$", "", births)
+deathsSim <- gsub("parms\\$", "", deaths)
+nddSim <- gsub("parms\\$", "", nonDemeDynamics)
+demo.model <- build.demographic.process(births=birthsSim, nonDemeDynamics=nddSim, migrations=migrations, deaths=deathsSim,
+                                        parameterNames=c("beta11", "beta12", "beta21", "beta22", "gamma"), rcpp=TRUE, sde=TRUE)
+
+beta <- 2e-4
+theta <- c(beta11=beta, beta12=beta, beta21=beta, beta22=beta, gamma=1)
+t0 <- 2012
+t1 <- 2014
+x0 <- c(S1=9999, S2=9999, I1=1, I2=1)
+show.demographic.process(demo.model, theta=theta, x0=x0, t0=t0, t1=t1)
