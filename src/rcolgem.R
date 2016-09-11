@@ -76,9 +76,9 @@ sampleStates[isIA, 2] <- 1
 
 bdt <- binaryDatedTree(phylo=tree, sampleTimes=sampleTimes, sampleStates=sampleStates)
 
-coalescent.log.likelihood(bdt, births, deaths, nonDemeDynamics, t0=2011,
+system.time(coalescent.log.likelihood(bdt, births, deaths, nonDemeDynamics, t0=2011,
                           x0=c(I1=1, I2=1, S1=9999, S2=9999), migrations=migrations,
-                          parms=as.list(parms_truth), fgyResolution=1000, integrationMethod='rk4')
+                          parms=as.list(parms_truth), fgyResolution=1000, integrationMethod='rk4'))
 
 obj_fun <- function(lnbw, lnprop){
     parms <- as.list(parms_truth)
@@ -113,3 +113,12 @@ t0 <- 2012
 t1 <- 2014
 x0 <- c(S1=9999, S2=9999, I1=1, I2=1)
 show.demographic.process(demo.model, theta=theta, x0=x0, t0=t0, t1=t1)
+
+## try out TreePar approach
+library(TreePar)
+tree$states <- isIA + 1
+
+system.time(LikTypesSTT(par=c(2,2,2,2),phylo=tree, fix=rbind(c(1,6,7,8),c(15,-5,0,0),c(1,1,1,1)),sampfrac=s,survival=0,posR=0))
+
+out<-try(optim(c(2, 2,2,2),LikTypesSTT,phylo=tree,fix=rbind(c(5, 6,7,8),c(12, -5,0,0),c(1, 1,1,1)),
+         sampfrac=s,survival=0,posR=0,control=list(maxit=10000), hessian=TRUE, method='BFGS'))
