@@ -4,8 +4,11 @@ Version: 0.0.0.9000
 Authors@R: c(person("Eamon", "O\'Dea", email = "odea35@gmail.com", role = c("aut", "cre")),
              person("Tanja", "Stadler", role="ctb", comment="Author of birth-death tree likelihood functions in TreePar that have been modified for use in this package."))
 Description: What the package does (one paragraph).
-Depends: R (>= 3.3.1)
+Depends:
+    R (>= 3.3.1)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Suggests: testthat (>= 1.0.2)
+Suggests:
+    testthat (>= 1.0.2)
+RoxygenNote: 5.0.1

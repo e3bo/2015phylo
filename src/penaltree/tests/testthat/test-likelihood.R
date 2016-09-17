@@ -19,7 +19,6 @@ test_that("Birth-death likelihood is consistent with TreePar function", {
     s <- c(sampprob1, sampprob2)
     n <- 20
     init <- -1
-     
     tree <- TreeSim::sim.bdtypes.stt.taxa(n, l, d, s, init)
     tree <- TreePar::addroot(tree, tree$root.edge)
     par <- c(2, 2, 2, 2)
@@ -29,6 +28,6 @@ test_that("Birth-death likelihood is consistent with TreePar function", {
     l <- rbind(c(15, 2), c(2, 2))
     m <- c(2, 2) * 0.95
     psi <- c(2, 2) * 0.05
-    ptlik <- mylik(l=l, m=m, psi=psi, freq=0.1, phylo=tree, survival=0)
+    ptlik <- calc_bdlik(l=l, m=m, psi=psi, freq=0.1, phylo=tree, survival=FALSE)
     expect_equal(unname(tplik), ptlik)
 })

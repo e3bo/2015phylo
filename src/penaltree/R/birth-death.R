@@ -19,17 +19,39 @@ myintegrator2 <- function (init, l, m, psi, times, rtol, atol) {
     out
 }
 
-mylik <- function (l, m, psi, phylo, survival = 0, unknown_states = FALSE,
-                   rtol = 1e-12, atol = 1e-12, freq, cutoff = 10 ^ 12,
-                   ntypes=2){
+#' Calculate the likelihood of a tree occurring according to a
+#' birth-death process.
+#'
+#' @param l Matrix of rates at which a type i individual gives birth
+#' to a type j individual
+#' @param m Vector of death rates for each type
+#' @param psi Vector of sampling rates for each type
+#' @param freq Expected probability of each type at the root of the
+#' tree
+#' @param phylo Phylo object with tree for which likelihood will be
+#' calculated
+#' @param survival Boolean indicator of whether likelihood is divided
+#' by likelihood of tree being observed
+#' @param unknown_states Boolean indicator of whether the type of the
+#' tree tips is unknown
+#' @param rtol Passed through to deSolve differential equation solver
+#' @param atol Passed through to deSolve differential equation solver
+#' @param cutoff Time in past from most recent tip beyond which
+#' sampling probability assumed zero
+#'
+#' @export
+calc_bdlik <- function (l, m, psi, freq, phylo, survival = FALSE,
+                        unknown_states = FALSE, rtol = 1e-12, atol = 1e-12,
+                        cutoff = 10 ^ 12){
     maxpar <- 100
     summary <- get_times2(phylo)
     out <- 10 ^ 1000
+    ntypes <- nrow(l)
 
     check <- any(c(min(l, m, psi, freq) < 0, max(l, m, psi) > maxpar,
                    max(freq) > 1, length(freq) != ntypes - 1, sum(freq) > 1,
                    length(m) != ntypes, length(psi) != ntypes,
-                   nrow(l) != ntypes, ncol(l) != ntypes))
+                   ncol(l) != ntypes))
     l <- as.numeric(l)
     if (! check || is.na(check)) {
         lik <- try(bdss_num_help(phylo, 1, l, m, psi, summary, unknown_states,
@@ -41,7 +63,7 @@ mylik <- function (l, m, psi, phylo, survival = 0, unknown_states = FALSE,
             lik2 <- lik[lik2inds]
             freq <- c(freq, 1 - sum(freq))
             out <- sum(lik2 * freq)
-            if (survival == 1) {
+            if (survival) {
                 out <- out / (1 - sum(lik1 * freq))
             }
             if (any(c(class(out) != "numeric", !is.finite(out)))) {

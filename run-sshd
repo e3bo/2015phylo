@@ -2,7 +2,7 @@
 
 set -e
 
-dtag="v2015.08.16"
+dtag="latest" #"v2015.08.16"
 topd=$(pwd)
 wkdir="${topd}/work-sshd"
 ddir="${topd}/data"
