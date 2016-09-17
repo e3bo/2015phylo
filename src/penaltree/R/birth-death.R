@@ -19,86 +19,35 @@ myintegrator2 <- function (init, l, m, psi, times, rtol, atol) {
     out
 }
 
-repnum_types <- function (l11, l12, l21, l22, death1, death2) {
-    L <- l11 - l22 - death1 + death2
-    c <- sqrt(L * L + 4 * l12 * l21)
-    f1 <- (c + L) / (c + L + 2 * l12)
-    R0 <- f1 * (l11 + l12) / death1 + (1 - f1) * (l22 + l21) / death2
-    R0
-}
-
-mylik <- function (par, phylo, fix = rbind(c(0, 0), c(0, 0)), sampfrac,
-    survival = 0, supercrit = 0, unknown_states = FALSE, rtol = 1e-12,
-    atol = 1e-12, freq = 0, cutoff = 10 ^ 12, ntypes=2){
-    prpar <- FALSE
+mylik <- function (l, m, psi, phylo, survival = 0, unknown_states = FALSE,
+                   rtol = 1e-12, atol = 1e-12, freq, cutoff = 10 ^ 12,
+                   ntypes=2){
     maxpar <- 100
-    partemp <- vector()
-    k <- 1
-    for (i in 1:8) {
-        index <- which(i == fix[1, ])
-        if (length(index) > 0) {
-            if (fix[2, index] >= 0) {
-                partemp <- c(partemp, fix[2, index])
-            }
-            else {
-                temp <- -fix[2, index]
-                if (temp == 0.4) {
-                  partemp <- c(partemp, partemp[3] * partemp[2] / partemp[1])
-                }
-                else {
-                  partemp <- c(partemp, partemp[temp] * fix[3, index])
-                }
-            }
-        }
-        else {
-            partemp <- c(partemp, par[k])
-            k <- k + 1
-        }
-    }
-    death <- partemp[5:6]
-    l <- partemp[1:4]
-    psi <- death * sampfrac
-    m <- death * (1 - sampfrac)
     summary <- get_times2(phylo)
+    out <- 10 ^ 1000
 
-    out <- 10 ^ 10
-    temp <- 1
-    R0temp <- try(repnum_types(l[1], l[2], l[3], l[4], death[1], death[2]))
-    if (supercrit == 1 && class(R0temp) == "numeric" && R0temp < 1) {
-        temp <- 0
-    }
-    if (supercrit == 1 && class(R0temp) == "try-error") {
-        temp <- 0
-    }
-    check <- any(c(length(which(partemp == "NaN")) > 0,  min(l, psi) < 0,
-                   m < 0, max(l, m, psi) > maxpar, temp == 0))
-    if (check) {
-        out <- 10 ^ 10
-    }
-    else {
+    check <- any(c(min(l, m, psi, freq) < 0, max(l, m, psi) > maxpar,
+                   max(freq) > 1, length(freq) != ntypes - 1, sum(freq) > 1,
+                   length(m) != ntypes, length(psi) != ntypes,
+                   nrow(l) != ntypes, ncol(l) != ntypes))
+    l <- as.numeric(l)
+    if (! check || is.na(check)) {
         lik <- try(bdss_num_help(phylo, 1, l, m, psi, summary, unknown_states,
                                  rtol, atol, cutoff))
         if (class(lik) != "try-error") {
-            lamb_mu <- l[1] - l[4] - (m[1] + psi[1]) + (m[2] + psi[2])
-            c <- sqrt(lamb_mu ^ 2 + 4 * l[2] * l[3])
-            f1 <- (c + lamb_mu) / (c + lamb_mu + 2 * l[2])
-            if (freq > 0) {
-                f1 <- freq
-            }
-            out <- (lik[3] * (f1) + lik[4] * (1 - f1))
+            lik1inds <- seq(1, ntypes)
+            lik1 <- lik[lik1inds]
+            lik2inds <- seq(ntypes + 1, 2 * ntypes)
+            lik2 <- lik[lik2inds]
+            freq <- c(freq, 1 - sum(freq))
+            out <- sum(lik2 * freq)
             if (survival == 1) {
-                out <- out / (1 - (f1 * lik[1] + (1 - f1) * lik[2]))
+                out <- out / (1 - sum(lik1 * freq))
             }
-            if (any(c(class(out) != "numeric", out == "NaN", out == "Inf"))) {
-                out <- 10 ^ 10
+            if (any(c(class(out) != "numeric", !is.finite(out)))) {
+                out <- 10 ^ 1000
             }
         }
-    }
-    if (out == 10 ^ 10) {
-        out <- 10 ^ 1000
-    }
-    if (prpar == TRUE) {
-        print(par)
     }
     -log(out)
 }

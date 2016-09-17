@@ -25,8 +25,10 @@ test_that("Birth-death likelihood is consistent with TreePar function", {
     par <- c(2, 2, 2, 2)
     fix <- rbind(c(1, 6, 7, 8), c(15, -5, 0, 0), c(1, 1, 1, 1))
     tplik <- TreePar::LikTypesSTT(par=par, phylo=tree, fix=fix, sampfrac=s,
-                                  survival=0, posR=0)
-    ptlik <- mylik(par=par, phylo=tree, fix=fix, sampfrac=s, survival=0,
-                   supercrit=0)
-    expect_equal(tplik, ptlik)
+                                  survival=0, freq=0.1, posR=0)
+    l <- rbind(c(15, 2), c(2, 2))
+    m <- c(2, 2) * 0.95
+    psi <- c(2, 2) * 0.05
+    ptlik <- mylik(l=l, m=m, psi=psi, freq=0.1, phylo=tree, survival=0)
+    expect_equal(unname(tplik), ptlik)
 })
