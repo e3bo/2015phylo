@@ -98,6 +98,7 @@ get_times2 <- function (tree) {
 
 bdss_num_help <- function (phylo, rootedge, l, m, psi, summary, unknown_states,
                            rtol, atol, cutoff) {
+    ntypes <- length(m)
     newroot <- phylo$edge[rootedge, 2]
     newtrees <- which(phylo$edge[, 1] == newroot)
     tyoung <- summary[phylo$edge[rootedge, 2]]
@@ -105,13 +106,14 @@ bdss_num_help <- function (phylo, rootedge, l, m, psi, summary, unknown_states,
     if (length(newtrees) == 0) {
         if (unknown_states == FALSE && phylo$states[newroot] > 0) {
             state <- phylo$states[newroot]
-            initpsi <- c(0, 0)
+            initpsi <- numeric(ntypes)
             initpsi[state] <- psi[state]
         }
         else {
-            initpsi <- c(psi[1], psi[2])
+            initpsi <- psi
         }
-        inity1 <- myintegrator2(c(1, 1), l, m, psi, c(0, tyoung), rtol, atol)
+        init <- rep_len(1, ntypes)
+        inity1 <- myintegrator2(init, l, m, psi, c(0, tyoung), rtol, atol)
         if (told < cutoff) {
             res <- myintegrator(init = c(inity1, initpsi), l, m, psi,
                                 c(tyoung, told), rtol, atol)
@@ -119,10 +121,7 @@ bdss_num_help <- function (phylo, rootedge, l, m, psi, summary, unknown_states,
         else {
             inity2 <- myintegrator(init = c(inity1, initpsi), l, m, psi,
                                    c(tyoung, cutoff), rtol, atol)
-            m[2] <- m[2] + psi[2]
-            psi[2] <- 0
-            m[1] <- m[1] + psi[1]
-            psi[1] <- 0
+            psi <- rep_len(0, ntypes)
             res <- myintegrator(init = inity2, l, m, psi, c(cutoff, told), rtol,
                                 atol)
         }
@@ -140,19 +139,13 @@ bdss_num_help <- function (phylo, rootedge, l, m, psi, summary, unknown_states,
         res2[2] <- res2[2] + likleft[4] * likright[3] * l[3] / 2
         init1 <- c(res1[1], res2[1], res1[2], res2[2])
         if (tyoung > cutoff) {
-            m[2] <- m[2] + psi[2]
-            psi[2] <- 0
-            m[1] <- m[1] + psi[1]
-            psi[1] <- 0
+            psi <- rep_len(0, ntypes)
         }
         if (tyoung < cutoff && told > cutoff) {
             init1 <- myintegrator(init = init1, l, m, psi, c(tyoung, cutoff),
                                   rtol, atol)
             tyoung <- cutoff
-            m[2] <- m[2] + psi[2]
-            psi[2] <- 0
-            m[1] <- m[1] + psi[1]
-            psi[1] <- 0
+            psi <- rep_len(0, ntypes)
         }
         res <- myintegrator(init = init1, l, m, psi, c(tyoung, told), rtol,
                             atol)
