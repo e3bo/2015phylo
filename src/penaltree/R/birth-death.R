@@ -48,6 +48,8 @@ calc_bdlik <- function (l, m, psi, freq, phylo, survival = FALSE,
                 out <- 10 ^ 1000
             }
         }
+    } else {
+        stop("Invalid parameters")
     }
     -log(out)
 }
@@ -114,7 +116,8 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
         gleft <- likleft[ginds]
         gright <- likright[ginds]
         pbirth <- likleft[pinds]
-        gbirth <- rowSums(outer(gleft, gright) * l + t(outer(gleft, gright)) * l) / 2
+        outer_prd <- outer(gleft, gright)
+        gbirth <- rowSums(outer_prd * l + t(outer_prd) * l) / 2
         init1 <- c(pbirth, gbirth)
         if (tyoung > cutoff) {
             psi <- rep_len(0, ntypes)
@@ -144,7 +147,7 @@ solve_lik <- function (init, l, m, psi, times, rtol, atol) {
         })
     }
     out <- deSolve::lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
-                 atol = atol)[2, 2:5]
+                          atol = atol)[2, -1]
     out
 }
 
@@ -156,6 +159,6 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
         })
     }
     p <- list(l, m, psi)
-    out <- deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, 2:3]
+    out <- deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, -1]
     out
 }
