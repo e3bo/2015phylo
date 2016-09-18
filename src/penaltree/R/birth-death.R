@@ -75,8 +75,8 @@ get_times <- function (tree) {
     out
 }
 
-get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary, unknown_states,
-                           rtol, atol, cutoff) {
+get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
+                             unknown_states, rtol, atol, cutoff) {
     ntypes <- length(m)
     newroot <- phylo$edge[rootedge, 2]
     newtrees <- which(phylo$edge[, 1] == newroot)
@@ -92,7 +92,7 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary, unknown_states
             initpsi <- psi
         }
         init <- rep_len(1, ntypes)
-        inity1 <- solve_lik2(init, l, m, psi, c(0, tyoung), rtol, atol)
+        inity1 <- solve_lik_unsampled(init, l, m, psi, c(0, tyoung), rtol, atol)
         if (told < cutoff) {
             res <- solve_lik(init = c(inity1, initpsi), l, m, psi,
                                 c(tyoung, told), rtol, atol)
@@ -159,23 +159,15 @@ solve_lik <- function (init, l, m, psi, times, rtol, atol) {
     out
 }
 
-solve_lik2 <- function (init, l, m, psi, times, rtol, atol) {
+solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
+    l <- matrix(l, ncol=length(m))
     ode <- function(times, y, p) {
-        lambda11 <- p[1]
-        lambda12 <- p[2]
-        lambda21 <- p[3]
-        lambda22 <- p[4]
-        mu1 <- p[5]
-        mu2 <- p[6]
-        psi1 <- p[7]
-        psi2 <- p[8]
-        yd1 <- sum(mu1 - (lambda11 + lambda12 + mu1 + psi1) * y[1],
-                   lambda11 * y[1] * y[1] + lambda12 * y[1] * y[2])
-        yd2 <- sum(mu2 - (lambda21 + lambda22 + mu2 + psi2) * y[2],
-                   lambda21 * y[1] * y[2] + lambda22 * y[2] * y[2])
-        list(c(yd1, yd2))
+        with(as.list(c(y, p)), {
+            dy <- - (rowSums(l) + m + psi) * y + (l * y) %*% y +  m
+            list(dy)
+        })
     }
-    p <- c(l, m, psi)
+    p <- list(l, m, psi)
     out <- lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, 2:3]
     out
 }

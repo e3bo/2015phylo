@@ -1,4 +1,4 @@
-set.seed(3)
+set.seed(1)
 
 context("birth-death process")
 
