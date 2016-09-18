@@ -33,7 +33,7 @@ calc_bdlik <- function (l, m, psi, freq, phylo, survival = FALSE,
                    ncol(l) != ntypes))
     if (! check || is.na(check)) {
         lik <- try(get_subtree_lik(phylo, 1, l, m, psi, summary, unknown_states,
-                                 rtol, atol, cutoff))
+                                   rtol, atol, cutoff))
         if (class(lik) != "try-error") {
             pinds <- seq(1, ntypes)
             p <- lik[pinds]
@@ -96,14 +96,14 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
         inity1 <- solve_lik_unsampled(init, l, m, psi, c(0, tyoung), rtol, atol)
         if (told < cutoff) {
             res <- solve_lik(init = c(inity1, initpsi), l, m, psi,
-                                c(tyoung, told), rtol, atol)
+                             c(tyoung, told), rtol, atol)
         }
         else {
             inity2 <- solve_lik(init = c(inity1, initpsi), l, m, psi,
-                                   c(tyoung, cutoff), rtol, atol)
+                                c(tyoung, cutoff), rtol, atol)
             psi <- rep_len(0, ntypes)
             res <- solve_lik(init = inity2, l, m, psi, c(cutoff, told), rtol,
-                                atol)
+                             atol)
         }
     }
     else {
@@ -124,12 +124,12 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
         }
         if (tyoung < cutoff && told > cutoff) {
             init1 <- solve_lik(init = init1, l, m, psi, c(tyoung, cutoff),
-                                  rtol, atol)
+                               rtol, atol)
             tyoung <- cutoff
             psi <- rep_len(0, ntypes)
         }
         res <- solve_lik(init = init1, l, m, psi, c(tyoung, told), rtol,
-                            atol)
+                         atol)
     }
     res
 }
