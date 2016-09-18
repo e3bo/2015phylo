@@ -31,7 +31,6 @@ calc_bdlik <- function (l, m, psi, freq, phylo, survival = FALSE,
                    max(freq) > 1, length(freq) != ntypes - 1, sum(freq) > 1,
                    length(m) != ntypes, length(psi) != ntypes,
                    ncol(l) != ntypes))
-    l <- as.numeric(l)
     if (! check || is.na(check)) {
         lik <- try(get_subtree_lik(phylo, 1, l, m, psi, summary, unknown_states,
                                  rtol, atol, cutoff))
@@ -133,26 +132,16 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
 }
 
 solve_lik <- function (init, l, m, psi, times, rtol, atol) {
+    pinds <- seq_along(m)
+    ginds <- pinds + length(pinds)
     ode <- function(times, y, p) {
-        lambda11 <- p[1]
-        lambda12 <- p[2]
-        lambda21 <- p[3]
-        lambda22 <- p[4]
-        mu1 <- p[5]
-        mu2 <- p[6]
-        psi1 <- p[7]
-        psi2 <- p[8]
-        yd1 <- mu1 - (lambda11 + lambda12 + mu1 + psi1) * y[1]
-        yd1 <- yd1 + lambda11 * y[1] * y[1] + lambda12 * y[1] * y[2]
-        yd2 <- mu2 - (lambda21 + lambda22 + mu2 + psi2) * y[2]
-        yd2 <- yd2 + lambda21 * y[1] * y[2] + lambda22 * y[2] * y[2]
-        yd3 <- - (lambda11 + lambda12 + mu1 + psi1) * y[3]
-        yd3 <- yd3 + 2 * lambda11 * y[1] * y[3] + lambda12 * y[1] * y[4]
-        yd3 <- yd3 + lambda12 * y[2] * y[3]
-        yd4 <- - (lambda22 + lambda21 + mu2 + psi2) * y[4]
-        yd4 <- yd4 + 2 * lambda22 * y[2] * y[4] + lambda21 * y[2] * y[3]
-        yd4 <- yd4 + lambda21 * y[1] * y[4]
-        list(c(yd1, yd2, yd3, yd4))
+        with(as.list(c(y, p)), {
+            p <- y[pinds]
+            g <- y[ginds]
+            dp <- - (rowSums(l) + m + psi) * p + (l * p) %*% p +  m
+            dg <- - (rowSums(l) + m + psi) * g + (l * p) %*% g + (l * g) %*% p
+            list(c(dp, dg))
+        })
     }
     out <- lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
                  atol = atol)[2, 2:5]
@@ -160,7 +149,6 @@ solve_lik <- function (init, l, m, psi, times, rtol, atol) {
 }
 
 solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
-    l <- matrix(l, ncol=length(m))
     ode <- function(times, y, p) {
         with(as.list(c(y, p)), {
             dy <- - (rowSums(l) + m + psi) * y + (l * y) %*% y +  m
