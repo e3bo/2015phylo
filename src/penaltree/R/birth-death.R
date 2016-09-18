@@ -1,24 +1,3 @@
-myintegrator2 <- function (init, l, m, psi, times, rtol, atol) {
-    ode <- function(times, y, p) {
-        lambda11 <- p[1]
-        lambda12 <- p[2]
-        lambda21 <- p[3]
-        lambda22 <- p[4]
-        mu1 <- p[5]
-        mu2 <- p[6]
-        psi1 <- p[7]
-        psi2 <- p[8]
-        yd1 <- sum(mu1 - (lambda11 + lambda12 + mu1 + psi1) * y[1],
-                   lambda11 * y[1] * y[1] + lambda12 * y[1] * y[2])
-        yd2 <- sum(mu2 - (lambda21 + lambda22 + mu2 + psi2) * y[2],
-                   lambda21 * y[1] * y[2] + lambda22 * y[2] * y[2])
-        list(c(yd1, yd2))
-    }
-    p <- c(l, m, psi)
-    out <- lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, 2:3]
-    out
-}
-
 #' Calculate the likelihood of a tree occurring according to a
 #' birth-death process.
 #'
@@ -44,7 +23,7 @@ calc_bdlik <- function (l, m, psi, freq, phylo, survival = FALSE,
                         unknown_states = FALSE, rtol = 1e-12, atol = 1e-12,
                         cutoff = 10 ^ 12){
     maxpar <- 100
-    summary <- get_times2(phylo)
+    summary <- get_times(phylo)
     out <- 10 ^ 1000
     ntypes <- nrow(l)
 
@@ -54,7 +33,7 @@ calc_bdlik <- function (l, m, psi, freq, phylo, survival = FALSE,
                    ncol(l) != ntypes))
     l <- as.numeric(l)
     if (! check || is.na(check)) {
-        lik <- try(bdss_num_help(phylo, 1, l, m, psi, summary, unknown_states,
+        lik <- try(get_subtree_lik(phylo, 1, l, m, psi, summary, unknown_states,
                                  rtol, atol, cutoff))
         if (class(lik) != "try-error") {
             lik1inds <- seq(1, ntypes)
@@ -74,7 +53,7 @@ calc_bdlik <- function (l, m, psi, freq, phylo, survival = FALSE,
     -log(out)
 }
 
-get_times2 <- function (tree) {
+get_times <- function (tree) {
     nodes <- sort(unique(c(tree$edge)))
     ttype <- (1:length(nodes)) * 0
     times <- ttype
@@ -96,7 +75,7 @@ get_times2 <- function (tree) {
     out
 }
 
-bdss_num_help <- function (phylo, rootedge, l, m, psi, summary, unknown_states,
+get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary, unknown_states,
                            rtol, atol, cutoff) {
     ntypes <- length(m)
     newroot <- phylo$edge[rootedge, 2]
@@ -113,23 +92,23 @@ bdss_num_help <- function (phylo, rootedge, l, m, psi, summary, unknown_states,
             initpsi <- psi
         }
         init <- rep_len(1, ntypes)
-        inity1 <- myintegrator2(init, l, m, psi, c(0, tyoung), rtol, atol)
+        inity1 <- solve_lik2(init, l, m, psi, c(0, tyoung), rtol, atol)
         if (told < cutoff) {
-            res <- myintegrator(init = c(inity1, initpsi), l, m, psi,
+            res <- solve_lik(init = c(inity1, initpsi), l, m, psi,
                                 c(tyoung, told), rtol, atol)
         }
         else {
-            inity2 <- myintegrator(init = c(inity1, initpsi), l, m, psi,
+            inity2 <- solve_lik(init = c(inity1, initpsi), l, m, psi,
                                    c(tyoung, cutoff), rtol, atol)
             psi <- rep_len(0, ntypes)
-            res <- myintegrator(init = inity2, l, m, psi, c(cutoff, told), rtol,
+            res <- solve_lik(init = inity2, l, m, psi, c(cutoff, told), rtol,
                                 atol)
         }
     }
     else {
-        likleft <- bdss_num_help(phylo, newtrees[1], l, m, psi, summary,
+        likleft <- get_subtree_lik(phylo, newtrees[1], l, m, psi, summary,
                                  unknown_states, rtol, atol, cutoff)
-        likright <- bdss_num_help(phylo, newtrees[2], l, m, psi, summary,
+        likright <- get_subtree_lik(phylo, newtrees[2], l, m, psi, summary,
                                   unknown_states, rtol, atol, cutoff)
         res1 <- c(likleft[1], likleft[3] * likright[3] * l[1])
         res1[2] <- res1[2] + likleft[3] * likright[4] * l[2] / 2
@@ -142,18 +121,18 @@ bdss_num_help <- function (phylo, rootedge, l, m, psi, summary, unknown_states,
             psi <- rep_len(0, ntypes)
         }
         if (tyoung < cutoff && told > cutoff) {
-            init1 <- myintegrator(init = init1, l, m, psi, c(tyoung, cutoff),
+            init1 <- solve_lik(init = init1, l, m, psi, c(tyoung, cutoff),
                                   rtol, atol)
             tyoung <- cutoff
             psi <- rep_len(0, ntypes)
         }
-        res <- myintegrator(init = init1, l, m, psi, c(tyoung, told), rtol,
+        res <- solve_lik(init = init1, l, m, psi, c(tyoung, told), rtol,
                             atol)
     }
     res
 }
 
-myintegrator <- function (init, l, m, psi, times, rtol, atol) {
+solve_lik <- function (init, l, m, psi, times, rtol, atol) {
     ode <- function(times, y, p) {
         lambda11 <- p[1]
         lambda12 <- p[2]
@@ -177,5 +156,26 @@ myintegrator <- function (init, l, m, psi, times, rtol, atol) {
     }
     out <- lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
                  atol = atol)[2, 2:5]
+    out
+}
+
+solve_lik2 <- function (init, l, m, psi, times, rtol, atol) {
+    ode <- function(times, y, p) {
+        lambda11 <- p[1]
+        lambda12 <- p[2]
+        lambda21 <- p[3]
+        lambda22 <- p[4]
+        mu1 <- p[5]
+        mu2 <- p[6]
+        psi1 <- p[7]
+        psi2 <- p[8]
+        yd1 <- sum(mu1 - (lambda11 + lambda12 + mu1 + psi1) * y[1],
+                   lambda11 * y[1] * y[1] + lambda12 * y[1] * y[2])
+        yd2 <- sum(mu2 - (lambda21 + lambda22 + mu2 + psi2) * y[2],
+                   lambda21 * y[1] * y[2] + lambda22 * y[2] * y[2])
+        list(c(yd1, yd2))
+    }
+    p <- c(l, m, psi)
+    out <- lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, 2:3]
     out
 }
