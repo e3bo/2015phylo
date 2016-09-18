@@ -35,14 +35,14 @@ calc_bdlik <- function (l, m, psi, freq, phylo, survival = FALSE,
         lik <- try(get_subtree_lik(phylo, 1, l, m, psi, summary, unknown_states,
                                  rtol, atol, cutoff))
         if (class(lik) != "try-error") {
-            lik1inds <- seq(1, ntypes)
-            lik1 <- lik[lik1inds]
-            lik2inds <- seq(ntypes + 1, 2 * ntypes)
-            lik2 <- lik[lik2inds]
+            pinds <- seq(1, ntypes)
+            p <- lik[pinds]
+            ginds <- seq(ntypes + 1, 2 * ntypes)
+            g <- lik[ginds]
             freq <- c(freq, 1 - sum(freq))
-            out <- sum(lik2 * freq)
+            out <- sum(g * freq)
             if (survival) {
-                out <- out / (1 - sum(lik1 * freq))
+                out <- out / (1 - sum(p * freq))
             }
             if (any(c(class(out) != "numeric", !is.finite(out)))) {
                 out <- 10 ^ 1000
@@ -106,16 +106,16 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
     }
     else {
         likleft <- get_subtree_lik(phylo, newtrees[1], l, m, psi, summary,
-                                 unknown_states, rtol, atol, cutoff)
+                                   unknown_states, rtol, atol, cutoff)
         likright <- get_subtree_lik(phylo, newtrees[2], l, m, psi, summary,
-                                  unknown_states, rtol, atol, cutoff)
-        res1 <- c(likleft[1], likleft[3] * likright[3] * l[1])
-        res1[2] <- res1[2] + likleft[3] * likright[4] * l[2] / 2
-        res1[2] <- res1[2] + likleft[4] * likright[3] * l[2] / 2
-        res2 <- c(likleft[2], likleft[4] * likright[4] * l[4])
-        res2[2] <- res2[2] + likleft[3] * likright[4] * l[3] / 2
-        res2[2] <- res2[2] + likleft[4] * likright[3] * l[3] / 2
-        init1 <- c(res1[1], res2[1], res1[2], res2[2])
+                                    unknown_states, rtol, atol, cutoff)
+        pinds <- seq_along(m)
+        ginds <- pinds + length(pinds)
+        gleft <- likleft[ginds]
+        gright <- likright[ginds]
+        pbirth <- likleft[pinds]
+        gbirth <- rowSums(outer(gleft, gright) * l + t(outer(gleft, gright)) * l) / 2
+        init1 <- c(pbirth, gbirth)
         if (tyoung > cutoff) {
             psi <- rep_len(0, ntypes)
         }
@@ -143,7 +143,7 @@ solve_lik <- function (init, l, m, psi, times, rtol, atol) {
             list(c(dp, dg))
         })
     }
-    out <- lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
+    out <- deSolve::lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
                  atol = atol)[2, 2:5]
     out
 }
@@ -156,6 +156,6 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
         })
     }
     p <- list(l, m, psi)
-    out <- lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, 2:3]
+    out <- deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, 2:3]
     out
 }
