@@ -101,6 +101,7 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
         else {
             inity2 <- solve_lik(init = c(inity1, initpsi), l, m, psi,
                                 c(tyoung, cutoff), rtol, atol)
+            m <- m + psi
             psi <- rep_len(0, ntypes)
             res <- solve_lik(init = inity2, l, m, psi, c(cutoff, told), rtol,
                              atol)
@@ -120,12 +121,13 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
         gbirth <- rowSums(outer_prd * l + t(outer_prd) * l) / 2
         init1 <- c(pbirth, gbirth)
         if (tyoung > cutoff) {
+            m <- m + psi
             psi <- rep_len(0, ntypes)
-        }
-        if (tyoung < cutoff && told > cutoff) {
+        } else if (told > cutoff) {
             init1 <- solve_lik(init = init1, l, m, psi, c(tyoung, cutoff),
                                rtol, atol)
             tyoung <- cutoff
+            m <- m + psi
             psi <- rep_len(0, ntypes)
         }
         res <- solve_lik(init = init1, l, m, psi, c(tyoung, told), rtol,
