@@ -4,8 +4,8 @@
 #' @param l Matrix of rates at which a type i individual gives birth
 #' to a type j individual
 #' @param m Vector of death rates for each type
-#' @param psi Vector of sampling probability for each type. Sampling
-#' occurs at time of death with this probability
+#' @param psi Vector of death rates for each type where sampling
+#' occurs at time of death. The probability of sampling at death is psi / (psi + m)
 #' @param freq Expected probability of each type at the root of the
 #' tree
 #' @param phylo Phylo object with tree for which likelihood will be
@@ -166,30 +166,8 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
     out
 }
 
-sim_bd_process <- function (n, lambdavector, deathvector, sampprobvector, init = -1, 
-    EI = FALSE, eliminate = 0) 
-{
-    muvector <- deathvector * (1 - sampprobvector)
-    psivector <- deathvector * sampprobvector
-    extincttree = 1
-    if ((init == -1) && (length(deathvector) == 2)) {
-        init <- 2
-        lamb <- lambdavector[1, 1] - lambdavector[2, 2] - deathvector[1] + 
-            deathvector[2]
-        c <- sqrt(lamb^2 + 4 * lambdavector[1, 2] * lambdavector[2, 
-            1])
-        f1 <- (c + lamb)/(c + lamb + 2 * lambdavector[1, 2])
-        r <- runif(1, 0, 1)
-        if (r < f1) {
-            init <- 1
-        }
-    }
-    if ((init == -1) && (length(deathvector) != 2)) {
-        init <- sample(1:length(deathvector), 1)
-    }
-    if (EI == TRUE) {
-        init <- 1
-    }
+sim_bd_process <- function (n, l, m, p, init = 1){
+    extincttree <- 1
     while (extincttree == 1) {
         edge <- c(-1, -2)
         leaves <- c(-2)
@@ -201,80 +179,55 @@ sim_bd_process <- function (n, lambdavector, deathvector, sampprobvector, init =
         time <- 0
         maxspecies <- -2
         edge.length <- c(0)
-        extincttree = 0
-        stop = 0
+        extincttree <- 0
+        stop <- 0
         while (stop == 0) {
             if (length(leaves) == 0) {
-                phy2 = 0
-                extincttree = 1
+                phy2 <- 0
+                extincttree <- 1
                 print("extinct tree")
-                stop = 1
+                stop <- 1
             }
             else {
                 sumrates <- vector()
-                for (i in 1:length(lambdavector[, 1])) {
-                  sumrates <- c(sumrates, (length(which(types == 
-                    i)) * (sum(lambdavector[i, ]) + muvector[i] + 
-                    psivector[i])))
-                }
+                for (i in 1:length(l[, 1])) {
+
+                  sumrates <- c(sumrates, sum(types == i) * (sum(l[i, ]) + m[i] + p[i]))
+              }
                 timestep <- rexp(1, sum(sumrates))
-                time = time + timestep
+                time <- time + timestep
                 r <- runif(1, 0, sum(sumrates))
-                chosentype <- min(which(cumsum(sumrates) > r))
-                species <- sample(leaves[which(types == chosentype)], 
-                  1)
-                lambda <- sum(lambdavector[chosentype, ])
-                gamma <- 0
-                if (EI == TRUE) {
-                  if (chosentype == 1) {
-                    gamma <- lambda
-                    lambda <- 0
-                  }
-                }
-                mu <- muvector[chosentype]
-                psi <- psivector[chosentype]
+                chosentype <- match(TRUE, cumsum(sumrates) > r, nomatch=types[length(types)])
+                species <- sample(leaves[types == chosentype], 1)
+                lambda <- sum(l[chosentype, ])
+                mu <- m[chosentype]
+                psi <- p[chosentype]
                 del <- which(leaves == species)
                 specevent <- runif(1, 0, 1)
                 edgespecevent <- which(edge == species) - length(edge.length)
-                if ((lambda/(lambda + gamma + mu + psi)) > specevent) {
+                if ( lambda / (lambda + mu + psi) > specevent) {
                   edge.length[edgespecevent] <- time - timecreation[-species]
-                  edge <- rbind(edge, c(species, maxspecies - 
-                    1))
-                  edge <- rbind(edge, c(species, maxspecies - 
-                    2))
+                  edge <- rbind(edge, c(species, maxspecies - 1))
+                  edge <- rbind(edge, c(species, maxspecies - 2))
                   edge.length <- c(edge.length, 0, 0)
                   r <- runif(1, 0, lambda)
-                  newtype <- min(which(cumsum(lambdavector[chosentype, 
-                    ]) > r))
-                  leaves <- c(leaves, maxspecies - 1, maxspecies - 
-                    2)
+                  newtype <- match(TRUE, cumsum(l[chosentype, ]) > r, nomatch=ncol(l))
+                  leaves <- c(leaves, maxspecies - 1, maxspecies - 2)
                   types <- c(types, chosentype, newtype)
                   maxspecies <- maxspecies - 2
                   leaves <- leaves[-del]
                   types <- types[-del]
                   timecreation <- c(timecreation, time, time)
-                }
-                else if (((lambda + gamma)/(lambda + gamma + 
-                  mu + psi)) > specevent) {
-                  types[del] <- 2
-                }
-                else if (((lambda + gamma + psi)/(lambda + gamma + 
-                  mu + psi)) > specevent) {
+                } else if ((lambda + psi) / (lambda + mu + psi) > specevent) {
                   sampled <- c(sampled, leaves[del])
-                  if (EI == TRUE && length(typessampled) < eliminate) {
-                    typessampled <- c(typessampled, 1)
-                  }
-                  else {
-                    typessampled <- c(typessampled, chosentype)
-                  }
+                  typessampled <- c(typessampled, chosentype)
                   leaves <- leaves[-del]
                   types <- types[-del]
                   edge.length[edgespecevent] <- time - timecreation[-species]
                   if (length(sampled) == n) {
-                    stop = 1
+                    stop <- 1
                   }
-                }
-                else {
+                } else {
                   extinct <- c(extinct, leaves[del])
                   leaves <- leaves[-del]
                   types <- types[-del]
