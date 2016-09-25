@@ -66,3 +66,24 @@ test_that("Birth-death likelihood runs with >2 types", {
                         phylo=tree, survival=FALSE)
     expect_equal(40.4926005495144, ptlik)
 })
+
+test_that("Score function has mean zero at the true parameter value", {
+
+    set.seed(1)
+    l <- rbind(c(15, 3), c(1, 3))
+    m <- c(1, 1)
+    psi <- c(0.2, 0.2)
+    trees <- replicate(5, sim_bd_proc(n=20, l=l, m=m, psi=psi, init=1), simplify=FALSE)
+    tmpf <- function(x) TreePar::addroot(x, x$root.edge)
+    trees <- lapply(trees, tmpf)
+
+    likwrap <- function(x, phylo){
+        l[1,1] <- x
+        calc_bdlik(l=l, m=m, psi=psi, freq=c(1), phylo=phylo, survival=FALSE)
+    }
+    get_score <- function(phylo){
+        grad(likwrap, x=l[1,1], phylo=phylo)
+    }
+    scores <- sapply(trees, get_score)
+
+})
