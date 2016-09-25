@@ -166,133 +166,19 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
     out
 }
 
-sim_bd_process <- function (n, l, m, p, init = 1){
-    extincttree <- 1
-    while (extincttree == 1) {
-        edge <- c(-1, -2)
-        leaves <- c(-2)
-        types <- c(init)
-        sampled <- vector()
-        typessampled <- vector()
-        timecreation <- c(0, 0)
-        extinct <- vector()
-        time <- 0
-        maxspecies <- -2
-        edge.length <- c(0)
-        extincttree <- 0
-        stop <- 0
-        while (stop == 0) {
-            if (length(leaves) == 0) {
-                phy2 <- 0
-                extincttree <- 1
-                print("extinct tree")
-                stop <- 1
-            }
-            else {
-                sumrates <- vector()
-                for (i in 1:length(l[, 1])) {
-
-                  sumrates <- c(sumrates, sum(types == i) * (sum(l[i, ]) + m[i] + p[i]))
-              }
-                timestep <- rexp(1, sum(sumrates))
-                time <- time + timestep
-                r <- runif(1, 0, sum(sumrates))
-                chosentype <- match(TRUE, cumsum(sumrates) > r, nomatch=types[length(types)])
-                species <- sample(leaves[types == chosentype], 1)
-                lambda <- sum(l[chosentype, ])
-                mu <- m[chosentype]
-                psi <- p[chosentype]
-                del <- which(leaves == species)
-                specevent <- runif(1, 0, 1)
-                edgespecevent <- which(edge == species) - length(edge.length)
-                if ( lambda / (lambda + mu + psi) > specevent) {
-                  edge.length[edgespecevent] <- time - timecreation[-species]
-                  edge <- rbind(edge, c(species, maxspecies - 1))
-                  edge <- rbind(edge, c(species, maxspecies - 2))
-                  edge.length <- c(edge.length, 0, 0)
-                  r <- runif(1, 0, lambda)
-                  newtype <- match(TRUE, cumsum(l[chosentype, ]) > r, nomatch=ncol(l))
-                  leaves <- c(leaves, maxspecies - 1, maxspecies - 2)
-                  types <- c(types, chosentype, newtype)
-                  maxspecies <- maxspecies - 2
-                  leaves <- leaves[-del]
-                  types <- types[-del]
-                  timecreation <- c(timecreation, time, time)
-                } else if ((lambda + psi) / (lambda + mu + psi) > specevent) {
-                  sampled <- c(sampled, leaves[del])
-                  typessampled <- c(typessampled, chosentype)
-                  leaves <- leaves[-del]
-                  types <- types[-del]
-                  edge.length[edgespecevent] <- time - timecreation[-species]
-                  if (length(sampled) == n) {
-                    stop <- 1
-                  }
-                } else {
-                  extinct <- c(extinct, leaves[del])
-                  leaves <- leaves[-del]
-                  types <- types[-del]
-                  edge.length[edgespecevent] <- time - timecreation[-species]
-                }
-            }
-        }
+sim_bd_process <- function (n, l, m, psi, init = 1){
+    maxpar <- 100
+    ntypes <- nrow(l)
+    check <- any(c(min(l, m, psi) < 0, max(l, m, psi) > maxpar,
+                   length(m) != ntypes, length(psi) != ntypes,
+                   ncol(l) != ntypes, init < 1))
+    if (!check && !is.na(check)){
+        lambdavector <- l
+        deathvector <- psi + m
+        sampprobvector <- psi / (psi + m)
+        TreeSim::sim.bdtypes.stt.taxa(n, lambdavector, deathvector,
+                                      sampprobvector, init=init)
+    } else {
+        stop("Invalid arguments")
     }
-    while (length(leaves) > 0) {
-        del <- 1
-        extinct <- c(extinct, leaves[del])
-        k = which(edge == leaves[del]) - length(edge.length)
-        edge.length[k] <- time - timecreation[-leaves[del]]
-        leaves <- leaves[-del]
-    }
-    for (j in 1:length(extinct)) {
-        del <- which(edge == extinct[j]) - length(edge.length)
-        surpress <- edge[del, 1]
-        edge.length <- edge.length[-del]
-        edge <- edge[-del, ]
-        del2 <- which(edge[, 1] == surpress)
-        modify <- which(edge[, 2] == surpress)
-        edge[modify, 2] <- edge[del2, 2]
-        edge.length[modify] <- edge.length[modify] + edge.length[del2]
-        edge.length <- edge.length[-del2]
-        edge <- edge[-del2, ]
-    }
-    leaf = 1
-    interior = length(sampled) + 1
-    edgetemp <- edge
-    typessampledNew <- vector()
-    temp <- unique(c(edge))
-    temp <- sort(temp, decreasing = TRUE)
-    for (j in temp) {
-        if (sum(match(sampled, j, 0)) == 0 || j == -1) {
-            posvalue <- interior
-            interior <- interior + 1
-        }
-        else {
-            typessampledNew <- c(typessampledNew, typessampled[which(sampled == 
-                j)])
-            posvalue <- leaf
-            leaf <- leaf + 1
-        }
-        replacel <- which(edge == j)
-        if (length(replacel) > 0) {
-            for (k in 1:length(replacel)) {
-                if ((replacel[k] - 1) < length(edge.length)) {
-                  edge[replacel[k], 1] <- posvalue
-                }
-                else {
-                  edge[(replacel[k] - length(edge.length)), 2] <- posvalue
-                }
-            }
-        }
-    }
-    phy <- list(edge = edge)
-    phy$tip.label <- paste("t", sample(length(sampled)), sep = "")
-    phy$edge.length <- edge.length
-    phy$Nnode <- length(sampled)
-    phy$states <- typessampledNew
-    class(phy) <- "phylo"
-    br <- sort(getx(phy, sersampling = 1), decreasing = TRUE)
-    phy$root.edge <- br[1] - br[2]
-    phy <- collapse.singles(phy)
-    phy2 <- phy
-    phy2
 }
