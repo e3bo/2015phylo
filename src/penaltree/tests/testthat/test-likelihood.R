@@ -71,19 +71,28 @@ test_that("Score function has mean zero at the true parameter value", {
 
     set.seed(1)
     l <- rbind(c(15, 3), c(1, 3))
-    m <- c(1, 1)
-    psi <- c(0.2, 0.2)
-    trees <- replicate(5, sim_bd_proc(n=20, l=l, m=m, psi=psi, init=1), simplify=FALSE)
+    m <- c(1, 1) / 2
+    psi <- c(1, 1) / 2
+    trees <- replicate(40, sim_bd_proc(n=40, l=l, m=m, psi=psi, init=1), simplify=FALSE)
     tmpf <- function(x) TreePar::addroot(x, x$root.edge)
     trees <- lapply(trees, tmpf)
 
     likwrap <- function(x, phylo){
-        l[1,1] <- x
+        l[1,1] <- x[1]
+        l[2,1] <- x[2]
+        l[1,2] <- x[3]
+        l[2,2] <- x[4]
+        m[1] <- x[5]
+        m[2] <- x[6]
+        psi[1] <- x[7]
+        psi[2] <- x[8]
         calc_bdlik(l=l, m=m, psi=psi, freq=c(1), phylo=phylo, survival=FALSE)
     }
     get_score <- function(phylo){
-        grad(likwrap, x=l[1,1], phylo=phylo)
+        grad(likwrap, x=c(as.numeric(l), m, psi), phylo=phylo)
     }
-    scores <- sapply(trees, get_score)
+    system.time(scores <- sapply(trees, get_score))
+    htests <- apply(scores, 1, t.test)
+    ps <- sapply(htests, "[[", "p.value")
 
 })
