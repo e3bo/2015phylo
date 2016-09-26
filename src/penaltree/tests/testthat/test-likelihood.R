@@ -76,14 +76,15 @@ test_that("Score function has mean zero at the true parameter value", {
     l <- rbind(c(15, 3), c(1, 3))
     m <- c(1, 1) / 2
     psi <- c(1, 1) / 2
-    trees <- replicate(40, sim_bd_proc(n=40, l=l, m=m, psi=psi, init=1), simplify=FALSE)
+    trees <- replicate(40, sim_bd_proc(n=40, l=l, m=m, psi=psi, init=1),
+                       simplify=FALSE)
     tmpf <- function(x) TreePar::addroot(x, x$root.edge)
     trees <- lapply(trees, tmpf)
     likwrap <- function(x, phylo){
-        l[1,1] <- x[1]
-        l[2,1] <- x[2]
-        l[1,2] <- x[3]
-        l[2,2] <- x[4]
+        l[1, 1] <- x[1]
+        l[2, 1] <- x[2]
+        l[1, 2] <- x[3]
+        l[2, 2] <- x[4]
         m[1] <- x[5]
         m[2] <- x[6]
         psi[1] <- x[7]

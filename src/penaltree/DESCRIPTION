@@ -12,6 +12,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Suggests:
+    numDeriv (>= 2016.8.1),
     testthat (>= 1.0.2),
     TreeSim (>= 2.2)
 RoxygenNote: 5.0.1
