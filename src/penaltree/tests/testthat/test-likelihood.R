@@ -68,7 +68,10 @@ test_that("Birth-death likelihood runs with >2 types", {
 })
 
 test_that("Score function has mean zero at the true parameter value", {
-
+    skip_if_not_installed("TreeSim")
+    skip_if_not_installed("TreePar")
+    skip_if_not_installed("numDeriv")
+    skip_on_cran()
     set.seed(1)
     l <- rbind(c(15, 3), c(1, 3))
     m <- c(1, 1) / 2
@@ -76,7 +79,6 @@ test_that("Score function has mean zero at the true parameter value", {
     trees <- replicate(40, sim_bd_proc(n=40, l=l, m=m, psi=psi, init=1), simplify=FALSE)
     tmpf <- function(x) TreePar::addroot(x, x$root.edge)
     trees <- lapply(trees, tmpf)
-
     likwrap <- function(x, phylo){
         l[1,1] <- x[1]
         l[2,1] <- x[2]
@@ -89,10 +91,10 @@ test_that("Score function has mean zero at the true parameter value", {
         calc_bdlik(l=l, m=m, psi=psi, freq=c(1), phylo=phylo, survival=FALSE)
     }
     get_score <- function(phylo){
-        grad(likwrap, x=c(as.numeric(l), m, psi), phylo=phylo)
+        numDeriv::grad(likwrap, x=c(as.numeric(l), m, psi), phylo=phylo)
     }
-    system.time(scores <- sapply(trees, get_score))
-    htests <- apply(scores, 1, t.test)
+    scores <- sapply(trees, get_score)
+    htests <- apply(scores, 1, stats::t.test)
     ps <- sapply(htests, "[[", "p.value")
-
+    expect_true(all(stats::p.adjust(ps) > 0.05))
 })

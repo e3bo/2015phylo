@@ -167,6 +167,11 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
 }
 
 sim_bd_proc <- function (n, l, m, psi, init = 1){
+    if (!requireNamespace("TreeSim", quietly = TRUE)) {
+        stop(paste("The TreeSim package is needed for this function to work.",
+                   "Please install it."),
+             call. = FALSE)
+    }
     maxpar <- 100
     ntypes <- nrow(l)
     check <- any(c(min(l, m, psi) < 0, max(l, m, psi) > maxpar,
