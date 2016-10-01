@@ -1,5 +1,5 @@
 
-get_gpnet <- function(x, y, calc_convex_obj, get_scale, calcalpha=1, nlambda=100,
+get_gpnet <- function(x, y, calc_convex_nll, param_map, calcalpha=1, nlambda=100,
                       lambda.min.ratio=0.01, lambda=NULL, standardize=TRUE,
                       intercept=TRUE, thresh=1e-4, dfmax=nvars + 1,
                       pmax=min(dfmax*2 + 20,nvars), exclude,
@@ -78,7 +78,7 @@ get_gpnet <- function(x, y, calc_convex_obj, get_scale, calcalpha=1, nlambda=100
         ulam <- as.double(rev(sort(lambda)))
         nlam <- as.integer(length(lambda))
     }
-    fit <- gpnet(x, y, calc_convex_obj, get_scale, alpha, nobs, nvars, jd, vp,
+    fit <- gpnet(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                  cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
                  maxit)
     fit$call <- this.call
@@ -87,7 +87,7 @@ get_gpnet <- function(x, y, calc_convex_obj, get_scale, calcalpha=1, nlambda=100
     fit
 }
 
-gpnet <- function(x, y, calc_convex_obj, get_scale, alpha, nobs, nvars, jd, vp,
+gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                   cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
                   maxit, a=0.1, r=0.01, relStart=0.1, mubar=1, beta=0.9,
                   verbose=FALSE, debug=TRUE, initFactor=10){
@@ -98,9 +98,9 @@ gpnet <- function(x, y, calc_convex_obj, get_scale, alpha, nobs, nvars, jd, vp,
     parInds <- seq(dim)
     I <- diag(nrow=dim)
     nll <- function(w){
-        -calc_convex_loglik(w=w, x=x, y=y)
+        calc_convex_nll(w=w, x=x, y=y, xw2pars=param_map$xw2pars)
     }
-    scaleEst <- get_scale(y)
+    scaleEst <- param_map$get_scale(y)
     par <- c(scaleEst, rep(0, nvars))
     gnll <- numDeriv::grad(nll, x=par, method='simple')
     mu <- mubar

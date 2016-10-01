@@ -28,7 +28,7 @@ test_that("Birth-death likelihood is consistent with TreePar function", {
     l <- rbind(c(15, 2), c(2, 2))
     m <- c(2, 2) * 0.95
     psi <- c(2, 2) * 0.05
-    ptlik <- calc_bdlik(l=l, m=m, psi=psi, freq=0.1, phylo=tree, survival=FALSE)
+    ptlik <- calc_bd_nll(l=l, m=m, psi=psi, freq=0.1, phylo=tree, survival=FALSE)
     expect_equal(unname(tplik), ptlik)
 })
 
@@ -54,7 +54,7 @@ test_that("Birth-death likelihood runs with >2 types", {
     l <- rbind(c(15, 2, 1), c(2, 2, 1), rep(1, 3))
     m <- c(2, 2, 2) * 0.95
     psi <- c(2, 2, 2) * 0.05
-    ptlik <- calc_bdlik(l=l, m=m, psi=psi, freq=c(0.9, 0.1), phylo=tree,
+    ptlik <- calc_bd_nll(l=l, m=m, psi=psi, freq=c(0.9, 0.1), phylo=tree,
                         survival=FALSE)
     expect_equal(-36.2374678051509, ptlik)
 
@@ -62,7 +62,7 @@ test_that("Birth-death likelihood runs with >2 types", {
     l <- matrix(2, ncol=ntypes, nrow=ntypes)
     m <- rep(1, ntypes)
     psi <- rep(0.05, ntypes)
-    ptlik <- calc_bdlik(l=l, m=m, psi=psi, freq=rep(1/ntypes, ntypes - 1),
+    ptlik <- calc_bd_nll(l=l, m=m, psi=psi, freq=rep(1/ntypes, ntypes - 1),
                         phylo=tree, survival=FALSE)
     expect_equal(40.4926005495144, ptlik)
 })
@@ -71,13 +71,14 @@ test_that("Score function has mean zero at the true parameter value", {
     skip_if_not_installed("TreeSim")
     skip_if_not_installed("TreePar")
     skip_if_not_installed("numDeriv")
+    skip_if_not_installed("fizzlipuzzli")
     skip_on_cran()
     set.seed(1)
     l <- rbind(c(15, 3), c(1, 3))
     m <- c(1, 1) / 2
     psi <- c(1, 1) / 2
-    trees <- replicate(40, sim_bd_proc(n=40, l=l, m=m, psi=psi, init=1),
-                       simplify=FALSE)
+    capture.output(trees <- replicate(40, sim_bd_proc(n=40, l=l, m=m, psi=psi,
+                                          init=1), simplify=FALSE))
     tmpf <- function(x) TreePar::addroot(x, x$root.edge)
     trees <- lapply(trees, tmpf)
     likwrap <- function(x, phylo){
@@ -89,7 +90,7 @@ test_that("Score function has mean zero at the true parameter value", {
         m[2] <- x[6]
         psi[1] <- x[7]
         psi[2] <- x[8]
-        calc_bdlik(l=l, m=m, psi=psi, freq=c(1), phylo=phylo, survival=FALSE)
+        calc_bd_nll(l=l, m=m, psi=psi, freq=c(1), phylo=phylo, survival=FALSE)
     }
     get_score <- function(phylo){
         numDeriv::grad(likwrap, x=c(as.numeric(l), m, psi), phylo=phylo)
@@ -98,4 +99,27 @@ test_that("Score function has mean zero at the true parameter value", {
     htests <- apply(scores, 1, stats::t.test)
     ps <- sapply(htests, "[[", "p.value")
     expect_true(all(stats::p.adjust(ps) > 0.05))
+})
+
+test_that("Score function has mean zero for regression model", {
+    skip_if_not_installed("TreeSim")
+    skip_if_not_installed("TreePar")
+    skip_if_not_installed("numDeriv")
+    skip_on_cran()
+    set.seed(1)
+    l <- rbind(c(15, 3), c(1, 3))
+    m <- c(1, 1) / 2
+    psi <- c(1, 1) / 2
+    capture.output(trees <- replicate(4, sim_bd_proc(n=40, l=l, m=m, psi=psi,
+                                          init=1), simplify=FALSE))
+
+    tmpf <- function(x) TreePar::addroot(x, x$root.edge)
+    trees <- lapply(trees, tmpf)
+
+    w <- c(log(mean(l)), 1)
+    x <- matrix(as.numeric(log(l / mean(l))), nrow=4)
+
+    lm_nll <- calc_bd_lm_nll(w=w, x=x, y=trees[[1]], xw2pars=xw2pars)
+    nll <- calc_bd_nll(l=l, m=m, psi=psi, freq=c(1), phylo=trees[[1]], survival=FALSE)
+    expect_equal(nll, lm_nll)
 })

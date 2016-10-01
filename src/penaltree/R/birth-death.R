@@ -1,5 +1,5 @@
-#' Calculate the likelihood of a tree occurring according to a
-#' birth-death process.
+#' Calculate the negative log likelihood of a tree occurring according
+#' to a birth-death process.
 #'
 #' @param l Matrix of rates at which a type i individual gives birth
 #' to a type j individual
@@ -20,7 +20,7 @@
 #' sampling probability assumed zero
 #'
 #' @export
-calc_bdlik <- function (l, m, psi, freq, phylo, survival = FALSE,
+calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
                         unknown_states = FALSE, rtol = 1e-12, atol = 1e-12,
                         cutoff = 10 ^ 12){
     maxpar <- 100
@@ -186,4 +186,32 @@ sim_bd_proc <- function (n, l, m, psi, init = 1){
     } else {
         stop("Invalid arguments")
     }
+}
+
+xw2pars <- function(x, w){
+    n <- 2
+    scale <- exp(w[1])
+    effects <- w[-1]
+    stopifnot(nrow(x) == n^2)
+    stopifnot(ncol(x) == length(effects))
+    eta <- exp(x %*% effects)
+    eta <- eta / mean(eta) * scale
+    rate_matrix <- matrix(eta, nrow=n, ncol=n)
+    ret <- list()
+    ret$l <- rate_matrix
+    ret$m <- rep(1, n) / 2
+    ret$psi <- rep(1, n) / 2
+    ret$survival <- FALSE
+    ret$frequency <- 1
+    ret
+}
+
+#' Calculate negative log likelihood of linear model parameterization
+#' of birth-death process
+#'
+#' @export
+calc_bd_lm_nll <- function(w, x, y, xw2pars){
+    pars <- xw2pars(x, w)
+    calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=pars$freq, phylo=y,
+                survival=pars$survival)
 }
