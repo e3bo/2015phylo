@@ -126,16 +126,23 @@ test_that("Score function has mean zero for regression model", {
 
     load("testdata.rda")
     x <- x[seq(1, 169), ]
-    x1 <- x[, 1, drop=FALSE]
+    x1 <- x[, c(1), drop=FALSE]
 
     pm <- gen_param_map(13)
     w1 <- c(log(2), 0.5)
     pars <- pm$xw2pars(x=x1, w=w1)
 
-    capture.output(trees <- replicate(1, sim_bd_proc(n=40, l=pars$l, m=pars$m, psi=pars$psi,
+    capture.output(trees <- replicate(20, sim_bd_proc(n=40, l=pars$l, m=pars$m, psi=pars$psi,
                                       init=1), simplify=FALSE))
     trees <- lapply(trees, addroot)
-    lm_nll <- calc_bd_lm_nll(w=w1, x=x1, y=trees[[1]], xw2pars=pm$xw2pars)
-    nll <- calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=pars$freq, phylo=trees[[1]], survival=FALSE)
-    expect_equal(nll, lm_nll)
+    likwrap <- function(x, phylo) {
+        calc_bd_lm_nll(w=x, x=x1, xw2pars=pm$xw2pars, y=phylo)
+    }
+    get_score <- function(phylo){
+        numDeriv::grad(likwrap, x=w1, method="simple", phylo=phylo)
+    }
+    scores <- sapply(trees, get_score)
+    htests <- apply(scores, 1, stats::t.test)
+    ps <- sapply(htests, "[[", "p.value")
+    expect_true(all(stats::p.adjust(ps) > 0.05))
 })
