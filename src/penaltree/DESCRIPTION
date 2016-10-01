@@ -2,7 +2,7 @@ Package: penaltree
 Title: Penalized Likelihood Fitting of Phylogenetic Trees
 Version: 0.0.0.9000
 Authors@R: c(person("Eamon", "O\'Dea", email = "odea35@gmail.com", role = c("aut", "cre")),
-             person("Tanja", "Stadler", role="ctb", comment="Author of birth-death tree likelihood functions in TreePar that have been modified for use in this package."))
+             person("Tanja", "Stadler", role="ctb", comment="Author of birth-death tree likelihood functions in TreePar that have been modified for use in this package."), person("glmnet", "authors", role="ctb", comment="Some code has been copied from the glmnet package.")
 Description: What the package does (one paragraph).
 Depends:
     R (>= 3.3.1)
