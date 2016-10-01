@@ -126,10 +126,10 @@ test_that("Score function has mean zero for regression model", {
 
     load("testdata.rda")
     x <- x[seq(1, 169), ]
-    x1 <- x[, c(1), drop=FALSE]
+    x1 <- x[, c(1, 2), drop=FALSE]
 
     pm <- gen_param_map(13)
-    w1 <- c(log(2), 0.5)
+    w1 <- c(log(2), 0.5, 0.25)
     pars <- pm$xw2pars(x=x1, w=w1)
 
     capture.output(trees <- replicate(20, sim_bd_proc(n=40, l=pars$l, m=pars$m, psi=pars$psi,
