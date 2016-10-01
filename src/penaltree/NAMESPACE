@@ -2,3 +2,4 @@
 
 export(calc_bd_lm_nll)
 export(calc_bd_nll)
+export(gen_param_map)

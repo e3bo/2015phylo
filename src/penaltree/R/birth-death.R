@@ -188,21 +188,28 @@ sim_bd_proc <- function (n, l, m, psi, init = 1){
     }
 }
 
-xw2pars <- function(x, w){
-    n <- 2
-    scale <- exp(w[1])
-    effects <- w[-1]
-    stopifnot(nrow(x) == n^2)
-    stopifnot(ncol(x) == length(effects))
-    eta <- exp(x %*% effects)
-    eta <- eta / mean(eta) * scale
-    rate_matrix <- matrix(eta, nrow=n, ncol=n)
+#' Generate parameter map for linear model interface to birth-death nll
+#'
+#' @export
+gen_param_map <- function(n){
     ret <- list()
-    ret$l <- rate_matrix
-    ret$m <- rep(1, n) / 2
-    ret$psi <- rep(1, n) / 2
-    ret$survival <- FALSE
-    ret$frequency <- 1
+    ret$xw2pars <- function(x, w){
+        n <- n
+        scale <- exp(w[1])
+        effects <- w[-1]
+        stopifnot(nrow(x) == n^2)
+        stopifnot(ncol(x) == length(effects))
+        eta <- exp(x %*% effects)
+        eta <- eta / mean(eta) * scale
+        rate_matrix <- matrix(eta, nrow=n, ncol=n)
+        ret <- list()
+        ret$l <- rate_matrix
+        ret$m <- rep(1, n) / 2
+        ret$psi <- rep(1, n) / 2
+        ret$survival <- FALSE
+        ret$frequency <- c(1, rep(0, n - 2))
+        ret
+    }
     ret
 }
 

@@ -110,16 +110,32 @@ test_that("Score function has mean zero for regression model", {
     l <- rbind(c(15, 3), c(1, 3))
     m <- c(1, 1) / 2
     psi <- c(1, 1) / 2
-    capture.output(trees <- replicate(4, sim_bd_proc(n=40, l=l, m=m, psi=psi,
-                                          init=1), simplify=FALSE))
+    capture.output(trees <- replicate(1, sim_bd_proc(n=40, l=l, m=m, psi=psi,
+                                      init=1), simplify=FALSE))
 
-    tmpf <- function(x) TreePar::addroot(x, x$root.edge)
-    trees <- lapply(trees, tmpf)
+    addroot <- function(x) TreePar::addroot(x, x$root.edge)
+    trees <- lapply(trees, addroot)
 
     w <- c(log(mean(l)), 1)
     x <- matrix(as.numeric(log(l / mean(l))), nrow=4)
 
-    lm_nll <- calc_bd_lm_nll(w=w, x=x, y=trees[[1]], xw2pars=xw2pars)
+    pm <- gen_param_map(2)
+    lm_nll <- calc_bd_lm_nll(w=w, x=x, y=trees[[1]], xw2pars=pm$xw2pars)
     nll <- calc_bd_nll(l=l, m=m, psi=psi, freq=c(1), phylo=trees[[1]], survival=FALSE)
+    expect_equal(nll, lm_nll)
+
+    load("testdata.rda")
+    x <- x[seq(1, 169), ]
+    x1 <- x[, 1, drop=FALSE]
+
+    pm <- gen_param_map(13)
+    w1 <- c(log(2), 0.5)
+    pars <- pm$xw2pars(x=x1, w=w1)
+
+    capture.output(trees <- replicate(1, sim_bd_proc(n=40, l=pars$l, m=pars$m, psi=pars$psi,
+                                      init=1), simplify=FALSE))
+    trees <- lapply(trees, addroot)
+    lm_nll <- calc_bd_lm_nll(w=w1, x=x1, y=trees[[1]], xw2pars=pm$xw2pars)
+    nll <- calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=pars$freq, phylo=trees[[1]], survival=FALSE)
     expect_equal(nll, lm_nll)
 })
