@@ -119,7 +119,7 @@ test_that("Score function has mean zero for regression model", {
     x <- matrix(as.numeric(log(l / mean(l))), nrow=4)
 
     pm <- gen_param_map(2)
-    lm_nll <- calc_bd_lm_nll(w=w, x=x, y=trees[[1]], xw2pars=pm$xw2pars)
+    lm_nll <- calc_bd_lm_nll(w=w, x=x, y=trees[[1]], param_map=pm)
     nll <- calc_bd_nll(l=l, m=m, psi=psi, freq=c(1), phylo=trees[[1]],
                        survival=FALSE)
     expect_equal(nll, lm_nll)
@@ -155,9 +155,9 @@ test_that("Regularization path computed without error", {
     x <- x[seq(1, 169), ]
     x1 <- x[, c(1, 2), drop=FALSE]
 
-    pm <- gen_param_map(13, 1)
+    pm <- gen_param_map(13)
     w1 <- c(log(2), 0.5, 0.25)
-    pars <- pm$xw2pars(x=x1, w=w1)
+    pars <- pm(x=x1, w=w1)
 
     capture.output(trees <- replicate(1, sim_bd_proc(n=40, l=pars$l, m=pars$m,
                                                       psi=pars$psi, init=1),
@@ -166,6 +166,6 @@ test_that("Regularization path computed without error", {
     trees <- lapply(trees, addroot)
 
     out <- get_gpnet(x=x1, y=trees[[1]], calc_convex_nll=calc_bd_lm_nll,
-                     param_map=pm, nlambda=5, lambda.min.ratio=0.025)
+                     param_map=pm, nlambda=5, lambda.min.ratio=0.1, verbose=FALSE)
     succeed()
 })

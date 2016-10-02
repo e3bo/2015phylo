@@ -32,7 +32,7 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
                    max(freq) > 1, length(freq) != ntypes - 1, sum(freq) > 1,
                    length(m) != ntypes, length(psi) != ntypes,
                    ncol(l) != ntypes))
-    if (is.na(bar_arg)){
+    if (is.na(bad_arg)){
         bad_arg <- TRUE
     }
     if (!bad_arg) {
@@ -169,6 +169,9 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
     out
 }
 
+#' Simulate tree according to a multi-type birth-death process
+#'
+#' @export
 sim_bd_proc <- function (n, l, m, psi, init = 1){
     if (!requireNamespace("TreeSim", quietly = TRUE)) {
         stop(paste("The TreeSim package is needed for this function to work.",
@@ -194,9 +197,8 @@ sim_bd_proc <- function (n, l, m, psi, init = 1){
 #' Generate parameter map for linear model interface to birth-death nll
 #'
 #' @export
-gen_param_map <- function(n, psamp_guess=0.5){
-    ret <- list()
-    ret$xw2pars <- function(x, w){
+gen_param_map <- function(n){
+    function(x, w){
         n <- n
         scale <- exp(w[1])
         effects <- w[-1]
@@ -213,22 +215,14 @@ gen_param_map <- function(n, psamp_guess=0.5){
         ret$frequency <- c(1, rep(0, n - 2))
         ret
     }
-    ret$get_scale <- function(y){
-        samp_births <- length(y$tip.label) - 1
-        time <- sum(y$edge.length)
-        tot_births <- samp_births / psamp_guess
-        tot_births / time
-        1
-    }
-    ret
 }
 
 #' Calculate negative log likelihood of linear model parameterization
 #' of birth-death process
 #'
 #' @export
-calc_bd_lm_nll <- function(w, x, y, xw2pars){
-    pars <- xw2pars(x, w)
+calc_bd_lm_nll <- function(w, x, y, param_map){
+    pars <- param_map(x, w)
     calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=pars$freq, phylo=y,
                 survival=pars$survival)
 }

@@ -1,10 +1,12 @@
-
+#' Run a general purpose optimizer with lasso or elasticnet regularization
+#'
+#' @export
 get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
                       lambda.min.ratio=0.01, lambda=NULL, standardize=TRUE,
                       intercept=TRUE, thresh=1e-4, dfmax=nvars + 1,
                       pmax=min(dfmax*2 + 20,nvars), exclude,
                       penalty.factor=rep(1, nvars), lower.limits=-Inf,
-                      upper.limits=Inf, maxit=100){
+                      upper.limits=Inf, maxit=100, verbose=FALSE){
     if (alpha > 1) {
         warning("alpha >1; set to 1")
         alpha <- 1
@@ -75,7 +77,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
     }
     fit <- gpnet(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                  cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
-                 maxit)
+                 maxit, verbose=verbose)
     fit$call <- this.call
     fit$nrates <- nrates
     class(fit) <- c(class(fit), "gpnet")
@@ -93,10 +95,14 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     parInds <- seq(dim)
     I <- diag(nrow=dim)
     nll <- function(w){
-        calc_convex_nll(w=w, x=x, y=y, xw2pars=param_map$xw2pars)
+        calc_convex_nll(w=w, x=x, y=y, param_map=param_map)
     }
-    scaleEst <- param_map$get_scale(y=y)
-    par <- c(log(scaleEst), rep(0, nvars))
+    f <- function(x) {
+        par <- c(x, rep(0, nvars))
+        nll(par)
+    }
+    intercept_est <- optimize(f, lower=log(0.05), upper=log(50), tol=1)$minimum
+    par <- c(intercept_est, rep(0, nvars))
     gnll <- numDeriv::grad(nll, x=par, method='simple')
     mu <- mubar
     stopifnot(beta>0, beta<1)
