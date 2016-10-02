@@ -8,12 +8,12 @@ Description: What the package does (one paragraph).
 Depends:
     R (>= 3.3.1)
 Imports:
-    deSolve (>= 1.13)
+    deSolve (>= 1.13),
+    numDeriv (>= 2016.8.1)
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Suggests:
-    numDeriv (>= 2016.8.1),
     testthat (>= 1.0.2),
     TreeSim (>= 2.2)
 RoxygenNote: 5.0.1

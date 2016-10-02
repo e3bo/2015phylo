@@ -28,11 +28,14 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
     out <- 10 ^ 1000
     ntypes <- nrow(l)
 
-    check <- any(c(min(l, m, psi, freq) < 0, max(l, m, psi) > maxpar,
+    bad_arg <- any(c(min(l, m, psi, freq) < 0, max(l, m, psi) > maxpar,
                    max(freq) > 1, length(freq) != ntypes - 1, sum(freq) > 1,
                    length(m) != ntypes, length(psi) != ntypes,
                    ncol(l) != ntypes))
-    if (! check || is.na(check)) {
+    if (is.na(bar_arg)){
+        bad_arg <- TRUE
+    }
+    if (!bad_arg) {
         lik <- try(get_subtree_lik(phylo, 1, l, m, psi, summary, unknown_states,
                                    rtol, atol, cutoff))
         if (class(lik) != "try-error") {
@@ -191,7 +194,7 @@ sim_bd_proc <- function (n, l, m, psi, init = 1){
 #' Generate parameter map for linear model interface to birth-death nll
 #'
 #' @export
-gen_param_map <- function(n){
+gen_param_map <- function(n, psamp_guess=0.5){
     ret <- list()
     ret$xw2pars <- function(x, w){
         n <- n
@@ -209,6 +212,13 @@ gen_param_map <- function(n){
         ret$survival <- FALSE
         ret$frequency <- c(1, rep(0, n - 2))
         ret
+    }
+    ret$get_scale <- function(y){
+        samp_births <- length(y$tip.label) - 1
+        time <- sum(y$edge.length)
+        tot_births <- samp_births / psamp_guess
+        tot_births / time
+        1
     }
     ret
 }

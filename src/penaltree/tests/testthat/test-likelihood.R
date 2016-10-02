@@ -70,7 +70,6 @@ test_that("Birth-death likelihood runs with >2 types", {
 test_that("Score function has mean zero at the true parameter value", {
     skip_if_not_installed("TreeSim")
     skip_if_not_installed("TreePar")
-    skip_if_not_installed("numDeriv")
     skip_if_not_installed("fizzlipuzzli")
     skip_on_cran()
     set.seed(1)
@@ -104,7 +103,7 @@ test_that("Score function has mean zero at the true parameter value", {
 test_that("Score function has mean zero for regression model", {
     skip_if_not_installed("TreeSim")
     skip_if_not_installed("TreePar")
-    skip_if_not_installed("numDeriv")
+    skip_if_not_installed("fizzlipuzzli")
     skip_on_cran()
     set.seed(1)
     l <- rbind(c(15, 3), c(1, 3))
@@ -121,7 +120,8 @@ test_that("Score function has mean zero for regression model", {
 
     pm <- gen_param_map(2)
     lm_nll <- calc_bd_lm_nll(w=w, x=x, y=trees[[1]], xw2pars=pm$xw2pars)
-    nll <- calc_bd_nll(l=l, m=m, psi=psi, freq=c(1), phylo=trees[[1]], survival=FALSE)
+    nll <- calc_bd_nll(l=l, m=m, psi=psi, freq=c(1), phylo=trees[[1]],
+                       survival=FALSE)
     expect_equal(nll, lm_nll)
 
     load("testdata.rda")
@@ -132,8 +132,9 @@ test_that("Score function has mean zero for regression model", {
     w1 <- c(log(2), 0.5, 0.25)
     pars <- pm$xw2pars(x=x1, w=w1)
 
-    capture.output(trees <- replicate(20, sim_bd_proc(n=40, l=pars$l, m=pars$m, psi=pars$psi,
-                                      init=1), simplify=FALSE))
+    capture.output(trees <- replicate(20, sim_bd_proc(n=40, l=pars$l, m=pars$m,
+                                                      psi=pars$psi, init=1),
+                                      simplify=FALSE))
     trees <- lapply(trees, addroot)
     likwrap <- function(x, phylo) {
         calc_bd_lm_nll(w=x, x=x1, xw2pars=pm$xw2pars, y=phylo)
@@ -145,4 +146,26 @@ test_that("Score function has mean zero for regression model", {
     htests <- apply(scores, 1, stats::t.test)
     ps <- sapply(htests, "[[", "p.value")
     expect_true(all(stats::p.adjust(ps) > 0.05))
+})
+
+test_that("Regularization path computed without error", {
+    skip_on_cran()
+
+    load("testdata.rda")
+    x <- x[seq(1, 169), ]
+    x1 <- x[, c(1, 2), drop=FALSE]
+
+    pm <- gen_param_map(13, 1)
+    w1 <- c(log(2), 0.5, 0.25)
+    pars <- pm$xw2pars(x=x1, w=w1)
+
+    capture.output(trees <- replicate(1, sim_bd_proc(n=40, l=pars$l, m=pars$m,
+                                                      psi=pars$psi, init=1),
+                                      simplify=FALSE))
+    addroot <- function(x) TreePar::addroot(x, x$root.edge)
+    trees <- lapply(trees, addroot)
+
+    out <- get_gpnet(x=x1, y=trees[[1]], calc_convex_nll=calc_bd_lm_nll,
+                     param_map=pm, nlambda=5, lambda.min.ratio=0.025)
+    succeed()
 })
