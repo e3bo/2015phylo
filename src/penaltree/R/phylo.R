@@ -18,7 +18,7 @@ set_branchlengths <- function(tree, nodeheights, tipheights){
     for (i in seq(1, nedge)){
         blen <- nh[ipheight[i]] - nh[i]
         if (blen <= 0){
-            penalty <- penalty - blen
+            penalty <- penalty + blen^2
             nh[ipheight[i]] <- nh[i] + .Machine$double.eps
         }
     }

@@ -6,7 +6,8 @@ test_that("Phylogenetic estimates are consistent", {
     skip_if_not_installed("phangorn")
     skip_if_not_installed("ape")
 
-    tree <- ape::rcoal(4)
+    ntips <- 4
+    tree <- ape::rcoal(ntips)
     data <- phangorn::simSeq(tree, l = 1e5, type = "DNA",
                              bf = c(.1, .2, .3, .4), Q = rep(1, 6), rate=1)
     fitr <- phangorn::pml(tree, data)
@@ -25,25 +26,28 @@ test_that("Own optimization matches others", {
     skip_if_not_installed("phangorn")
     skip_if_not_installed("ape")
 
-    tree <- ape::rcoal(4)
+    ntips <- 10
+    tree <- ape::rcoal(ntips)
     bf <- seq(1, 4) / 10
-    data <- phangorn::simSeq(tree, l = 1e5, type = "DNA",
+    data <- phangorn::simSeq(tree, l = 1e4, type = "DNA",
                              bf = bf, Q = rep(1, 6), rate=1)
+    fitr <- phangorn::pml(tree, data, bf=bf)
+
+    fitr <- phangorn::optim.pml(fitr, optRooted = TRUE)
+
+    tiphts <- rep(0, ntips)
+
     obj <- function(x) {
-        pml_wrapper(tree, nodeheights=x, tipheights=rep(0, 4), data, bf=bf)
+        pml_wrapper(tree, nodeheights=x, tipheights=tiphts, data, bf=bf)
     }
-    ans <- optim(c(.2, .3, .4), obj, method="BFGS")
+    ans <- optim(seq(2, ntips)/10, obj, method="BFGS")
 
     ndtrue <- ape::node.depth.edgelength(tree)
-    tree_est <- set_branchlengths(tree, nodeheights=ans$par, tipheights=rep(0,4))$tree
+    tree_est <- set_branchlengths(tree, nodeheights=ans$par, tipheights=tiphts)$tree
     ndest <- ape::node.depth.edgelength(tree_est)
+    ndest2 <- ape::node.depth.edgelength(fitr$tree)
 
-    all.equal(ndest, ndtrue)
-
-    par(mfrow=c(2,1))
-    plot(tree)
-    plot(tree_est)
-
-
+    expect_true(isTRUE(all.equal(ndest, ndest2, tol=.1)))
+    expect_true(isTRUE(all.equal(-ans$val, as.numeric(logLik(fitr)), tol=1e-3)))
 })
 
