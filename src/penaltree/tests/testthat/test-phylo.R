@@ -30,10 +30,20 @@ test_that("Own optimization matches others", {
     data <- phangorn::simSeq(tree, l = 1e5, type = "DNA",
                              bf = bf, Q = rep(1, 6), rate=1)
     obj <- function(x) {
-        ## TODO make x only affect internal nodeheights
-        pml_wrapper(tree, nodeheights=x, data, bf=bf)
+        pml_wrapper(tree, nodeheights=x, tipheights=rep(0, 4), data, bf=bf)
     }
-    ans <- optim(seq(1, 7) / 7, obj)
+    ans <- optim(c(.2, .3, .4), obj, method="BFGS")
+
+    ndtrue <- ape::node.depth.edgelength(tree)
+    tree_est <- set_branchlengths(tree, nodeheights=ans$par, tipheights=rep(0,4))$tree
+    ndest <- ape::node.depth.edgelength(tree_est)
+
+    all.equal(ndest, ndtrue)
+
+    par(mfrow=c(2,1))
+    plot(tree)
+    plot(tree_est)
+
 
 })
 
