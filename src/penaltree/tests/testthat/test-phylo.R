@@ -30,43 +30,46 @@ test_that("Own optimization matches others", {
     tree <- ape::rcoal(ntips)
     bf <- rep(.25, 4)
     data <- phangorn::simSeq(tree, l = 1000, type = "DNA",
-                             bf = bf, Q = rep(1, 6), rate=1)
-    fitr <- phangorn::pml(tree, data, bf=bf)
+                             bf = bf, Q = rep(1, 6), rate = 1)
+    fitr <- phangorn::pml(tree, data, bf = bf)
 
     fitr <- phangorn::optim.pml(fitr, optRooted = TRUE)
 
     tiphts <- rep(0, ntips)
 
     ndtrue <- ape::node.depth.edgelength(tree)
-    obj <- function(x) {
-        pml_wrapper(tree, nodeheights=x, tipheights=tiphts, data, bf=bf)
-    }
-    init <- -(ndtrue[abs(ndtrue - max(ndtrue)) > 1e-5] - max(ndtrue))
-    ans <- optim(init, obj, method="L-BFGS-B")
-
-
-    tree_est <- set_branchlengths(tree, nodeheights=ans$par, tipheights=tiphts)$tree
-    ndest <- ape::node.depth.edgelength(tree_est)
     ndest2 <- ape::node.depth.edgelength(fitr$tree)
-
-    expect_true(isTRUE(all.equal(ndest, ndest2, tol=.1)))
-    expect_true(isTRUE(all.equal(-ans$val, as.numeric(logLik(fitr)), tol=1e-3)))
 
     phyDat2msa <- function(data){
         alpha <- toupper(attr(data, "levels"))
         data <- toupper(as.character(data))
         cvl <- apply(data, 1, function(x) paste(x, collapse=""))
-        msa(seqs=as.character(cvl), names=names(cvl), alphabet=paste(alpha, collapse=''))
+        rphast::msa(seqs = as.character(cvl), names = names(cvl),
+                    alphabet = paste(alpha, collapse = ''))
     }
     msa <- phyDat2msa(data)
-    treechar <- write.tree(tree)
-    tmod <- tm(treechar, "JC69", backgd=rep(.25, 4))
-    likelihood.msa(x=msa, tm=tmod)
-    pf <- phyloFit(msa=msa, init.mod=tmod, clock=TRUE)
-    ptree <- read.tree(text=pf$tree)
-    ndest3 <- node.depth.edgelength(ptree)
+    treechar <- ape::write.tree(tree)
+    tmod <- rphast::tm(treechar, "JC69", backgd = rep(.25, 4))
+    rphast::likelihood.msa(x = msa, tm = tmod)
+    pf <- rphast::phyloFit(msa = msa, init.mod = tmod, clock = TRUE)
+    ptree <- ape::read.tree(text = pf$tree)
+    ndest3 <- ape::node.depth.edgelength(ptree)
 
-    expect_true(isTRUE(all.equal(ndest2, ndest3, tol=.1)))
-    expect_true(isTRUE(all.equal(pf$likelihood, as.numeric(logLik(fitr)), tol=1e-3)))
+    expect_true(isTRUE(all.equal(ndest2, ndest3, tol = .1)))
+    expect_true(isTRUE(all.equal(pf$likelihood, as.numeric(logLik(fitr)),
+                                 tol = 1e-3)))
+
+    obj <- function(x) {
+        pml_wrapper(tree, nodeheights = x, tipheights = tiphts, data, bf = bf)
+    }
+
+    tnh <- get_nodeheights(tree)
+    ans <- optim(tnh$nodeheights, obj, method = "L-BFGS-B")
+    tree_est <- set_branchlengths(tree, nodeheights = ans$par,
+                                  tipheights = tiphts)$tree
+    ndest <- ape::node.depth.edgelength(tree_est)
+
+    expect_true(isTRUE(all.equal(ndest, ndest2, tol = .1)))
+    expect_true(isTRUE(all.equal(-ans$val, as.numeric(logLik(fitr)),
+                                 tol = 1e-3)))
 })
-
