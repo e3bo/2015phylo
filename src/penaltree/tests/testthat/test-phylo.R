@@ -26,10 +26,10 @@ test_that("Own optimization matches others", {
     skip_if_not_installed("phangorn")
     skip_if_not_installed("ape")
 
-    ntips <- 14
+    ntips <- 40
     tree <- ape::rcoal(ntips)
     bf <- rep(.25, 4)
-    data <- phangorn::simSeq(tree, l = 1e4, type = "DNA",
+    data <- phangorn::simSeq(tree, l = 1000, type = "DNA",
                              bf = bf, Q = rep(1, 6), rate=1)
     fitr <- phangorn::pml(tree, data, bf=bf)
 
@@ -37,12 +37,14 @@ test_that("Own optimization matches others", {
 
     tiphts <- rep(0, ntips)
 
+    ndtrue <- ape::node.depth.edgelength(tree)
     obj <- function(x) {
         pml_wrapper(tree, nodeheights=x, tipheights=tiphts, data, bf=bf)
     }
-    ans <- optim(seq(2, ntips)/10, obj, method="BFGS")
+    init <- -(ndtrue[abs(ndtrue - max(ndtrue)) > 1e-5] - max(ndtrue))
+    ans <- optim(init, obj, method="L-BFGS-B")
 
-    ndtrue <- ape::node.depth.edgelength(tree)
+
     tree_est <- set_branchlengths(tree, nodeheights=ans$par, tipheights=tiphts)$tree
     ndest <- ape::node.depth.edgelength(tree_est)
     ndest2 <- ape::node.depth.edgelength(fitr$tree)
@@ -52,14 +54,19 @@ test_that("Own optimization matches others", {
 
     phyDat2msa <- function(data){
         alpha <- toupper(attr(data, "levels"))
-        cvl <- sapply(data, function(x) paste(alpha[x], collapse=""))
+        data <- toupper(as.character(data))
+        cvl <- apply(data, 1, function(x) paste(x, collapse=""))
         msa(seqs=as.character(cvl), names=names(cvl), alphabet=paste(alpha, collapse=''))
     }
     msa <- phyDat2msa(data)
     treechar <- write.tree(tree)
     tmod <- tm(treechar, "JC69", backgd=rep(.25, 4))
+    likelihood.msa(x=msa, tm=tmod)
     pf <- phyloFit(msa=msa, init.mod=tmod, clock=TRUE)
     ptree <- read.tree(text=pf$tree)
     ndest3 <- node.depth.edgelength(ptree)
+
+    expect_true(isTRUE(all.equal(ndest2, ndest3, tol=.1)))
+    expect_true(isTRUE(all.equal(pf$likelihood, as.numeric(logLik(fitr)), tol=1e-3)))
 })
 
