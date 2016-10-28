@@ -26,9 +26,9 @@ test_that("Own optimization matches others", {
     skip_if_not_installed("phangorn")
     skip_if_not_installed("ape")
 
-    ntips <- 10
+    ntips <- 14
     tree <- ape::rcoal(ntips)
-    bf <- seq(1, 4) / 10
+    bf <- rep(.25, 4)
     data <- phangorn::simSeq(tree, l = 1e4, type = "DNA",
                              bf = bf, Q = rep(1, 6), rate=1)
     fitr <- phangorn::pml(tree, data, bf=bf)
@@ -49,5 +49,17 @@ test_that("Own optimization matches others", {
 
     expect_true(isTRUE(all.equal(ndest, ndest2, tol=.1)))
     expect_true(isTRUE(all.equal(-ans$val, as.numeric(logLik(fitr)), tol=1e-3)))
+
+    phyDat2msa <- function(data){
+        alpha <- toupper(attr(data, "levels"))
+        cvl <- sapply(data, function(x) paste(alpha[x], collapse=""))
+        msa(seqs=as.character(cvl), names=names(cvl), alphabet=paste(alpha, collapse=''))
+    }
+    msa <- phyDat2msa(data)
+    treechar <- write.tree(tree)
+    tmod <- tm(treechar, "JC69", backgd=rep(.25, 4))
+    pf <- phyloFit(msa=msa, init.mod=tmod, clock=TRUE)
+    ptree <- read.tree(text=pf$tree)
+    ndest3 <- node.depth.edgelength(ptree)
 })
 
