@@ -26,19 +26,17 @@ test_that("Own optimization matches others", {
     skip_if_not_installed("phangorn")
     skip_if_not_installed("ape")
 
-    ntips <- 40
+    ntips <- 20
     tree <- ape::rcoal(ntips)
+    tiphts <- rep(0, ntips)
     bf <- rep(.25, 4)
     data <- phangorn::simSeq(tree, l = 1000, type = "DNA",
                              bf = bf, Q = rep(1, 6), rate = 1)
-    fitr <- phangorn::pml(tree, data, bf = bf)
 
+    fitr <- phangorn::pml(tree, data, bf = bf)
     fitr <- phangorn::optim.pml(fitr, optRooted = TRUE)
 
-    tiphts <- rep(0, ntips)
-
-    ndtrue <- ape::node.depth.edgelength(tree)
-    ndest2 <- ape::node.depth.edgelength(fitr$tree)
+    nhest2 <- get_nodeheights(fitr$tree)$node
 
     phyDat2msa <- function(data){
         alpha <- toupper(attr(data, "levels"))
@@ -53,23 +51,24 @@ test_that("Own optimization matches others", {
     rphast::likelihood.msa(x = msa, tm = tmod)
     pf <- rphast::phyloFit(msa = msa, init.mod = tmod, clock = TRUE)
     ptree <- ape::read.tree(text = pf$tree)
-    ndest3 <- ape::node.depth.edgelength(ptree)
+    nhest3 <- get_nodeheights(ptree)$node
 
-    expect_true(isTRUE(all.equal(ndest2, ndest3, tol = .1)))
+    expect_true(isTRUE(all.equal(nhest2, nhest3, tol = .1, scale=1)))
     expect_true(isTRUE(all.equal(pf$likelihood, as.numeric(logLik(fitr)),
                                  tol = 1e-3)))
 
     obj <- function(x) {
-        pml_wrapper(tree, nodeheights = x, tipheights = tiphts, data, bf = bf)
+        lmsa_wrapper(tree, nodeheights = x, tipheights = tiphts, msa=msa, bf=bf)
     }
 
-    tnh <- get_nodeheights(tree)
-    ans <- optim(tnh$nodeheights, obj, method = "L-BFGS-B")
+    tnh <- get_nodeheights(tree)$node
+    ans <- rphast::optim.rphast(obj, tnh, lower=rep(0, ntips - 1), upper=rep(6, ntips - 1))
     tree_est <- set_branchlengths(tree, nodeheights = ans$par,
                                   tipheights = tiphts)$tree
-    ndest <- ape::node.depth.edgelength(tree_est)
+    nhest <- get_nodeheights(tree_est)$node
 
-    expect_true(isTRUE(all.equal(ndest, ndest2, tol = .1)))
+    #plot(data.frame(tnh, nhest, nhest2, nhest3))
+    expect_true(isTRUE(all.equal(nhest, nhest3, tol = .04, scale=1)))
     expect_true(isTRUE(all.equal(-ans$val, as.numeric(logLik(fitr)),
                                  tol = 1e-3)))
 })
