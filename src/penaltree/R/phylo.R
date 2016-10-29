@@ -43,7 +43,7 @@ lmsa_wrapper <- function(tree, nodeheights, tipheights, msa, bf){
     print(foo$penalty)
     treechar <- ape::write.tree(foo$tree)
     tmod <- rphast::tm(treechar, "JC69", backgd = bf)
-    rphast::likelihood.msa(x=msa, tm=tmod)
+    rphast::likelihood.msa(x=msa, tm=tmod) - foo$penalty
 }
 
 get_nodeheights <- function(tree){

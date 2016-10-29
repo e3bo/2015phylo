@@ -58,11 +58,13 @@ test_that("Own optimization matches others", {
                                  tol = 1e-3)))
 
     obj <- function(x) {
-        lmsa_wrapper(tree, nodeheights = x, tipheights = tiphts, msa=msa, bf=bf)
+        lmsa_wrapper(tree, nodeheights = x, tipheights = tiphts, msa=msa,
+                     bf=bf)
     }
 
     tnh <- get_nodeheights(tree)$node
-    ans <- rphast::optim.rphast(obj, tnh, lower=rep(0, ntips - 1), upper=rep(6, ntips - 1))
+    ans <- rphast::optim.rphast(obj, tnh, lower=rep(0, ntips - 1),
+                                upper=rep(6, ntips - 1))
     tree_est <- set_branchlengths(tree, nodeheights = ans$par,
                                   tipheights = tiphts)$tree
     nhest <- get_nodeheights(tree_est)$node
@@ -114,7 +116,8 @@ test_that("With serial sampling, own optimization finds optimum near truth", {
         lmsa_wrapper(tree, nodeheights = x, tipheights = nh$tip, msa=msa, bf=bf)
     }
 
-    ans <- rphast::optim.rphast(obj, nh$node, lower=rep(0, ntips - 1), upper=rep(6, ntips - 1))
+    ans <- rphast::optim.rphast(obj, nh$node, lower=rep(0, ntips - 1),
+                                upper=rep(6, ntips - 1))
     tree_est <- set_branchlengths(tree, nodeheights = ans$par,
                                   tipheights = nh$tip)$tree
     nhest <- get_nodeheights(tree_est)$node
@@ -122,4 +125,42 @@ test_that("With serial sampling, own optimization finds optimum near truth", {
     expect_true(isTRUE(all.equal(nhest, nh$node, tol = .05, scale=1)))
     expect_true(isTRUE(all.equal(-ans$val, as.numeric(logLik(fitr)),
                                  tol = 1e-3)))
+})
+
+test_that(paste("With serial sampling, able to find decent estimate",
+                "when given decent starting point"), {
+    skip_if_not_installed("phangorn")
+    skip_if_not_installed("ape")
+
+    ntips <- 20
+    tree <- ape::rtree(ntips)
+
+    bf <- rep(.25, 4)
+    data <- phangorn::simSeq(tree, l = 1000, type = "DNA",
+                             bf = bf, Q = rep(1, 6), rate = 1)
+
+    phyDat2msa <- function(data){
+        alpha <- toupper(attr(data, "levels"))
+        data <- toupper(as.character(data))
+        cvl <- apply(data, 1, function(x) paste(x, collapse=""))
+        rphast::msa(seqs = as.character(cvl), names = names(cvl),
+                    alphabet = paste(alpha, collapse = ''))
+    }
+    msa <- phyDat2msa(data)
+    treechar <- ape::write.tree(tree)
+    tmod <- rphast::tm(treechar, "JC69", backgd = rep(.25, 4))
+
+    nh <- get_nodeheights(tree)
+    obj <- function(x) {
+        lmsa_wrapper(tree, nodeheights = x, tipheights = nh$tip, msa=msa, bf=bf)
+    }
+
+    init <- nh$node + runif(nh$node, min=-1, max=1)
+    init <- ifelse(init < 0, 0, init)
+    ans <- rphast::optim.rphast(obj, init, lower=rep(0, ntips - 1), upper=rep(6, ntips - 1))
+    tree_est <- set_branchlengths(tree, nodeheights = ans$par,
+                                  tipheights = nh$tip)$tree
+    nhest <- get_nodeheights(tree_est)$node
+
+    expect_true(isTRUE(all.equal(nhest, nh$node, tol = .05, scale=1)))
 })
