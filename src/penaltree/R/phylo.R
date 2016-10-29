@@ -38,9 +38,10 @@ pml_wrapper <- function(tree, nodeheights, tipheights, phydata, ...){
     nll + foo$penalty
 }
 
-lmsa_wrapper <- function(tree, nodeheights, tipheights, msa, bf){
+lmsa_wrapper <- function(tree, nodeheights, tipheights, msa, bf, rate=1){
     foo <- set_branchlengths(tree, nodeheights, tipheights)
-    print(foo$penalty)
+    #print(foo$penalty)
+    foo$tree$edge.length <- foo$tree$edge.length * rate
     treechar <- ape::write.tree(foo$tree)
     tmod <- rphast::tm(treechar, "JC69", backgd = bf)
     rphast::likelihood.msa(x=msa, tm=tmod) - foo$penalty
