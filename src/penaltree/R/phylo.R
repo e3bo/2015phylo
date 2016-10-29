@@ -52,13 +52,15 @@ get_nodeheights <- function(tree){
     ntips <- length(tpo$tip.label)
     nedge <- nrow(edge)
     nh <- numeric(nedge + 1)
+    idx_root <- nedge + 1
     idx_tip <- which(edge[, 2] <= ntips)
-    idx_internal <- c(which(edge[, 2] > ntips), nedge + 1)
-    nh[idx_tip] <- 0
+    idx_internal <- c(which(edge[, 2] > ntips), idx_root)
+    nh[idx_root] <- 0
     ipheight <- match(edge[, 1], edge[,2])
-    ipheight[is.na(ipheight)] <- nrow(edge) + 1
-    for (i in seq(1, nedge)){
-        nh[ipheight[i]] <- tpo$edge.length[i] + nh[i]
+    ipheight[is.na(ipheight)] <- idx_root
+    for (i in seq(nedge, 1)){
+        nh[i] <- nh[ipheight[i]] - tpo$edge.length[i]
     }
+    nh <- nh - min(nh)
     list(nodeheights=nh[idx_internal], tipheights=nh[idx_tip], nh=nh)
 }

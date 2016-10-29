@@ -72,3 +72,54 @@ test_that("Own optimization matches others", {
     expect_true(isTRUE(all.equal(-ans$val, as.numeric(logLik(fitr)),
                                  tol = 1e-3)))
 })
+
+test_that("Node height calculation is correct", {
+
+    tree <- ape::rtree(30)
+    nde <- ape::node.depth.edgelength(tree)
+    nh <- get_nodeheights(tree)
+    ndc <- max(nh$nh) - nh$nh
+    expect_equal(sort(ndc), sort(nde))
+
+    tree2 <- set_branchlengths(tree, nh$nodeheights, nh$tipheights)$tree
+    nde2 <- ape::node.depth.edgelength(tree2)
+    expect_equal(nde, nde2)
+})
+
+test_that("With serial sampling, own optimization finds optimum near truth", {
+    skip_if_not_installed("phangorn")
+    skip_if_not_installed("ape")
+
+    ntips <- 10
+    tree <- ape::rtree(ntips)
+
+    bf <- rep(.25, 4)
+    data <- phangorn::simSeq(tree, l = 1000, type = "DNA",
+                             bf = bf, Q = rep(1, 6), rate = 1)
+
+    phyDat2msa <- function(data){
+        alpha <- toupper(attr(data, "levels"))
+        data <- toupper(as.character(data))
+        cvl <- apply(data, 1, function(x) paste(x, collapse=""))
+        rphast::msa(seqs = as.character(cvl), names = names(cvl),
+                    alphabet = paste(alpha, collapse = ''))
+    }
+    msa <- phyDat2msa(data)
+    treechar <- ape::write.tree(tree)
+    tmod <- rphast::tm(treechar, "JC69", backgd = rep(.25, 4))
+    rphast::likelihood.msa(x = msa, tm = tmod)
+
+    nh <- get_nodeheights(tree)
+    obj <- function(x) {
+        lmsa_wrapper(tree, nodeheights = x, tipheights = nh$tip, msa=msa, bf=bf)
+    }
+
+    ans <- rphast::optim.rphast(obj, nh$node, lower=rep(0, ntips - 1), upper=rep(6, ntips - 1))
+    tree_est <- set_branchlengths(tree, nodeheights = ans$par,
+                                  tipheights = nh$tip)$tree
+    nhest <- get_nodeheights(tree_est)$node
+
+    expect_true(isTRUE(all.equal(nhest, nh$node, tol = .05, scale=1)))
+    expect_true(isTRUE(all.equal(-ans$val, as.numeric(logLik(fitr)),
+                                 tol = 1e-3)))
+})
