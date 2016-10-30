@@ -40,13 +40,33 @@ pml_wrapper <- function(tree, nodeheights, tipheights, phydata, ...){
     nll + foo$penalty
 }
 
-lmsa_wrapper <- function(tree, nodeheights, tipheights, msa, bf, rate=1){
-    foo <- set_branchlengths(tree, nodeheights, tipheights)
-    #print(foo$penalty)
-    foo$tree$edge.length <- foo$tree$edge.length * rate
-    treechar <- ape::write.tree(foo$tree)
-    tmod <- rphast::tm(treechar, "JC69", backgd = bf)
-    rphast::likelihood.msa(x=msa, tm=tmod) - foo$penalty
+get_hky_Q <- function(kappa=4, pi=c(A=.2, C=.25, G=.3, T=.25)){
+    stopifnot(isTRUE(all.equal(sum(pi), 1)))
+    pi <- pi[c("A", "C", "G", "T")]
+    Q <- matrix(rep(pi, each=4), ncol=4)
+    Q[1,3] <- Q[1,3] * kappa
+    Q[3,1] <- Q[3,1] * kappa
+    Q[2,4] <- Q[2,4] * kappa
+    Q[4,2] <- Q[4,2] * kappa
+    dimnames(Q) <- list(to=names(pi), from=names(pi))
+    diag(Q) <- 0
+    diag(Q) <- -rowSums(Q)
+    scale <- -sum(diag(Q) * pi)
+    Q / scale
+}
+
+lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
+                         subs_model, subs_pars){
+    tree_subs <- set_branchlengths(tree_time, node_times, tip_times)
+    tree_subs$tree$edge.length <- tree_subs$tree$edge.length * subs_per_time
+    tree_char <- ape::write.tree(tree_subs$tree)
+    if (subs_model == "HKY85") {
+        Q <- get_hky_Q(subs_pars$kappa, subs_pars$pi)
+        tmod <- rphast::tm(tree_char, subs_model, rate.matrix=Q, backgd = subs_pars$pi)
+    } else {
+        stop("subs_model not implemented")
+    }
+    rphast::likelihood.msa(x=msa, tm=tmod) - tree_subs$penalty
 }
 
 get_nodeheights <- function(tree){
