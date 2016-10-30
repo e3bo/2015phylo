@@ -9,7 +9,9 @@ set_branchlengths <- function(tree, nodeheights, tipheights){
     nh <- numeric(nedge + 1)
     idx_tip <- which(edge[, 2] <= ntips)
     idx_internal <- c(which(edge[, 2] > ntips), nedge + 1)
-    nh[idx_tip] <- tipheights
+    stopifnot(length(setdiff(names(tipheights), tree$tip.label)) == 0)
+    tipnames <- tree$tip.label[edge[idx_tip, 2]]
+    nh[idx_tip] <- tipheights[tipnames]
     nh[idx_internal] <- nodeheights
     ipheight <- match(edge[, 1], edge[,2])
     ipheight[is.na(ipheight)] <- nrow(edge) + 1
@@ -63,5 +65,8 @@ get_nodeheights <- function(tree){
         nh[i] <- nh[ipheight[i]] - tpo$edge.length[i]
     }
     nh <- nh - min(nh)
-    list(nodeheights=nh[idx_internal], tipheights=nh[idx_tip], nh=nh)
+    tiph <- nh[idx_tip]
+    ind <- edge[idx_tip, 2]
+    names(tiph) <- tpo$tip.label[ind]
+    list(nodeheights=nh[idx_internal], tipheights=tiph, nh=nh)
 }

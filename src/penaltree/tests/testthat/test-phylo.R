@@ -191,7 +191,6 @@ test_that(paste("Able to jointly estimate branchlengths and rate"), {
     nh <- get_nodeheights(tree)
     obj <- function(x) {
         lmsa_wrapper(tree, nodeheights = x[-1], tipheights = nh$tip, msa=msa, bf=bf, rate=x[1])
-        # lmsa_wrapper(tree, nodeheights = x, tipheights = nh$tip, msa=msa, bf=bf, rate=1)
     }
 
     init <- c(0.1, nh$node + runif(nh$node, min=-1, max=1))
@@ -203,5 +202,48 @@ test_that(paste("Able to jointly estimate branchlengths and rate"), {
     nhest <- get_nodeheights(tree_est)$node
 
     expect_true(isTRUE(all.equal(nhest, nh$node, tol = .5, scale=1)))
+    expect_equal(ans$par[1], rate, tol=1)
+})
+
+test_that(paste("Able to estimate rate and rootheight with inferred topology"),{
+    skip_if_not_installed("phangorn")
+    skip_if_not_installed("ape")
+
+    ntips <- 20
+    tree <- ape::rtree(ntips)
+
+    bf <- rep(.25, 4)
+    rate <- 1e-3
+    data <- phangorn::simSeq(tree, l = 1e3, type = "DNA",
+                             bf = bf, Q = rep(1, 6), rate = rate)
+    dists <- dist.ml(data)
+    treeUPGMA <- upgma(dists)
+
+    phyDat2msa <- function(data){
+        alpha <- toupper(attr(data, "levels"))
+        data <- toupper(as.character(data))
+        cvl <- apply(data, 1, function(x) paste(x, collapse=""))
+        rphast::msa(seqs = as.character(cvl), names = names(cvl),
+                    alphabet = paste(alpha, collapse = ''))
+    }
+    msa <- phyDat2msa(data)
+    treechar <- ape::write.tree(treeUPGMA)
+    tmod <- rphast::tm(treechar, "JC69", backgd = rep(.25, 4))
+
+    nh <- get_nodeheights(tree)
+    obj <- function(x) {
+        lmsa_wrapper(treeUPGMA, nodeheights = x[-1], tipheights = nh$tip, msa=msa, bf=bf, rate=x[1])
+    }
+
+    init <- c(0.1, runif(nh$node, max=3))
+    init <- ifelse(init < 0, 0, init)
+    ans <- rphast::optim.rphast(obj, init, lower=c(1e-6, rep(0, ntips-1)),
+                                upper=c(1, rep(10, ntips -1)), logfile="/tmp/optim.log")
+    tree_est <- set_branchlengths(treeUPGMA, nodeheights = ans$par[-1],
+                                  tipheights = nh$tip)$tree
+    nhest <- get_nodeheights(tree_est)$node
+
+    expect_equal(sort(nhest), sort(nh$node), tol = .1)
+    expect_equal(max(nhest), max(nh$node), tol=1)
     expect_equal(ans$par[1], rate, tol=1)
 })
