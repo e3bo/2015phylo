@@ -56,16 +56,12 @@ get_hky_Q <- function(kappa=4, pi=c(A=.2, C=.25, G=.3, T=.25)){
 }
 
 lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
-                         subs_model, subs_pars){
+                         subs_model, subs_pars, pi){
     tree_subs <- set_branchlengths(tree_time, node_times, tip_times)
     tree_subs$tree$edge.length <- tree_subs$tree$edge.length * subs_per_time
     tree_char <- ape::write.tree(tree_subs$tree)
-    if (subs_model == "HKY85") {
-        Q <- get_hky_Q(subs_pars$kappa, subs_pars$pi)
-        tmod <- rphast::tm(tree_char, subs_model, rate.matrix=Q, backgd = subs_pars$pi)
-    } else {
-        stop("subs_model not implemented")
-    }
+    tmod <- rphast::tm(tree_char, subs_model, backgd = pi)
+    tmod <- rphast::set.rate.matrix.tm(tmod, params=subs_pars)
     rphast::likelihood.msa(x=msa, tm=tmod) - tree_subs$penalty
 }
 
