@@ -56,11 +56,14 @@ get_hky_Q <- function(kappa=4, pi=c(A=.2, C=.25, G=.3, T=.25)){
 }
 
 lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
-                         subs_model, subs_pars, pi){
+                         subs_model, alpha, nrates, subs_pars, pi){
     tree_subs <- set_branchlengths(tree_time, node_times, tip_times)
     tree_subs$tree$edge.length <- tree_subs$tree$edge.length * subs_per_time
+    rate.consts <- phangorn::discrete.gamma(alpha, nrates)
+    rate.weights <- rep(1 / nrates, nrates)
     tree_char <- ape::write.tree(tree_subs$tree)
-    tmod <- rphast::tm(tree_char, subs_model, backgd = pi)
+    tmod <- rphast::tm(tree_char, subs_model, backgd = pi, nratecats = nrates,
+                       rate.consts = rate.consts, rate.weights = rate.weights)
     tmod <- rphast::set.rate.matrix.tm(tmod, params=subs_pars)
     rphast::likelihood.msa(x=msa, tm=tmod) - tree_subs$penalty
 }

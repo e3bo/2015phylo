@@ -369,3 +369,75 @@ test_that(paste("Able to estimate parameters given HYK subs model",
     expect_equal(bf_est, unname(bf), tol=.5)
     expect_equal(kappa_est, kappa, tol=.5)
 })
+
+test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
+                "with good starting point"),{
+    skip_if_not_installed("phangorn")
+    skip_if_not_installed("ape")
+
+    ntips <- 40
+    tree_time <- ape::rtree(ntips)
+
+    kappa <- 4
+    bf <- c(A=.25, C=.25, G=.1, T=.4)
+
+    alpha <- 1
+    nrates <- 4
+    rate.consts <- phangorn::discrete.gamma(alpha, nrates)
+    rate.weights <- rep(1 / nrates, nrates)
+
+    Q <- get_hky_Q(kappa=kappa, pi=bf)
+    subs_per_time <- 1e-3
+    tree_subs <- tree_time
+    tree_subs$edge.length <- tree_subs$edge.length * subs_per_time
+
+    tree_char <- ape::write.tree(tree_subs)
+    true_tm <- rphast::tm(tree_char, subst.mod="HKY85", rate.matrix=Q,
+                          backgd=bf, nratecats=4, rate.consts=rate.consts,
+                          rate.weights = rate.weights)
+    ncols <- 1e4
+    sim <- rphast::simulate.msa(true_tm, ncols)
+    charmat <- do.call(rbind, (strsplit(sim[[1]], split='')))
+    rownames(charmat) <- sim$names
+    simpd <- phyDat(charmat)
+    dist <- dist.ml(simpd, model="JC69")
+    tree_upgma <- upgma(dist)
+
+    #likelihood.msa(sim, true_tm)
+    nh <- get_nodeheights(tree_time)
+
+    obj <- function(x) {
+        subs_per_time <- x[1]
+        pi <- x[seq(2, 5)]
+        pi <- pi / sum(pi)
+        names(pi) <- c("A", "C", "G", "T")
+        kappa <- x[6]
+        alpha <- x[7]
+        node_times <- x[seq(8, length(x))]
+        lmsa_wrapper(tree_time, node_times = node_times, tip_times = nh$tip,
+                     msa = sim, subs_per_time = subs_per_time, alpha = alpha,
+                     subs_model = "HKY85", nrates = 4,
+                     subs_pars = kappa, pi = pi)
+    }
+    init <- c(1e-3, rep(.25, 4), 4, 1, nh$node)
+    init <- ifelse(init < 0, 0, init)
+    ans <- rphast::optim.rphast(obj, init, lower=rep(0, length(init)),
+                                 logfile="/tmp/optim.log")
+    ans2 <- rphast::optim.rphast(obj, ans$par, lower=rep(0, length(init)),
+                                 logfile="/tmp/optim.log")
+
+    ans <- ans2
+    nhest <- ans$par[-seq(1, 7)]
+    tree_est <- set_branchlengths(tree_time, nodeheights = nhest,
+                                  tipheights = nh$tip)$tree
+    kappa_est <- ans$par[6]
+    alpha_est <- ans$par[7]
+    bf_est <- ans$par[seq(2, 5)]
+    bf_est <- bf_est / sum(bf_est)
+
+    expect_equal(nhest, nh$node, tol = .5)
+    expect_equal(ans$par[1], subs_per_time, tol=.5)
+    expect_equal(bf_est, unname(bf), tol=.5)
+    expect_equal(kappa_est, kappa, tol=.5)
+    expect_equal(alpha_est, alpha, tol=.5)
+})
