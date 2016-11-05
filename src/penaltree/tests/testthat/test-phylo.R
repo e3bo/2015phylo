@@ -375,7 +375,7 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
     skip_if_not_installed("phangorn")
     skip_if_not_installed("ape")
 
-    ntips <- 200
+    ntips <- 50
     tree_time <- ape::rtree(ntips)
 
     kappa <- 4
@@ -386,35 +386,19 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
     rate.consts <- phangorn::discrete.gamma(alpha, nrates)
     rate.weights <- rep(1 / nrates, nrates)
 
-    Q <- get_hky_Q(kappa=kappa, pi=bf)
     subs_per_time <- 1e-1
     tree_subs <- tree_time
-    tree_subs$edge.length <- tree_subs$edge.length * subs_per_time * rate.consts[1]
+    tree_subs$edge.length <- tree_subs$edge.length * subs_per_time
 
     tree_char <- ape::write.tree(tree_subs)
-    true_tm <- rphast::tm(tree_char, subst.mod="HKY85", rate.matrix=Q,
-                          backgd=bf)
-    ncols <- 1e2
+    true_tm <- rphast::tm(tree_char, subst.mod="HKY85", backgd = bf,
+                          nratecats = nrates, rate.consts = rate.consts,
+                          rate.weights = rate.weights)
+    true_tm <- rphast::set.rate.matrix.tm(true_tm, params=kappa)
+    ncols <- 1e1
     sim <- rphast::simulate.msa(true_tm, ncols)
 
-    tree_subs2 <- tree_time
-    tree_subs2$edge.length <- tree_subs2$edge.length * subs_per_time * rate.consts[2]
-    tree_char2 <- ape::write.tree(tree_subs2)
-    true_tm2 <- rphast::tm(tree_char2, subst.mod="HKY85", rate.matrix=Q,
-                          backgd=bf)
-    sim2 <- rphast::simulate.msa(true_tm2, ncols)
-    simcat <- paste0(sim[[1]], sim2[[1]])
-    sim[[1]] <- simcat
-
-    charmat <- do.call(rbind, (strsplit(sim[[1]], split='')))
-    rownames(charmat) <- sim$names
-    #simpd <- phyDat(charmat)
-    #dist <- dist.ml(simpd, model="JC69")
-    #tree_upgma <- upgma(dist)
-
-    #likelihood.msa(sim, true_tm)
     nh <- get_nodeheights(tree_time)
-
     obj <- function(x) {
         subs_per_time <- x[1]
         pi <- x[seq(2, 5)]
