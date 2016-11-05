@@ -89,3 +89,44 @@ get_nodeheights <- function(tree){
     names(tiph) <- tpo$tip.label[ind]
     list(nodeheights=nh[idx_internal], tipheights=tiph, nh=nh)
 }
+
+set_best_root <- function(phy, tipheights){
+    ntaxa <- length(phy$tip.label)
+    internalN <- ntaxa + seq(1, phy$Nnode)
+    get_root_sse <- function(n){
+        phyr <- root(phy, node=n)
+        root_tip_dists <- tipHeights(phyr)
+        nms <- names(root_tip_dists)
+        tip_times <- -tipheights[nms]
+        m <- lm(root_tip_dists ~ tip_times)
+        sum(residuals(m)^2)
+    }
+    errs <- sapply(internalN, get_root_sse)
+    rootN <- internalN[which.min(errs)]
+    root(phy, node=rootN)
+}
+
+eval_temporal_signal <- function(phy, tipheights, show_plots=FALSE){
+    root_tip_dists <- tipHeights(phy)
+    nms <- names(root_tip_dists)
+    tip_times <- -tipheights[nms]
+    m <- lm(root_tip_dists ~ tip_times)
+    if(show_plots){
+        plot(root_tip_dists ~ tip_times)
+        abline(m)
+        plot(m)
+    }
+    if (coef(m)[2] < 0){
+        print("Slope is not positive, no strong signal")
+    }
+    ret <- list()
+    ret$subs_per_time <- coef(m)[1]
+    ret$tmrca <- -coef(m)[1] / coef(m)[2]
+    ret$date_range <- range(tipheights)
+    sstot <- sum((root_tip_dists - mean(root_tip_dists))^2)
+    ssres <- sum(residuals(m)^2)
+    ret$coef_det <- 1 - ssres / sstot
+    ret$rmse <- sqrt(ssres / length(root_tip_dists))
+    ret$mod <- m
+    ret
+}

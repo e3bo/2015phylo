@@ -327,6 +327,7 @@ test_that(paste("Able to estimate parameters given HYK subs model",
     charmat <- do.call(rbind, (strsplit(sim[[1]], split='')))
     rownames(charmat) <- sim$names
     simpd <- phyDat(charmat)
+    write.phyDat(simpd, file="sim.phy")
     dist <- dist.ml(simpd, model="JC69")
     tree_upgma <- upgma(dist)
 
@@ -413,6 +414,7 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
                      subs_pars = kappa, pi = pi)
     }
     init <- c(subs_per_time, bf, kappa, alpha, nh$node)
+    #init <- init * runif(init, max=3)
     init <- ifelse(init < 0, 0, init)
     ans <- rphast::optim.rphast(obj, init, lower=rep(0, length(init)),
                                  logfile="/tmp/optim.log")
@@ -425,6 +427,82 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
     bf_est <- bf_est / sum(bf_est)
 
     expect_equal(nhest, nh$node, tol = .5)
+    expect_equal(ans$par[1], subs_per_time, tol=.5)
+    expect_equal(bf_est, unname(bf), tol=.5)
+    expect_equal(kappa_est, kappa, tol=.5)
+    expect_equal(alpha_est, alpha, tol=.5)
+})
+
+test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
+                "with inferred topology"),{
+    skip_if_not_installed("phangorn")
+    skip_if_not_installed("ape")
+
+    ntips <- 50
+    tree_time <- ape::rtree(ntips)
+    nh <- get_nodeheights(tree_time)
+    tree_time$tip.label <- paste(tree_time$tip.label, nh$tipheights[tree_time$tip.label], sep="_")
+    names(nh$tipheights) <- paste(names(nh$tipheights), nh$tipheights, sep="_")
+
+    kappa <- 4
+    bf <- c(A=.25, C=.25, G=.1, T=.4)
+
+    alpha <- 0.5
+    nrates <- 4
+    rate.consts <- phangorn::discrete.gamma(alpha, nrates)
+    rate.weights <- rep(1 / nrates, nrates)
+
+    subs_per_time <- 1e-1
+    tree_subs <- tree_time
+    tree_subs$edge.length <- tree_subs$edge.length * subs_per_time
+
+    tree_char <- ape::write.tree(tree_subs)
+    true_tm <- rphast::tm(tree_char, subst.mod="HKY85", backgd = bf,
+                          nratecats = nrates, rate.consts = rate.consts,
+                          rate.weights = rate.weights)
+    true_tm <- rphast::set.rate.matrix.tm(true_tm, params=kappa)
+    ncols <- 1e2
+    sim <- rphast::simulate.msa(true_tm, ncols)
+
+
+    charmat <- do.call(rbind, (strsplit(sim[[1]], split='')))
+    rownames(charmat) <- sim$names
+    simpd <- phyDat(charmat)
+    simdnb <- as.DNAbin(simpd)
+    tr <- ips::raxml(simdnb, m="GTRGAMMA", p=12345, N=3, f="a", exec="/usr/bin/raxml")
+    bt <- tr$bestTree
+    btr <- set_best_root(bt, nh$tipheights)
+    eval_temporal_signal(btr, nh$tipheights)
+    write.phyDat(simpd, file="sim.fasta", format="fasta")
+    tree_inf <- read.nexus("raxml/tempest.tree")
+
+    obj <- function(x) {
+        subs_per_time <- x[1]
+        pi <- x[seq(2, 5)]
+        pi <- pi / sum(pi)
+        names(pi) <- c("A", "C", "G", "T")
+        kappa <- x[6]
+        alpha <- x[7]
+        node_times <- x[seq(8, length(x))]
+        lmsa_wrapper(tree_inf, node_times = node_times, tip_times = nh$tip,
+                     msa = sim, subs_per_time = subs_per_time, alpha = alpha,
+                     subs_model = "HKY85", nrates = 4,
+                     subs_pars = kappa, pi = pi)
+    }
+    init <- c(0.0857, bf, kappa, alpha, nh$node)
+    #init <- init * runif(init, max=3)
+    init <- ifelse(init < 0, 0, init)
+    ans <- rphast::optim.rphast(obj, init, lower=rep(0, length(init)),
+                                 logfile="/tmp/optim.log")
+    nhest <- ans$par[-seq(1, 7)]
+    tree_est <- set_branchlengths(tree_inf, nodeheights = nhest,
+                                  tipheights = nh$tip)$tree
+    kappa_est <- ans$par[6]
+    alpha_est <- ans$par[7]
+    bf_est <- ans$par[seq(2, 5)]
+    bf_est <- bf_est / sum(bf_est)
+
+    expect_equal(sort(nhest), sort(nh$node), tol = .5)
     expect_equal(ans$par[1], subs_per_time, tol=.5)
     expect_equal(bf_est, unname(bf), tol=.5)
     expect_equal(kappa_est, kappa, tol=.5)
