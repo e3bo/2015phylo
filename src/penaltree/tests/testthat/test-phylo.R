@@ -382,7 +382,7 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
     bf <- c(A=.25, C=.25, G=.1, T=.4)
 
     alpha <- 0.5
-    nrates <- 2
+    nrates <- 4
     rate.consts <- phangorn::discrete.gamma(alpha, nrates)
     rate.weights <- rep(1 / nrates, nrates)
 
@@ -409,7 +409,7 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
         node_times <- x[seq(8, length(x))]
         lmsa_wrapper(tree_time, node_times = node_times, tip_times = nh$tip,
                      msa = sim, subs_per_time = subs_per_time, alpha = alpha,
-                     subs_model = "HKY85", nrates = 2,
+                     subs_model = "HKY85", nrates = 4,
                      subs_pars = kappa, pi = pi)
     }
     init <- c(subs_per_time, bf, kappa, alpha, nh$node)
