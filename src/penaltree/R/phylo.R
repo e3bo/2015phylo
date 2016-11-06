@@ -142,3 +142,43 @@ eval_temporal_signal <- function(phy, tipheights, show_plots=FALSE){
     ret$mod <- m
     ret
 }
+
+get_raxml_ests <- function(tr){
+    ret <- list()
+    get_freq <- function(char){
+        pattern <- paste0("freq pi\\(", char, "\\): [0-9.]*$")
+        iline <- grep(pattern, tr$info)
+        line <- tr$info[iline]
+        as.numeric(strsplit(line, ": ")[[1]][2])
+    }
+    alphabet <- c("A", "C", "G", "T")
+    ret$bf <- sapply(alphabet, get_freq)
+    get_alpha <- function(){
+        pattern <- paste0("^alpha: [0-9.]*$")
+        iline <- grep(pattern, tr$info)
+        line <- tr$info[iline]
+        as.numeric(strsplit(line, ": ")[[1]][2])
+    }
+    ret$alpha <- get_alpha()
+    get_gtr_pars <- function(alphabet){
+        ret <- list()
+        ind <- 1
+        for (i in seq_along(alphabet)){
+            for (s2 in alphabet[-seq(1, i)]) {
+                s1 <- alphabet[i]
+                name <- paste0(s1, "_", s2)
+                pattern <- paste0("^rate ", s1, " <-> ", s2, ": [0-9.]*$")
+                iline <- grep(pattern, tr$info)
+                if (length(iline) == 0){
+                    pattern <- paste0("^rate ", s2, " <-> ", s1, ": [0-9.]*$")
+                    iline <- grep(pattern, tr$info)
+                }
+                line <- tr$info[iline]        
+                ret[[name]] <- as.numeric(strsplit(line, ": ")[[1]][2])
+            }
+        }
+        unlist(ret)
+    }
+    ret$gtr_pars <- get_gtr_pars(alphabet)
+    ret
+}

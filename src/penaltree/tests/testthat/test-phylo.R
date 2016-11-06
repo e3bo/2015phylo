@@ -441,7 +441,8 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
     ntips <- 50
     tree_time <- ape::rtree(ntips)
     nh <- get_nodeheights(tree_time)
-    tree_time$tip.label <- paste(tree_time$tip.label, nh$tipheights[tree_time$tip.label], sep="_")
+    tree_time$tip.label <- paste(tree_time$tip.label,
+                                 nh$tipheights[tree_time$tip.label], sep="_")
     names(nh$tipheights) <- paste(names(nh$tipheights), nh$tipheights, sep="_")
 
     kappa <- 4
@@ -464,7 +465,6 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
     ncols <- 1e2
     sim <- rphast::simulate.msa(true_tm, ncols)
 
-
     charmat <- do.call(rbind, (strsplit(sim[[1]], split='')))
     rownames(charmat) <- sim$names
     simpd <- phyDat(charmat)
@@ -473,29 +473,30 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
                      exec="/usr/bin/raxml")
     bt <- tr$bestTree
     btr <- set_best_root(bt, nh$tipheights)
-    ets <- eval_temporal_signal(btr, nh$tipheights)
+    rate_ests <- get_raxml_ests(tr=tr)
+    temp_ests <- eval_temporal_signal(btr, nh$tipheights)
 
     obj <- function(x) {
         subs_per_time <- x[1]
         pi <- x[seq(2, 5)]
         pi <- pi / sum(pi)
         names(pi) <- c("A", "C", "G", "T")
-        kappa <- x[6]
-        alpha <- x[7]
-        node_times <- x[seq(8, length(x))]
+        subs_pars <- x[seq(6, 11)]
+        alpha <- x[12]
+        node_times <- x[seq(13, length(x))]
         lmsa_wrapper(tree_inf, node_times = node_times, tip_times = nh$tip,
                      msa = sim, subs_per_time = subs_per_time, alpha = alpha,
-                     subs_model = "HKY85", nrates = 4,
+                     subs_model = "REV", nrates = 4,
                      subs_pars = kappa, pi = pi)
     }
-    init <- c(ets$subs_per_time, bf, kappa, alpha, nh$node)
-    #init <- init * runif(init, max=3)
-    init <- ifelse(init < 0, 0, init)
+    init <- c(temp_ests$subs_per_time, rate_ests$bf,
+              rate_ests$gtr_pars, rate_ests$alpha, nh$node)
     ans <- rphast::optim.rphast(obj, init, lower=rep(0, length(init)),
                                  logfile="/tmp/optim.log")
-    nhest <- ans$par[-seq(1, 7)]
+    nhest <- ans$par[-seq(1, 12)]
     tree_est <- set_branchlengths(tree_inf, nodeheights = nhest,
                                   tipheights = nh$tip)$tree
+
     kappa_est <- ans$par[6]
     alpha_est <- ans$par[7]
     bf_est <- ans$par[seq(2, 5)]
