@@ -68,7 +68,7 @@ lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
     rphast::likelihood.msa(x=msa, tm=tmod) - tree_subs$penalty
 }
 
-get_nodeheights <- function(tree){
+get_nodeheights <- function(tree, dist_from_root = FALSE){
     tpo <- reorder(tree, "postorder")
     edge <- tpo$edge
     ntips <- length(tpo$tip.label)
@@ -83,7 +83,11 @@ get_nodeheights <- function(tree){
     for (i in seq(nedge, 1)){
         nh[i] <- nh[ipheight[i]] - tpo$edge.length[i]
     }
-    nh <- nh - min(nh)
+    if (!dist_from_root) {
+        nh <- nh - min(nh)
+    } else {
+        nh <- -nh
+    }
     tiph <- nh[idx_tip]
     ind <- edge[idx_tip, 2]
     names(tiph) <- tpo$tip.label[ind]
@@ -94,8 +98,12 @@ set_best_root <- function(phy, tipheights){
     ntaxa <- length(phy$tip.label)
     internalN <- ntaxa + seq(1, phy$Nnode)
     get_root_sse <- function(n){
-        phyr <- root(phy, node=n)
-        root_tip_dists <- tipHeights(phyr)
+        if (n != length(phy$tip.label) + 1) {
+            phyr <- root(phy, node=n, resolve.root=TRUE)
+        } else {
+            phyr <- phy
+        }
+        root_tip_dists <- get_nodeheights(phyr, dist_from_root=TRUE)$tipheights
         nms <- names(root_tip_dists)
         tip_times <- -tipheights[nms]
         m <- lm(root_tip_dists ~ tip_times)
@@ -103,11 +111,15 @@ set_best_root <- function(phy, tipheights){
     }
     errs <- sapply(internalN, get_root_sse)
     rootN <- internalN[which.min(errs)]
-    root(phy, node=rootN)
+    if (rootN != length(phy$tip.label) + 1) {
+        root(phy, node=rootN, resolve.root=TRUE)
+    } else {
+        phy
+    }
 }
 
 eval_temporal_signal <- function(phy, tipheights, show_plots=FALSE){
-    root_tip_dists <- tipHeights(phy)
+    root_tip_dists <- get_nodeheights(phy, dist_from_root=TRUE)$tipheights
     nms <- names(root_tip_dists)
     tip_times <- -tipheights[nms]
     m <- lm(root_tip_dists ~ tip_times)
@@ -116,17 +128,17 @@ eval_temporal_signal <- function(phy, tipheights, show_plots=FALSE){
         abline(m)
         plot(m)
     }
-    if (coef(m)[2] < 0){
+    if (coef(m)[1] < 0){
         print("Slope is not positive, no strong signal")
     }
     ret <- list()
-    ret$subs_per_time <- coef(m)[1]
+    ret$subs_per_time <- coef(m)[2]
     ret$tmrca <- -coef(m)[1] / coef(m)[2]
     ret$date_range <- range(tipheights)
     sstot <- sum((root_tip_dists - mean(root_tip_dists))^2)
     ssres <- sum(residuals(m)^2)
     ret$coef_det <- 1 - ssres / sstot
-    ret$rmse <- sqrt(ssres / length(root_tip_dists))
+    ret$rmes <- ssres / (length(root_tip_dists) - 2)
     ret$mod <- m
     ret
 }

@@ -469,12 +469,11 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
     rownames(charmat) <- sim$names
     simpd <- phyDat(charmat)
     simdnb <- as.DNAbin(simpd)
-    tr <- ips::raxml(simdnb, m="GTRGAMMA", p=12345, N=3, f="a", exec="/usr/bin/raxml")
+    tr <- ips::raxml(simdnb, m="GTRGAMMA", p=12345, N=3, f="a",
+                     exec="/usr/bin/raxml")
     bt <- tr$bestTree
     btr <- set_best_root(bt, nh$tipheights)
-    eval_temporal_signal(btr, nh$tipheights)
-    write.phyDat(simpd, file="sim.fasta", format="fasta")
-    tree_inf <- read.nexus("raxml/tempest.tree")
+    ets <- eval_temporal_signal(btr, nh$tipheights)
 
     obj <- function(x) {
         subs_per_time <- x[1]
@@ -489,7 +488,7 @@ test_that(paste("Able to estimate parameters given HYK subs model + Gamma4",
                      subs_model = "HKY85", nrates = 4,
                      subs_pars = kappa, pi = pi)
     }
-    init <- c(0.0857, bf, kappa, alpha, nh$node)
+    init <- c(ets$subs_per_time, bf, kappa, alpha, nh$node)
     #init <- init * runif(init, max=3)
     init <- ifelse(init < 0, 0, init)
     ans <- rphast::optim.rphast(obj, init, lower=rep(0, length(init)),
