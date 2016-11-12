@@ -442,10 +442,11 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     tree_time <- ape::rtree(ntips)
     nh <- get_nodeheights(tree_time)
     tree_time$tip.label <- paste(tree_time$tip.label,
-                                 nh$tipheights[tree_time$tip.label], sep="_")
-    names(nh$tipheights) <- paste(names(nh$tipheights), nh$tipheights, sep="_")
+                                 nh$tipheights[tree_time$tip.label], sep = "_")
+    names(nh$tipheights) <- paste(names(nh$tipheights), nh$tipheights,
+                                  sep = "_")
 
-    subs_params <- c(AC=.2, AG=.8, AT=.14, CG=.9, CT=.1, GT=.12)
+    subs_params <- c(AC = .2, AG = .8, AT = .14, CG = .9, CT = .1, GT = .12)
     subs_params <- subs_params / subs_params[6]
     bf <- c(.2, .14, .25, .4)
     bf <- bf / sum(bf)
@@ -460,22 +461,22 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     tree_subs$edge.length <- tree_subs$edge.length * subs_per_time
 
     tree_char <- ape::write.tree(tree_subs)
-    true_tm <- rphast::tm(tree_char, subst.mod="REV", backgd = bf,
+    true_tm <- rphast::tm(tree_char, subst.mod = "REV", backgd = bf,
                           nratecats = nrates, rate.consts = rate.consts,
                           rate.weights = rate.weights)
-    true_tm <- rphast::set.rate.matrix.tm(true_tm, params=subs_params)
+    true_tm <- rphast::set.rate.matrix.tm(true_tm, params = subs_params)
     ncols <- 1e3
     sim <- rphast::simulate.msa(true_tm, ncols)
 
-    charmat <- do.call(rbind, (strsplit(sim[[1]], split='')))
+    charmat <- do.call(rbind, (strsplit(sim[[1]], split = '')))
     rownames(charmat) <- sim$names
     simpd <- phangorn::phyDat(charmat)
     simdnb <- ape::as.DNAbin(simpd)
-    tr <- ips::raxml(simdnb, m="GTRGAMMA", p=12345, N=3, f="a",
-                     exec="/usr/bin/raxmlHPC")
+    tr <- ips::raxml(simdnb, m = "GTRGAMMA", p = 12345, N = 3, f = "a",
+                     exec = "/usr/bin/raxmlHPC")
     bt <- tr$bestTree
     btr <- set_best_root(bt, nh$tipheights)
-    rate_ests <- get_raxml_ests(tr=tr)
+    rate_ests <- get_raxml_ests(tr = tr)
     temp_ests <- eval_temporal_signal(btr, nh$tipheights)
 
     obj <- function(x) {
@@ -491,11 +492,11 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
                      subs_model = "REV", nrates = 4,
                      subs_pars = subs_pars, pi = pi)
     }
+    nhinit <- get_time_tree_internal_nodeheights(btr, temp_ests$subs_per_time, nh$tip)
     init <- c(temp_ests$subs_per_time, rate_ests$bf[-4] / rate_ests$bf[4],
-              rate_ests$gtr_pars[-6], rate_ests$alpha, nh$node)
-    # TODO get initial node heights from temp ests
-    ans <- rphast::optim.rphast(obj, init, lower=rep(0, length(init)),
-                                 logfile="/tmp/optim.log")
+              rate_ests$gtr_pars[-6], rate_ests$alpha, nhinit)
+    ans <- rphast::optim.rphast(obj, init, lower = rep(0, length(init)),
+                                 logfile = "/tmp/optim.log")
     nhest <- ans$par[-seq(1, 10)]
     tree_est <- set_branchlengths(btr, nodeheights = nhest,
                                   tipheights = nh$tip)$tree
@@ -504,10 +505,11 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     bf_est <- c(ans$par[seq(2, 4)], 1)
     bf_est <- bf_est / sum(bf_est)
 
-    expect_lt(ape::dist.topo(tree_est, tree_time), length(tree_est$tip.label) - 3)
+    expect_lt(ape::dist.topo(tree_est, tree_time),
+              length(tree_est$tip.label) - 3)
     expect_equal(sort(nhest), sort(nh$node), tol = .5)
-    expect_equal(ans$par[1], subs_per_time, tol=.5)
-    expect_equal(bf_est, unname(bf), tol=.5)
-    expect_equal(subs_pars_est[-6], unname(subs_params)[-6], tol=.5)
-    expect_equal(alpha_est, alpha, tol=.5)
+    expect_equal(ans$par[1], subs_per_time, tol = .5)
+    expect_equal(bf_est, unname(bf), tol = .5)
+    expect_equal(subs_pars_est[-6], unname(subs_params)[-6], tol = .5)
+    expect_equal(alpha_est, alpha, tol = .5)
 })

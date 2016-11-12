@@ -31,6 +31,14 @@ set_branchlengths <- function(tree, nodeheights, tipheights){
     list(tree=tree, penalty=penalty)
 }
 
+get_time_tree_internal_nodeheights <- function(subs_tree, subs_per_time, tipheights) {
+    time_tree <- subs_tree
+    time_tree$edge.length <- subs_tree$edge.length / subs_per_time
+    est_nh <- get_nodeheights(time_tree)
+    delta <- mean(tipheights) - mean(est_nh$tipheights)
+    est_nh$nodeheights + delta
+}
+
 pml_wrapper <- function(tree, nodeheights, tipheights, phydata, ...){
     foo <- set_branchlengths(tree, nodeheights, tipheights)
     print(nodeheights)
@@ -99,7 +107,7 @@ set_best_root <- function(phy, tipheights){
     internalN <- ntaxa + seq(1, phy$Nnode)
     get_root_sse <- function(n){
         if (n != length(phy$tip.label) + 1) {
-            phyr <- root(phy, node=n, resolve.root=TRUE)
+            phyr <- ape::root(phy, node=n, resolve.root=TRUE)
         } else {
             phyr <- phy
         }
@@ -112,7 +120,7 @@ set_best_root <- function(phy, tipheights){
     errs <- sapply(internalN, get_root_sse)
     rootN <- internalN[which.min(errs)]
     if (rootN != length(phy$tip.label) + 1) {
-        root(phy, node=rootN, resolve.root=TRUE)
+        ape::root(phy, node=rootN, resolve.root=TRUE)
     } else {
         phy
     }
