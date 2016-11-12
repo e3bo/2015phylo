@@ -464,15 +464,15 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
                           nratecats = nrates, rate.consts = rate.consts,
                           rate.weights = rate.weights)
     true_tm <- rphast::set.rate.matrix.tm(true_tm, params=subs_params)
-    ncols <- 1e2
+    ncols <- 1e3
     sim <- rphast::simulate.msa(true_tm, ncols)
 
     charmat <- do.call(rbind, (strsplit(sim[[1]], split='')))
     rownames(charmat) <- sim$names
-    simpd <- phyDat(charmat)
-    simdnb <- as.DNAbin(simpd)
+    simpd <- phangorn::phyDat(charmat)
+    simdnb <- ape::as.DNAbin(simpd)
     tr <- ips::raxml(simdnb, m="GTRGAMMA", p=12345, N=3, f="a",
-                     exec="/usr/bin/raxml")
+                     exec="/usr/bin/raxmlHPC")
     bt <- tr$bestTree
     btr <- set_best_root(bt, nh$tipheights)
     rate_ests <- get_raxml_ests(tr=tr)
@@ -486,7 +486,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
         subs_pars <- c(x[seq(5, 9)], 1)
         alpha <- x[10]
         node_times <- x[seq(11, length(x))]
-        lmsa_wrapper(tree_inf, node_times = node_times, tip_times = nh$tip,
+        lmsa_wrapper(btr, node_times = node_times, tip_times = nh$tip,
                      msa = sim, subs_per_time = subs_per_time, alpha = alpha,
                      subs_model = "REV", nrates = 4,
                      subs_pars = subs_pars, pi = pi)
@@ -497,14 +497,14 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     ans <- rphast::optim.rphast(obj, init, lower=rep(0, length(init)),
                                  logfile="/tmp/optim.log")
     nhest <- ans$par[-seq(1, 10)]
-    tree_est <- set_branchlengths(tree_inf, nodeheights = nhest,
+    tree_est <- set_branchlengths(btr, nodeheights = nhest,
                                   tipheights = nh$tip)$tree
     subs_pars_est <-  c(ans$par[seq(5, 9)], 1)
     alpha_est <- ans$par[10]
     bf_est <- c(ans$par[seq(2, 4)], 1)
     bf_est <- bf_est / sum(bf_est)
 
-    # todo calculate fraction of true splits recovered, difference in node heights for them
+    expect_lt(ape::dist.topo(tree_est, tree_time), length(tree_est$tip.label) - 3)
     expect_equal(sort(nhest), sort(nh$node), tol = .5)
     expect_equal(ans$par[1], subs_per_time, tol=.5)
     expect_equal(bf_est, unname(bf), tol=.5)
