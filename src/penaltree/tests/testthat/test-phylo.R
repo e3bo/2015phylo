@@ -19,6 +19,8 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
                 "with inferred topology"),{
     skip_if_not_installed("phangorn")
     skip_if_not_installed("ape")
+    skip_if_not_installed("ips")
+    skip_if_not(file.exists("/usr/bin/raxmlHPC"))
 
     ntips <- 50
     tree_time <- ape::rtree(ntips)
@@ -74,11 +76,13 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
                      subs_model = "REV", nrates = 4,
                      subs_pars = subs_pars, pi = pi)
     }
-    nhinit <- get_time_tree_internal_nodeheights(btr, temp_ests$subs_per_time, nh$tip)
+    nhinit <- get_time_tree_internal_nodeheights(btr, temp_ests$subs_per_time,
+                                                 nh$tip)
     init <- c(temp_ests$subs_per_time, rate_ests$bf[-4] / rate_ests$bf[4],
               rate_ests$gtr_pars[-6], rate_ests$alpha, nhinit)
+    logfile <- tempfile(fileext = ".log")
     ans <- rphast::optim.rphast(obj, init, lower = rep(0, length(init)),
-                                 logfile = "/tmp/optim.log")
+                                 logfile = logfile)
     nhest <- ans$par[-seq(1, 10)]
     tree_est <- set_branchlengths(btr, nodeheights = nhest,
                                   tipheights = nh$tip)$tree
