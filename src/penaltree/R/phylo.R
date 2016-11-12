@@ -64,7 +64,7 @@ lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
     tree_char <- ape::write.tree(tree_subs$tree)
     tmod <- rphast::tm(tree_char, subs_model, backgd = pi, nratecats = nrates,
                        rate.consts = rate.consts, rate.weights = rate.weights)
-    tmod <- rphast::set.rate.matrix.tm(tmod, params=subs_pars)
+    tmod <- rphast::set.rate.matrix.tm(tmod, params=subs_pars, scale=TRUE)
     rphast::likelihood.msa(x=msa, tm=tmod) - tree_subs$penalty
 }
 

@@ -493,6 +493,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     }
     init <- c(temp_ests$subs_per_time, rate_ests$bf[-4] / rate_ests$bf[4],
               rate_ests$gtr_pars[-6], rate_ests$alpha, nh$node)
+    # TODO get initial node heights from temp ests
     ans <- rphast::optim.rphast(obj, init, lower=rep(0, length(init)),
                                  logfile="/tmp/optim.log")
     nhest <- ans$par[-seq(1, 10)]
@@ -503,6 +504,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     bf_est <- c(ans$par[seq(2, 4)], 1)
     bf_est <- bf_est / sum(bf_est)
 
+    # todo calculate fraction of true splits recovered, difference in node heights for them
     expect_equal(sort(nhest), sort(nh$node), tol = .5)
     expect_equal(ans$par[1], subs_per_time, tol=.5)
     expect_equal(bf_est, unname(bf), tol=.5)
