@@ -36,7 +36,8 @@ get_time_tree_internal_nodeheights <- function(subs_tree, subs_per_time, tipheig
     time_tree$edge.length <- subs_tree$edge.length / subs_per_time
     est_nh <- get_nodeheights(time_tree)
     delta <- mean(tipheights) - mean(est_nh$tipheights)
-    est_nh$nodeheights + delta
+    nodeheights <- est_nh$nodeheights + delta
+    ifelse(nodeheights < 0, .Machine$double.eps, nodeheights)
 }
 
 pml_wrapper <- function(tree, nodeheights, tipheights, phydata, ...){

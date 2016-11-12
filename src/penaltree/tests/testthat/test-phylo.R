@@ -20,10 +20,29 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     skip_if_not_installed("phangorn")
     skip_if_not_installed("ape")
     skip_if_not_installed("ips")
-    skip_if_not(file.exists("/usr/bin/raxmlHPC"))
+    raxmlbin <- "/usr/bin/raxmlHPC"
+    skip_if_not(file.exists(raxmlbin))
+    skip_on_cran()
 
-    ntips <- 50
-    tree_time <- ape::rtree(ntips)
+    load("testdata.rda")
+
+    x <- x[seq(1, 169), ]
+    x1 <- x[, c(1, 2), drop=FALSE]
+
+    pm <- gen_param_map(13)
+    w1 <- c(log(2), 0.5, 0.25)
+    pars <- pm(x=x1, w=w1)
+
+    ntips <- 4
+    capture.output(trees <- replicate(1, sim_bd_proc(n=ntips, l=pars$l, m=pars$m,
+                                                      psi=pars$psi, init=1),
+                                      simplify=FALSE))
+    # not clear whether this is needed for calculating the birth-death
+    # likelihood, but it does cause problems with some other tree
+                                        # functions
+    # addroot <- function(x) TreePar::addroot(x,
+    # x$root.edge)
+    tree_time <- trees[[1]]
     nh <- get_nodeheights(tree_time)
     tree_time$tip.label <- paste(tree_time$tip.label,
                                  nh$tipheights[tree_time$tip.label], sep = "_")
@@ -57,7 +76,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     simpd <- phangorn::phyDat(charmat)
     simdnb <- ape::as.DNAbin(simpd)
     tr <- ips::raxml(simdnb, m = "GTRGAMMA", p = 12345, N = 3, f = "a",
-                     exec = "/usr/bin/raxmlHPC")
+                     exec = raxmlbin)
     bt <- tr$bestTree
     btr <- set_best_root(bt, nh$tipheights)
     rate_ests <- get_raxml_ests(tr = tr)
@@ -93,7 +112,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
 
     expect_lt(ape::dist.topo(tree_est, tree_time),
               length(tree_est$tip.label) - 3)
-    expect_equal(sort(nhest), sort(nh$node), tol = .5)
+    #expect_equal(sort(nhest), sort(nh$node), tol = .5)
     expect_equal(ans$par[1], subs_per_time, tol = .5)
     expect_equal(bf_est, unname(bf), tol = .5)
     expect_equal(subs_pars_est[-6], unname(subs_params)[-6], tol = .5)
