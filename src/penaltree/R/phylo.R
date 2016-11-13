@@ -1,10 +1,9 @@
-
 set_branchlengths <- function(tree, nodeheights, tipheights){
     tree <- reorder(tree, order="postorder")
     edge <- tree$edge
     ntips <- length(tipheights)
     nedge <- nrow(edge)
-    stopifnot(nedge + 1== length(nodeheights) + ntips)
+    stopifnot(nedge + 1 == length(nodeheights) + ntips)
     stopifnot(ntips == length(tree$tip.label))
     nh <- numeric(nedge + 1)
     idx_tip <- which(edge[, 2] <= ntips)
@@ -101,30 +100,6 @@ get_nodeheights <- function(tree, dist_from_root = FALSE){
     ind <- edge[idx_tip, 2]
     names(tiph) <- tpo$tip.label[ind]
     list(nodeheights=nh[idx_internal], tipheights=tiph, nh=nh)
-}
-
-set_best_root <- function(phy, tipheights){
-    ntaxa <- length(phy$tip.label)
-    internalN <- ntaxa + seq(1, phy$Nnode)
-    get_root_sse <- function(n){
-        if (n != length(phy$tip.label) + 1) {
-            phyr <- ape::root(phy, node=n, resolve.root=TRUE)
-        } else {
-            phyr <- phy
-        }
-        root_tip_dists <- get_nodeheights(phyr, dist_from_root=TRUE)$tipheights
-        nms <- names(root_tip_dists)
-        tip_times <- -tipheights[nms]
-        m <- lm(root_tip_dists ~ tip_times)
-        sum(residuals(m)^2)
-    }
-    errs <- sapply(internalN, get_root_sse)
-    rootN <- internalN[which.min(errs)]
-    if (rootN != length(phy$tip.label) + 1) {
-        ape::root(phy, node=rootN, resolve.root=TRUE)
-    } else {
-        phy
-    }
 }
 
 eval_temporal_signal <- function(phy, tipheights, show_plots=FALSE){

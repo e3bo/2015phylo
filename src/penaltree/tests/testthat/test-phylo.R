@@ -33,11 +33,11 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     w1 <- c(log(2), 0.5, 0.25)
     pars <- pm(x=x1, w=w1)
 
-    ntips <- 4
+    ntips <- 40
     capture.output(trees <- replicate(1, sim_bd_proc(n=ntips, l=pars$l, m=pars$m,
                                                       psi=pars$psi, init=1),
                                       simplify=FALSE))
-    # not clear whether this is needed for calculating the birth-death
+    # This is needed for calculating the birth-death
     # likelihood, but it does cause problems with some other tree
                                         # functions
     # addroot <- function(x) TreePar::addroot(x,
@@ -78,7 +78,9 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     tr <- ips::raxml(simdnb, m = "GTRGAMMA", p = 12345, N = 3, f = "a",
                      exec = raxmlbin)
     bt <- tr$bestTree
-    btr <- set_best_root(bt, nh$tipheights)
+    tip.dates <- -nh$tipheights[bt$tip.label]
+    btr <- ape::rtt(bt, tip.dates=tip.dates, objective="rms")
+
     rate_ests <- get_raxml_ests(tr = tr)
     temp_ests <- eval_temporal_signal(btr, nh$tipheights)
 
