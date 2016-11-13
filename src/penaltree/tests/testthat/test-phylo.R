@@ -37,11 +37,6 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     capture.output(trees <- replicate(1, sim_bd_proc(n=ntips, l=pars$l, m=pars$m,
                                                       psi=pars$psi, init=1),
                                       simplify=FALSE))
-    # This is needed for calculating the birth-death
-    # likelihood, but it does cause problems with some other tree
-                                        # functions
-    # addroot <- function(x) TreePar::addroot(x,
-    # x$root.edge)
     tree_time <- trees[[1]]
     nh <- get_nodeheights(tree_time)
     tree_time$tip.label <- paste(tree_time$tip.label,
@@ -101,7 +96,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
                                                  nh$tip)
     init <- c(temp_ests$subs_per_time, rate_ests$bf[-4] / rate_ests$bf[4],
               rate_ests$gtr_pars[-6], rate_ests$alpha, nhinit)
-    logfile <- tempfile(fileext = ".log")
+    (logfile <- tempfile(fileext = ".log"))
     ans <- rphast::optim.rphast(obj, init, lower = rep(0, length(init)),
                                  logfile = logfile)
     nhest <- ans$par[-seq(1, 10)]
@@ -114,7 +109,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
 
     expect_lt(ape::dist.topo(tree_est, tree_time),
               length(tree_est$tip.label) - 3)
-    #expect_equal(sort(nhest), sort(nh$node), tol = .5)
+    expect_equal(sort(nhest), sort(nh$node), tol = .5)
     expect_equal(ans$par[1], subs_per_time, tol = .5)
     expect_equal(bf_est, unname(bf), tol = .5)
     expect_equal(subs_pars_est[-6], unname(subs_params)[-6], tol = .5)
