@@ -166,3 +166,31 @@ get_raxml_ests <- function(tr){
     ret$gtr_pars <- get_gtr_pars(alphabet)
     ret
 }
+
+#' Generate parameter map for phylogeny nll
+#'
+#' @export
+gen_param_map_phylo <- function(tree, tip_times){
+    function(w){
+        ret <- list(tree=tree, tip_times=tip_times)
+        ret$subs_per_time <- w[1]
+        ret$pi <- w[seq(2, 4)]
+        ret$pi <- c(ret$pi, 1) / (1 + sum(ret$pi))
+        names(ret$pi) <- c("A", "C", "G", "T")
+        ret$subs_pars <- c(w[seq(5, 9)], 1)
+        ret$alpha <- w[10]
+        ret$node_times <- w[seq(11, length(w))]
+        ret
+    }
+}
+
+#' Calculate the negative log likelihood of a time scaled phylogeny
+#'
+#' @export
+calc_phylo_nll <- function(w, x, y, param_map){
+    pars <- param_map(w)
+    -lmsa_wrapper(pars$tree, node_times = pars$node_times, tip_times = pars$tip_times,
+                 msa = y, subs_per_time = pars$subs_per_time, alpha = pars$alpha,
+                 subs_model = "REV", nrates = 4L, subs_pars = pars$subs_pars,
+                 pi = pars$pi)
+}
