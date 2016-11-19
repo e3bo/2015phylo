@@ -3,10 +3,11 @@
 #' @export
 get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
                       lambda.min.ratio=0.01, lambda=NULL, standardize=TRUE,
-                      intercept=TRUE, thresh=1e-4, dfmax=nvars + 1,
+                      thresh=1e-4, dfmax=nvars + 1,
                       pmax=min(dfmax*2 + 20,nvars), exclude,
                       penalty.factor=rep(1, nvars), lower.limits=-Inf,
-                      upper.limits=Inf, maxit=100, verbose=FALSE){
+                      upper.limits=Inf, maxit=100, verbose=FALSE,
+                      winit){
     if (alpha > 1) {
         warning("alpha >1; set to 1")
         alpha <- 1
@@ -60,7 +61,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
     }
     storage.mode(cl) <- "double"
     isd <- as.integer(standardize)
-    intr <- as.integer(intercept)
+    intr <- as.integer(sum(penalty.factor < .Machine$double.eps))
     thresh <- as.double(thresh)
     if (is.null(lambda)) {
         if (lambda.min.ratio >= 1)
@@ -77,7 +78,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
     }
     fit <- gpnet(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                  cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
-                 maxit, verbose=verbose)
+                 maxit, verbose = verbose, winit = winit)
     fit$call <- this.call
     fit$nrates <- nrates
     class(fit) <- c(class(fit), "gpnet")
@@ -87,22 +88,30 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
 gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                   cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
                   maxit, a=0.1, r=0.01, relStart=0.1, mubar=1, beta=0.9,
-                  verbose=FALSE, debug=TRUE, initFactor=10){
+                  verbose=FALSE, debug=TRUE, initFactor=10, winit){
     maxit <- as.integer(maxit)
     niter <- 0
-    if(!intr) stop("not implemented")
     dim <- nvars + intr
     parInds <- seq(dim)
     I <- diag(nrow=dim)
     nll <- function(w){
         calc_convex_nll(w=w, x=x, y=y, param_map=param_map)
     }
-    f <- function(x) {
-        par <- c(x, rep(0, nvars))
-        nll(par)
+    ll_no_penalty <- function(w_nopen){
+        w <- winit
+        pen_ind <- vp > .Machine$double.eps
+        w[!pen_ind] <- w_nopen
+        -calc_convex_nll(w=w, x=x, y=y, param_map=param_map)
     }
-    intercept_est <- optimize(f, lower=log(0.05), upper=log(50), tol=1)$minimum
-    par <- c(intercept_est, rep(0, nvars))
+    (logfile <- tempfile(fileext = ".log"))
+    is_unpenalized <- vp < .Machine$double.eps
+    init <- winit[is_unpenalized]
+    #browser()
+    #ans <- rphast::optim.rphast(ll_no_penalty, init, lower = rep(0, length(init)),
+                                        #logfile = logfile)
+    ans <- readRDS("ans.rds")
+    par <- winit
+    par[is_unpenalized] <- ans$par
     gnll <- numDeriv::grad(nll, x=par, method='simple')
     mu <- mubar
     stopifnot(beta>0, beta<1)
@@ -129,8 +138,8 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
         }
     }
     for (i in seq_along(lambda)){
-        l1penalty <- lambda[i] * c(0, vp) * alpha
-        l2penalty <- lambda[i] * c(0, vp) * (1 - alpha)
+        l1penalty <- lambda[i] * vp * alpha
+        l2penalty <- lambda[i] * vp * (1 - alpha)
         penFunc <- function(par) abs(par) %*% l1penalty + (par^2 %*% l2penalty)/2
         k <- 0
         nlp <- nll(par)
@@ -231,8 +240,8 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
         mu <- mubar
     }
     path <- sapply(res, '[[', 'par')
-    ret <- list(a0=path[1,])
-    beta <- path[-1, ]
+    ret <- list(a0=path[is_unpenalized,])
+    beta <- path[!is_unpenalized, , drop=FALSE]
     colnames(beta) <- paste("s", seq(ncol(beta)) - 1, sep = "")
     rownames(beta) <- vnames
     ret$beta <- beta
@@ -253,7 +262,7 @@ plotCoef <- function (beta, norm, lambda, df, dev, label = FALSE, xvar = c("norm
     switch(nwhich + 1, `0` = {
         warning("No plot produced since all coefficients zero")
         return()
-    }, `1` = warning("1 or less nonzero coefficients; glmnet plot is not meaningful"))
+    }, `1` = warning("1 or fewer nonzero coefficients; glmnet plot is not meaningful"))
     beta = as.matrix(beta[which, , drop = FALSE])
     xvar = match.arg(xvar)
     switch(xvar, norm = {

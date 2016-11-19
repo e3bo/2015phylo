@@ -175,35 +175,35 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
                      exec = raxmlbin)
     bt <- tr$bestTree
     tip.dates <- -nh$tipheights[bt$tip.label]
-    btr <- ape::rtt(bt, tip.dates=tip.dates, objective="rms")
+    btr <- ape::rtt(bt, tip.dates = tip.dates, objective = "rms")
 
     rate_ests <- get_raxml_ests(tr = tr)
     temp_ests <- eval_temporal_signal(btr, nh$tipheights)
 
-    pm <- gen_param_map_phylo(btr, nh$tip)
-    obj <- function(x) {
-        pars <- pm(x)
-        -calc_phylo_nll(w = x, x = NULL, y = sim, param_map = pm)
-    }
+    pm <- gen_param_map_phylo_bd(btr, nh$tip)
     nhinit <- get_time_tree_internal_nodeheights(btr, temp_ests$subs_per_time,
                                                  nh$tip)
     init <- c(temp_ests$subs_per_time, rate_ests$bf[-4] / rate_ests$bf[4],
-              rate_ests$gtr_pars[-6], rate_ests$alpha, nhinit)
+              rate_ests$gtr_pars[-6], rate_ests$alpha, nhinit, 0)
     (logfile <- tempfile(fileext = ".log"))
-    ans <- rphast::optim.rphast(obj, init, lower = rep(0, length(init)),
-                                 logfile = logfile)
-    nhest <- ans$par[-seq(1, 10)]
+
+    pf <- c(rep(0, length(init) - 1), 1)
+    out <- get_gpnet(x = matrix(1, ncol = 1), y = sim,
+                     calc_convex_nll = calc_phylo_nll_bd, param_map = pm,
+                     nlambda = 20, lambda.min.ratio = 0.25, verbose = TRUE,
+                     winit = init, penalty.factor = pf, thresh=1e-3)
+    nhest <- out$a0[-seq(1, 10), 1]
     tree_est <- set_branchlengths(btr, nodeheights = nhest,
                                   tipheights = nh$tip)$tree
-    subs_pars_est <-  c(ans$par[seq(5, 9)], 1)
-    alpha_est <- ans$par[10]
-    bf_est <- c(ans$par[seq(2, 4)], 1)
+    subs_pars_est <-  c(out$a0[seq(5, 9), 1], 1)
+    alpha_est <- out$a0[10, 1]
+    bf_est <- c(out$a0[seq(2, 4), 1], 1)
     bf_est <- bf_est / sum(bf_est)
 
     expect_lt(ape::dist.topo(tree_est, tree_time),
               length(tree_est$tip.label) - 3)
     expect_equal(sort(nhest), sort(nh$node), tol = .5)
-    expect_equal(ans$par[1], subs_per_time, tol = .5)
+    expect_equal(out$a0[1,1], subs_per_time, tol = .5)
     expect_equal(bf_est, unname(bf), tol = .5)
     expect_equal(subs_pars_est[-6], unname(subs_params)[-6], tol = .5)
     expect_equal(alpha_est, alpha, tol = .5)
