@@ -87,7 +87,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
 
 gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                   cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
-                  maxit, a=0.1, r=0.01, relStart=0.1, mubar=1, beta=0.9,
+                  maxit, a=0.1, r=0.01, relStart=0.1, mubar=0.1, beta=0.9,
                   verbose=FALSE, debug=TRUE, initFactor=10, winit){
     maxit <- as.integer(maxit)
     niter <- 0

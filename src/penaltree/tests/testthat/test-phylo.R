@@ -190,7 +190,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     pf <- c(rep(0, length(init) - 1), 1)
     out <- get_gpnet(x = matrix(1, ncol = 1), y = sim,
                      calc_convex_nll = calc_phylo_nll_bd, param_map = pm,
-                     nlambda = 30, lambda.min.ratio = 0.01, verbose = TRUE,
+                     nlambda = 100, lambda.min.ratio = 0.1, verbose = TRUE,
                      winit = init, penalty.factor = pf, thresh = 1e-3)
     nhest <- unname(out$a0[-seq(1, 10), 1])
     tree_est <- set_branchlengths(btr, nodeheights = nhest,

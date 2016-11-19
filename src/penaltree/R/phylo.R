@@ -63,10 +63,16 @@ get_hky_Q <- function(kappa=4, pi=c(A=.2, C=.25, G=.3, T=.25)){
     Q / scale
 }
 
-lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
-                         subs_model, alpha, nrates, subs_pars, pi){
+
+get_tree_subs <- function(tree_time, node_times, tip_times){
     tree_subs <- set_branchlengths(tree_time, node_times, tip_times)
     tree_subs$tree$edge.length <- tree_subs$tree$edge.length * subs_per_time
+    tree_subs
+}
+
+lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
+                         subs_model, alpha, nrates, subs_pars, pi){
+    tree_subs <- get_tree_subs(tree_time, node_times, tip_times)
     rate.consts <- phangorn::discrete.gamma(alpha, nrates)
     rate.weights <- rep(1 / nrates, nrates)
     tree_char <- ape::write.tree(tree_subs$tree)
@@ -189,37 +195,62 @@ gen_param_map_phylo <- function(tree, tip_times){
 #' @export
 calc_phylo_nll <- function(w, x, y, param_map){
     pars <- param_map(w)
-    -lmsa_wrapper(pars$tree, node_times = pars$node_times, tip_times = pars$tip_times,
+    try(nll <- -lmsa_wrapper(pars$tree, node_times = pars$node_times, tip_times = pars$tip_times,
                  msa = y, subs_per_time = pars$subs_per_time, alpha = pars$alpha,
                  subs_model = "REV", nrates = 4L, subs_pars = pars$subs_pars,
-                 pi = pars$pi)
+                             pi = pars$pi))
+    if (inherits(nll, "try-error")){
+        browser()
+    } else {
+        nll
+    }
 }
 
 #' Generate parameter map for phylogeny nll
 #'
 #' @export
 gen_param_map_phylo_bd <- function(tree, tip_times){
-    function(w){
+    function(x, w){
+        ncoefs <- ncol(x) + 1
+        wph <- w[seq(1, length(w) - ncoefs)]
+        wbd <- w[seq(length(w) - ncoefs + 1, length(w))]
         ret <- list(tree=tree, tip_times=tip_times)
-        ret$subs_per_time <- w[1]
-        ret$pi <- w[seq(2, 4)]
+        ret$subs_per_time <- wph[1]
+        ret$pi <- wph[seq(2, 4)]
         ret$pi <- c(ret$pi, 1) / (1 + sum(ret$pi))
         names(ret$pi) <- c("A", "C", "G", "T")
-        ret$subs_pars <- c(w[seq(5, 9)], 1)
-        ret$alpha <- w[10]
-        ret$node_times <- w[seq(11, length(w) - 1)]
-        ret$beta1 <- w[length(w)]
+        ret$subs_pars <- c(wph[seq(5, 9)], 1)
+        ret$alpha <- wph[10]
+        ret$node_times <- wph[seq(11, length(wph))]
+
+        scale <- exp(wbd[1])
+        effects <- wbd[-1]
+        eta <- exp(x %*% effects)
+        eta <- eta / mean(eta) * scale
+        n <- sqrt(nrow(x))
+        rate_matrix <- matrix(eta, nrow=n, ncol=n)
+        ret$l <- rate_matrix
+        ret$m <- rep(1, n) / 2
+        ret$psi <- rep(1, n) / 2
+        ret$survival <- FALSE
+        ret$frequency <- c(1, rep(0, n - 2))
         ret
     }
 }
 
-#' Calculate the negative log likelihood of a time scaled phylogeny assuming it was created by a birth-death process
+#' Calculate the negative log likelihood of a time scaled phylogeny
+#' assuming it was created by a birth-death process
 #'
 #' @export
 calc_phylo_nll_bd <- function(w, x, y, param_map){
-    pars <- param_map(w)
-    -lmsa_wrapper(pars$tree, node_times = pars$node_times, tip_times = pars$tip_times,
+    pars <- param_map(x, w)
+    nllphy <- -lmsa_wrapper(pars$tree, node_times = pars$node_times, tip_times = pars$tip_times,
                  msa = y, subs_per_time = pars$subs_per_time, alpha = pars$alpha,
                  subs_model = "REV", nrates = 4L, subs_pars = pars$subs_pars,
-                 pi = pars$pi) + (pars$beta1 - 10)^2
+                         pi = pars$pi)
+    phylo <- get_tree_subs(pars$tree, pars$node_times, pars$tip_times)$tree
+    phylo <- TreePar::addroot(phylo, phylo$root.edge)
+    nllbd <- calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=pars$freq, phylo=phylo,
+                         survival=pars$survival)
+    nllphy + nllbd
 }
