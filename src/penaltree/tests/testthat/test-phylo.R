@@ -190,20 +190,21 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     pf <- c(rep(0, length(init) - 1), 1)
     out <- get_gpnet(x = matrix(1, ncol = 1), y = sim,
                      calc_convex_nll = calc_phylo_nll_bd, param_map = pm,
-                     nlambda = 20, lambda.min.ratio = 0.25, verbose = TRUE,
-                     winit = init, penalty.factor = pf, thresh=1e-3)
-    nhest <- out$a0[-seq(1, 10), 1]
+                     nlambda = 30, lambda.min.ratio = 0.01, verbose = TRUE,
+                     winit = init, penalty.factor = pf, thresh = 1e-3)
+    nhest <- unname(out$a0[-seq(1, 10), 1])
     tree_est <- set_branchlengths(btr, nodeheights = nhest,
                                   tipheights = nh$tip)$tree
-    subs_pars_est <-  c(out$a0[seq(5, 9), 1], 1)
-    alpha_est <- out$a0[10, 1]
+    subs_pars_est <-  unname(c(out$a0[seq(5, 9), 1], 1))
+    alpha_est <- unname(out$a0[10, 1])
     bf_est <- c(out$a0[seq(2, 4), 1], 1)
-    bf_est <- bf_est / sum(bf_est)
+    bf_est <- unname(bf_est / sum(bf_est))
+    est_subs_per_time <- unname(out$a0[1,1])
 
     expect_lt(ape::dist.topo(tree_est, tree_time),
               length(tree_est$tip.label) - 3)
     expect_equal(sort(nhest), sort(nh$node), tol = .5)
-    expect_equal(out$a0[1,1], subs_per_time, tol = .5)
+    expect_equal(est_subs_per_time, subs_per_time, tol = .5)
     expect_equal(bf_est, unname(bf), tol = .5)
     expect_equal(subs_pars_est[-6], unname(subs_params)[-6], tol = .5)
     expect_equal(alpha_est, alpha, tol = .5)
