@@ -63,16 +63,10 @@ get_hky_Q <- function(kappa=4, pi=c(A=.2, C=.25, G=.3, T=.25)){
     Q / scale
 }
 
-
-get_tree_subs <- function(tree_time, node_times, tip_times){
-    tree_subs <- set_branchlengths(tree_time, node_times, tip_times)
-    tree_subs$tree$edge.length <- tree_subs$tree$edge.length * subs_per_time
-    tree_subs
-}
-
 lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
                          subs_model, alpha, nrates, subs_pars, pi){
-    tree_subs <- get_tree_subs(tree_time, node_times, tip_times)
+    tree_subs <- set_branchlengths(tree_time, node_times, tip_times)
+    tree_subs$tree$edge.length <- tree_subs$tree$edge.length * subs_per_time
     rate.consts <- phangorn::discrete.gamma(alpha, nrates)
     rate.weights <- rep(1 / nrates, nrates)
     tree_char <- ape::write.tree(tree_subs$tree)
@@ -247,10 +241,9 @@ calc_phylo_nll_bd <- function(w, x, y, param_map){
     nllphy <- -lmsa_wrapper(pars$tree, node_times = pars$node_times, tip_times = pars$tip_times,
                  msa = y, subs_per_time = pars$subs_per_time, alpha = pars$alpha,
                  subs_model = "REV", nrates = 4L, subs_pars = pars$subs_pars,
-                         pi = pars$pi)
-    phylo <- get_tree_subs(pars$tree, pars$node_times, pars$tip_times)$tree
-    phylo <- TreePar::addroot(phylo, phylo$root.edge)
-    nllbd <- calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=pars$freq, phylo=phylo,
+                            pi = pars$pi)
+    tree_time <- set_branchlengths(pars$tree, pars$node_times, pars$tip_times)$tree
+    nllbd <- calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=pars$freq, phylo=tree_time,
                          survival=pars$survival)
     nllphy + nllbd
 }

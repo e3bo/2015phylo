@@ -106,10 +106,10 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     (logfile <- tempfile(fileext = ".log"))
     is_unpenalized <- vp < .Machine$double.eps
     init <- winit[is_unpenalized]
-    #browser()
-    #ans <- rphast::optim.rphast(ll_no_penalty, init, lower = rep(0, length(init)),
-                                        #logfile = logfile)
-    ans <- readRDS("ans.rds")
+    browser()
+    ans <- rphast::optim.rphast(ll_no_penalty, init, lower = rep(0, length(init)),
+                                        logfile = logfile)
+    #ans <- readRDS("ans.rds")
     par <- winit
     par[is_unpenalized] <- ans$par
     gnll <- numDeriv::grad(nll, x=par, method='simple')
@@ -180,7 +180,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
             }
             if(any(diff(c(F1, unlist(fmlist)))>1e-10)) browser()
             par2 <- par + d
-            if (any(par2[-1] > cl[2, ] || any(par2[-1] < cl[1, ]))){
+            if (any(par2[!is_unpenalized] > cl[2, ] || any(par2[!is_unpenalized] < cl[1, ]))){
                 if(verbose) cat('backtracking: out of bounds', '\n')
                 mu <- mu * beta
             } else {

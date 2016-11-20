@@ -180,15 +180,15 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     rate_ests <- get_raxml_ests(tr = tr)
     temp_ests <- eval_temporal_signal(btr, nh$tipheights)
 
+    key <- match(btr$tip.label, tree_time$tip.label)
+    btr$states <- tree_time$state[key]
     pm <- gen_param_map_phylo_bd(btr, nh$tip)
     nhinit <- get_time_tree_internal_nodeheights(btr, temp_ests$subs_per_time,
                                                  nh$tip)
     init <- c(temp_ests$subs_per_time, rate_ests$bf[-4] / rate_ests$bf[4],
-              rate_ests$gtr_pars[-6], rate_ests$alpha, nhinit, 0)
-    (logfile <- tempfile(fileext = ".log"))
-
-    pf <- c(rep(0, length(init) - 1), 1)
-    out <- get_gpnet(x = matrix(1, ncol = 1), y = sim,
+              rate_ests$gtr_pars[-6], rate_ests$alpha, nhinit, 1, 0, 0)
+    pf <- c(rep(0, length(init) - 2), 1, 1)
+    out <- get_gpnet(x = x1, y = sim,
                      calc_convex_nll = calc_phylo_nll_bd, param_map = pm,
                      nlambda = 100, lambda.min.ratio = 0.1, verbose = TRUE,
                      winit = init, penalty.factor = pf, thresh = 1e-3)
