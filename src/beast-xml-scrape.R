@@ -1,10 +1,5 @@
 #!/usr/bin/Rscript
 
-library(ape)
-library(lubridate)
-
-library(XML)
-
 xmlTemplatePath <- file.path("../data/origins.xml")
 
 xmlTree <- XML::xmlParse(xmlTemplatePath)
@@ -31,7 +26,7 @@ get_dnabin <- function(align_id){
     for(i in seq(1, nseq)){
       cat(names(seqs)[i], "\t", seqs[[i]], "\n", file = tf, append=TRUE)
     }
-    read.dna(tf, format = "sequential")
+    ape::read.dna(tf, format = "sequential")
 }
 
 almnts <- lapply(align_els, get_dnabin)
