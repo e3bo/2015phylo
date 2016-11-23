@@ -131,7 +131,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     x1 <- x[, c(1, 2), drop=FALSE]
 
     pm <- gen_param_map(13)
-    w1 <- c(log(2), 0.5, 0.25)
+    w1 <- c(log(2), 10, 0.25)
     pars <- pm(x=x1, w=w1)
 
     ntips <- 40
@@ -155,7 +155,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     rate.consts <- phangorn::discrete.gamma(alpha, nrates)
     rate.weights <- rep(1 / nrates, nrates)
 
-    subs_per_time <- 1e-1
+    subs_per_time <- 1e-0
     tree_subs <- tree_time
     tree_subs$edge.length <- tree_subs$edge.length * subs_per_time
 

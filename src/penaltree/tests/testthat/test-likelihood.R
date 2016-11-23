@@ -152,20 +152,22 @@ test_that("Regularization path computed without error", {
     skip_on_cran()
 
     load("testdata.rda")
-    x <- x[seq(1, 169), ]
-    x1 <- x[, c(1, 2), drop=FALSE]
+                                        #x1 <- x[c(1,20,30,40),c(1,2), drop=FALSE]
+                                        #x1 <- x[c(1,20,30,40),c(2), drop=FALSE]
+    x1 <- x[seq(1, 13^2),c(2), drop=FALSE]
 
     pm <- gen_param_map(13)
-    w1 <- c(log(2), 0.5, 0.25)
+    w1 <- c(log(2), 2)
     pars <- pm(x=x1, w=w1)
 
-    capture.output(trees <- replicate(1, sim_bd_proc(n=40, l=pars$l, m=pars$m,
+    capture.output(trees <- replicate(1, sim_bd_proc(n=200, l=pars$l, m=pars$m,
                                                       psi=pars$psi, init=1),
                                       simplify=FALSE))
-    addroot <- function(x) TreePar::addroot(x, x$root.edge)
-    trees <- lapply(trees, addroot)
+    #addroot <- function(x) TreePar::addroot(x, x$root.edge)
+    #trees <- lapply(trees, addroot)
 
     out <- get_gpnet(x=x1, y=trees[[1]], calc_convex_nll=calc_bd_lm_nll,
-                     param_map=pm, nlambda=5, lambda.min.ratio=0.1, verbose=FALSE)
+                     param_map=pm, nlambda=100, lambda.min.ratio=0.1, verbose=TRUE, penalty.factor=c(0,1), thresh=1e-3,
+                     winit=c(log(2),0), alpha=1)
     succeed()
 })
