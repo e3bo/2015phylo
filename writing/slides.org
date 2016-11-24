@@ -1,0 +1,49 @@
+
+* Introduction
+
+** Present flashy examples of what has been done with phylogeography to whet appetite
+
+* High-level Survey of available methods
+
+** Describe in more detail the parsimony analysis of influenza sequences
+
+** Explains problems identified by discrete phylogeography paper
+
+** Explain solutions proposed, some of the results found with them
+
+** Describe the problem with applying these approaches to data with long-lats instead of discrete locations
+
+** Describe solution proposed, examples of results found with them
+
+** describe the further analysis possible with the seraphim package
+
+* Modeling approaches for the population dynamics
+
+** Point out that the continuous approaches have a clearer model for the population dynamics than the discrete ones
+
+** describe the birth-death model of stadler et al.
+
+** describe the ODE framework of volz
+
+** describe the structured coalescent
+
+** describe the basta approximation of dimao et al.
+
+* Proposed new approach
+
+** explain that fitting any of these models to data may pose a variable selection problem
+
+** explain the penalized likelihood approach to simultaneously performing variables selection and fitting model
+
+** explain how this approach could be generalized to use a convex log-likelihood function in place of that of an exponential family model
+
+** explain the LHAC algorithm for fitting such a model with an L1 penalty
+
+** walk though the process of analysing a real data set with this approach
+
+** reiterate the advantages of this approach
+
+** explain what I think needs further work to complete it, solicit feedback
+
+* Conclusion
+
