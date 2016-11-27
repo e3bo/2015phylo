@@ -106,8 +106,8 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     (logfile <- tempfile(fileext = ".log"))
     is_unpenalized <- vp < .Machine$double.eps
     init <- winit[is_unpenalized]
-    upper <- rep(10, length(init))
-    upper[length(upper)] <- 4
+    upper <- rep(4, length(init))
+    #upper[length(upper)] <- 4
     ans <- rphast::optim.rphast(ll_no_penalty, init, lower = rep(-4, length(init)), upper=upper,
                                         logfile = logfile)
     #ans <- readRDS("ans.rds")

@@ -201,18 +201,17 @@ sim_bd_proc <- function (n, l, m, psi, init = 1){
 #' @export
 gen_param_map <- function(n){
     function(x, w){
-        n <- n
-        scale <- exp(w[1])
-        effects <- w[-1]
+        ret <- list()
+        ret$m <- rep(exp(w[1]), n) / 2
+        ret$psi <- rep(exp(w[1]), n) / 2
+        scale <- exp(w[2])
+        effects <- w[-c(1, 2)]
         stopifnot(nrow(x) == n^2)
         stopifnot(ncol(x) == length(effects))
         eta <- exp(x %*% effects)
         eta <- eta / mean(eta) * scale
         rate_matrix <- matrix(eta, nrow=n, ncol=n)
-        ret <- list()
         ret$l <- rate_matrix
-        ret$m <- rep(1, n) / 2
-        ret$psi <- rep(1, n) / 2
         ret$survival <- FALSE
         ret$frequency <- c(1, rep(0, n - 2))
         ret

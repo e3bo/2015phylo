@@ -3,9 +3,11 @@
 
 ** Present flashy examples of what has been done with phylogeography to whet appetite
 
-* High-level Survey of available methods
+* High-level survey of available methods
 
 ** Describe in more detail the parsimony analysis of influenza sequences
+
+
 
 ** Explains problems identified by discrete phylogeography paper
 
@@ -19,15 +21,16 @@
 
 * Modeling approaches for the population dynamics
 
-** Point out that the continuous approaches have a clearer model for the population dynamics than the discrete ones
-
-** describe the birth-death model of stadler et al.
-
 ** describe the ODE framework of volz
 
 ** describe the structured coalescent
 
 ** describe the basta approximation of dimao et al.
+
+
+** Point out that the continuous approaches have a clearer model for the population dynamics than the discrete ones
+
+** describe the birth-death model of stadler et al.
 
 * Proposed new approach
 
