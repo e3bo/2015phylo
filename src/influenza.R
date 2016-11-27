@@ -30,12 +30,12 @@ nhinit <- get_time_tree_internal_nodeheights(btr, temp_ests$subs_per_time, -td)
 tree_time <- set_branchlengths(btr, nhinit, -td)$tree
 
 pm <- gen_param_map(3)
-init <- c(1, rep(0, 9))
+init <- c(0, 0, 0.33, 0.33, rep(0, 8))
 
 x2 <- diag(9)[, -1]
 
 pars <- pm(x=x2, w=init)
 out <- get_gpnet(x=x2, y=tree_time, calc_convex_nll=calc_bd_lm_nll,
                  param_map=pm, nlambda=100, lambda.min.ratio=0.1,
-                 verbose=TRUE, penalty.factor=c(0, 0, rep(1,8)), thresh=1e-3,
-                 winit=init, alpha=1)
+                 verbose=TRUE, penalty.factor=c(0, 0, rep(1,10)),
+                 thresh=1e-3, winit=init, alpha=1)

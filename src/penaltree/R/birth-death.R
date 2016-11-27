@@ -29,9 +29,10 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
     ntypes <- nrow(l)
 
     bad_arg <- any(c(min(l, m, psi, freq) < 0, max(l, m, psi) > maxpar,
-                   max(freq) > 1, length(freq) != ntypes - 1, sum(freq) > 1,
-                   length(m) != ntypes, length(psi) != ntypes,
-                   ncol(l) != ntypes))
+                     max(freq) > 1, length(freq) != ntypes,
+                     abs(sum(freq) - 1) > .Machine$double.eps,
+                     length(m) != ntypes, length(psi) != ntypes,
+                     ncol(l) != ntypes))
     if (is.na(bad_arg)){
         bad_arg <- TRUE
     }
@@ -44,7 +45,7 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
             p <- lik[pinds]
             ginds <- seq(ntypes + 1, 2 * ntypes)
             g <- lik[ginds]
-            freq <- c(freq, 1 - sum(freq))
+            #freq <- c(freq, 1 - sum(freq))
             out <- sum(g * freq)
             if (survival) {
                 out <- out / (1 - sum(p * freq))
@@ -205,7 +206,9 @@ gen_param_map <- function(n){
         ret$m <- rep(exp(w[1]), n) / 2
         ret$psi <- rep(exp(w[1]), n) / 2
         scale <- exp(w[2])
-        effects <- w[-c(1, 2)]
+        ret$frequency <- c(1, exp(w[seq(3, 2 + n - 1)]))
+        ret$frequency <- ret$frequency / sum(ret$frequency)
+        effects <- w[-seq(1, 2 + n - 1)]
         stopifnot(nrow(x) == n^2)
         stopifnot(ncol(x) == length(effects))
         eta <- exp(x %*% effects)
@@ -213,7 +216,6 @@ gen_param_map <- function(n){
         rate_matrix <- matrix(eta, nrow=n, ncol=n)
         ret$l <- rate_matrix
         ret$survival <- FALSE
-        ret$frequency <- c(1, rep(0, n - 2))
         ret
     }
 }

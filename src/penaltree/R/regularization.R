@@ -23,7 +23,8 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
     if (is.null(np) | (np[2] < 1))
         stop("x should be a matrix with 1 or more columns")
     nrates <- as.integer(np[1])
-    nvars <- as.integer(np[2])
+    #nvars <- as.integer(np[2])
+    nvars <- as.integer(sum(penalty.factor > .Machine$double.eps))
     vnames <- colnames(x)
     if (is.null(vnames))
         vnames <- paste("V", seq(nvars), sep = "")
@@ -108,7 +109,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     init <- winit[is_unpenalized]
     upper <- rep(4, length(init))
     #upper[length(upper)] <- 4
-    ans <- rphast::optim.rphast(ll_no_penalty, init, lower = rep(-4, length(init)), upper=upper,
+    ans <- rphast::optim.rphast(ll_no_penalty, init, lower = rep(-30, length(init)), upper=upper,
                                         logfile = logfile)
     #ans <- readRDS("ans.rds")
     par <- winit
