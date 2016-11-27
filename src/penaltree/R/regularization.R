@@ -88,7 +88,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
 
 gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                   cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
-                  maxit, a=0.1, r=0.01, relStart=0.1, mubar=0.1, beta=0.9,
+                  maxit, a=0.1, r=0.01, relStart=0.1, mubar=1, beta=0.9,
                   verbose=FALSE, debug=TRUE, initFactor=10, winit){
     maxit <- as.integer(maxit)
     niter <- 0
@@ -131,7 +131,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     }
     res <- list()
     fsg <- function(p, g, l1, l2, h) {
-        if(p==0) {
+        if(abs(p) < .Machine$double.eps) {
             max(abs(g) - l1, 0)
         } else if (p > 0){
             (-g - l1 - l2*p)/(h + l2)
@@ -162,7 +162,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                 j <- parInds[inactive][j]
                 Hd <- H %*% d
                 gr <- gnll[j] + Hd[j]
-                if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
+                if (par[j] + d[j] > 0 || (abs(par[j] + d[j]) < .Machine$double.eps & -gr > 0)){
                     z <- (-gr - l1penalty[j] - l2penalty[j]*(par[j] + d[j]))/(H[j,j] + l2penalty[j])
                     if (par[j] + d[j] + z < 0){
                         d[j] <- -par[j]

@@ -36,6 +36,6 @@ x2 <- diag(9)[, -1]
 
 pars <- pm(x=x2, w=init)
 out <- get_gpnet(x=x2, y=tree_time, calc_convex_nll=calc_bd_lm_nll,
-                 param_map=pm, nlambda=100, lambda.min.ratio=0.1,
+                 param_map=pm, nlambda=13, lambda.min.ratio=0.75,
                  verbose=TRUE, penalty.factor=c(0, 0, rep(1,10)),
-                 thresh=1e-3, winit=init, alpha=1)
+                 thresh=1e-4, winit=init, alpha=1)
