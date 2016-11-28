@@ -150,24 +150,24 @@ test_that("Score function has mean zero for regression model", {
 
 test_that("Regularization path computed without error", {
     skip_on_cran()
+    skip_if_not_installed("fizzlipuzzli")
+    set.seed(1)
 
-    load("testdata.rda")
-                                        #x1 <- x[c(1,20,30,40),c(1,2), drop=FALSE]
-                                        #x1 <- x[c(1,20,30,40),c(2), drop=FALSE]
-    x1 <- x[seq(1, 13^2), c(2), drop=FALSE]
-
-    pm <- gen_param_map(13)
-    w1 <- c(log(2), 2)
+    pm <- gen_param_map(2, 1, .1)
+    x1 <- cbind(c(1, 0, 0, 0))
+    w1 <- c(0.73, 0.83, 0, 2)
     pars <- pm(x=x1, w=w1)
 
-    capture.output(trees <- replicate(1, sim_bd_proc(n=200, l=pars$l, m=pars$m,
+    capture.output(trees <- replicate(1, sim_bd_proc(n=10, l=pars$l, m=pars$m,
                                                       psi=pars$psi, init=1),
                                       simplify=FALSE))
-    #addroot <- function(x) TreePar::addroot(x, x$root.edge)
-    #trees <- lapply(trees, addroot)
 
-    out <- get_gpnet(x=x1, y=trees[[1]], calc_convex_nll=calc_bd_lm_nll,
-                     param_map=pm, nlambda=100, lambda.min.ratio=0.1, verbose=TRUE, penalty.factor=c(0,1), thresh=1e-3,
-                     winit=c(log(2),0), alpha=1)
+    pf <- c(0, 0, rep(1, 2))
+    init <- w1
+    init[as.logical(pf)] <- 0
+    out <- get_gpnet(x=x1, y=trees[1], calc_convex_nll=calc_bd_lm_nll,
+                     param_map=pm, nlambda=100, lambda.min.ratio=0.1,
+                     verbose=TRUE, penalty.factor=pf, thresh=1e-3,
+                     winit=init, alpha=1)
     succeed()
 })
