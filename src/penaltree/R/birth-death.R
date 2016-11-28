@@ -38,7 +38,8 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
     }
     if (!bad_arg) {
         rootid <- length(phylo$tip.label) + 1
-        lik <- try(get_subtree_lik(phylo, rootid, l, m, psi, summary, unknown_states,
+        rootedge <- which (phylo$edge[, 1] == rootid)
+        lik <- try(get_subtree_lik(phylo, rootedge, l, m, psi, summary, unknown_states,
                                    rtol, atol, cutoff))
         if (class(lik) != "try-error") {
             pinds <- seq(1, ntypes)
@@ -200,15 +201,20 @@ sim_bd_proc <- function (n, l, m, psi, init = 1){
 #' Generate parameter map for linear model interface to birth-death nll
 #'
 #' @export
-gen_param_map <- function(n){
+gen_param_map <- function(n, ntrees, psampled=0.01){
     function(x, w){
-        ret <- list()
-        ret$m <- rep(exp(w[1]), n) / 2
-        ret$psi <- rep(exp(w[1]), n) / 2
+        ret <- list(frequency=list())
+        ret$m <- rep(exp(w[1]), n) * (1 - psampled)
+        ret$psi <- rep(exp(w[1]), n) * psampled
         scale <- exp(w[2])
-        ret$frequency <- c(1, exp(w[seq(3, 2 + n - 1)]))
-        ret$frequency <- ret$frequency / sum(ret$frequency)
-        effects <- w[-seq(1, 2 + n - 1)]
+        start <- 3
+        for (i in seq_len(ntrees)){
+            inds <- seq(start, start - 1  + n - 1)
+            foo <- c(1, exp(w[inds]))
+            ret$frequency[[i]] <- foo / sum(foo)
+            start <- start + n - 1
+        }
+        effects <- w[-seq(1, start - 1)]
         stopifnot(nrow(x) == n^2)
         stopifnot(ncol(x) == length(effects))
         eta <- exp(x %*% effects)
@@ -226,6 +232,10 @@ gen_param_map <- function(n){
 #' @export
 calc_bd_lm_nll <- function(w, x, y, param_map){
     pars <- param_map(x, w)
-    calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=pars$freq, phylo=y,
-                survival=pars$survival)
+    tmpf <- function(p1, p2) {
+        calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=p1, phylo=p2,
+                    survival=pars$survival)
+    }
+    nll <- mapply(tmpf, p1=pars$frequency, p2=y)
+    sum(nll)
 }

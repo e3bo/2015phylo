@@ -230,6 +230,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                             cat('F: ', as.numeric(F1), '\n')
                             cat('par: ', signif(par, 3), '\n')
                             cat('grad: ', signif(gnll, 3), '\n')
+                            cat('h: ', signif(diag(H), 3), '\n')
                             cat('nsg: ', signif(nsg, 3), '\n')
                             cat('\n')
                         }

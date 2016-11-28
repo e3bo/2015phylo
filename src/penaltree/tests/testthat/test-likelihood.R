@@ -28,7 +28,7 @@ test_that("Birth-death likelihood is consistent with TreePar function", {
     l <- rbind(c(15, 2), c(2, 2))
     m <- c(2, 2) * 0.95
     psi <- c(2, 2) * 0.05
-    ptlik <- calc_bd_nll(l=l, m=m, psi=psi, freq=0.1, phylo=tree, survival=FALSE)
+    ptlik <- calc_bd_nll(l=l, m=m, psi=psi, freq=c(0.1, .9), phylo=tree, survival=FALSE)
     expect_equal(unname(tplik), ptlik)
 })
 
@@ -154,7 +154,7 @@ test_that("Regularization path computed without error", {
     load("testdata.rda")
                                         #x1 <- x[c(1,20,30,40),c(1,2), drop=FALSE]
                                         #x1 <- x[c(1,20,30,40),c(2), drop=FALSE]
-    x1 <- x[seq(1, 13^2),c(2), drop=FALSE]
+    x1 <- x[seq(1, 13^2), c(2), drop=FALSE]
 
     pm <- gen_param_map(13)
     w1 <- c(log(2), 2)
