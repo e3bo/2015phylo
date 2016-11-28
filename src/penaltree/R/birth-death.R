@@ -37,9 +37,10 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
         bad_arg <- TRUE
     }
     if (!bad_arg) {
-        rootid <- length(phylo$tip.label) + 1
-        rootedge <- which (phylo$edge[, 1] == rootid)
-        lik <- try(get_subtree_lik(phylo, rootedge, l, m, psi, summary, unknown_states,
+        phylor <- addroot(phylo, 0)
+        #rootid <- length(phylor$tip.label) + 1
+        #rootedge <- which (phylor$edge[, 1] == rootid)
+        lik <- try(get_subtree_lik(phylor, 1L, l, m, psi, summary, unknown_states,
                                    rtol, atol, cutoff))
         if (class(lik) != "try-error") {
             pinds <- seq(1, ntypes)

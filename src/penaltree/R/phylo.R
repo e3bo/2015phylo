@@ -63,6 +63,11 @@ get_hky_Q <- function(kappa=4, pi=c(A=.2, C=.25, G=.3, T=.25)){
     Q / scale
 }
 
+
+
+
+
+
 lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
                          subs_model, alpha, nrates, subs_pars, pi){
     tree_subs <- set_branchlengths(tree_time, node_times, tip_times)
@@ -246,4 +251,12 @@ calc_phylo_nll_bd <- function(w, x, y, param_map){
     nllbd <- calc_bd_nll(l=pars$l, m=pars$m, psi=pars$psi, freq=pars$freq, phylo=tree_time,
                          survival=pars$survival)
     nllphy + nllbd
+}
+
+addroot <- function (phylo, rootlength) {
+    rootid <- length(phylo$tip.label) + 1
+    phylo$edge[phylo$edge >= rootid] <- phylo$edge[phylo$edge >= rootid] + 1
+    phylo$edge <- rbind(c(rootid, rootid + 1), phylo$edge)
+    phylo$edge.length <- c(rootlength, phylo$edge.length)
+    phylo
 }

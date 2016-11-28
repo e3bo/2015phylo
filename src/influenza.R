@@ -78,6 +78,12 @@ out2 <- get_gpnet(x = x2, y = tree_timel[2], calc_convex_nll = calc_bd_lm_nll,
 
 obj <- function(x) {
     foo[c(1,2)] <- x
-    calc_bd_lm_nll(w=foo, x=x2, y=tree_timel[2], param_map=pm1)
+    calc_bd_lm_nll(w=foo, x=x2, y=tree_timel[1], param_map=pm1)
 }
-ans <- optim(c(0, 0), obj)
+ans <- optim(c(-1, -1), obj)
+
+
+
+
+
+calc_bd_lm_nll(foo, x2, tree_timel[1], pm1)
