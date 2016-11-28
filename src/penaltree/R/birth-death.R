@@ -24,7 +24,7 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
                         unknown_states = FALSE, rtol = 1e-12, atol = 1e-12,
                         cutoff = 10 ^ 12){
     maxpar <- 100
-    summary <- get_times(phylo)
+
     out <- 10 ^ 1000
     ntypes <- nrow(l)
 
@@ -37,7 +37,8 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
         bad_arg <- TRUE
     }
     if (!bad_arg) {
-        phylor <- addroot(phylo, 0)
+      phylor <- addroot(phylo, 0)
+      summary <- get_times(phylor)
         #rootid <- length(phylor$tip.label) + 1
         #rootedge <- which (phylor$edge[, 1] == rootid)
         lik <- try(get_subtree_lik(phylor, 1L, l, m, psi, summary, unknown_states,
@@ -74,7 +75,7 @@ get_times <- function (tree) {
     times <- ttype
     rootid <- length(tree$tip.label) + 1
     ttype[rootid] <- 1
-    for (j in (rootid + 1):length(nodes)) {
+    for (j in (rootid + seq_len(length(nodes) - rootid))) {
         ttype[j] <- 1
         temp <- which(tree$edge[, 2] == j)
         ancestor <- tree$edge[temp, 1]
