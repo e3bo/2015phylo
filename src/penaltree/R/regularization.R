@@ -23,7 +23,8 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
     if (is.null(np) | (np[2] < 1))
         stop("x should be a matrix with 1 or more columns")
     nrates <- as.integer(np[1])
-    nvars <- as.integer(np[2])
+    #nvars <- as.integer(np[2])
+    nvars <- as.integer(sum(penalty.factor > .Machine$double.eps))
     vnames <- colnames(x)
     if (is.null(vnames))
         vnames <- paste("V", seq(nvars), sep = "")
@@ -87,7 +88,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
 
 gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                   cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
-                  maxit, a=0.1, r=0.01, relStart=0.1, mubar=0.1, beta=0.9,
+                  maxit, a=0.1, r=0.01, relStart=0.1, mubar=1, beta=0.1,
                   verbose=FALSE, debug=TRUE, initFactor=10, winit){
     maxit <- as.integer(maxit)
     niter <- 0
@@ -106,14 +107,16 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     (logfile <- tempfile(fileext = ".log"))
     is_unpenalized <- vp < .Machine$double.eps
     init <- winit[is_unpenalized]
-    upper <- rep(10, length(init))
-    upper[length(upper)] <- 4
-    ans <- rphast::optim.rphast(ll_no_penalty, init, lower = rep(0, length(init)), upper=upper,
+    upper <- rep(4, length(init))
+    lower <- rep(-4, length(init))
+    #upper[length(upper)] <- 4
+    ans <- rphast::optim.rphast(ll_no_penalty, init, lower = lower, upper=upper,
                                         logfile = logfile)
     #ans <- readRDS("ans.rds")
     par <- winit
     par[is_unpenalized] <- ans$par
-    gnll <- numDeriv::grad(nll, x=par, method='simple')
+                                        #gnll <- numDeriv::grad(nll, x=par, method='simple')
+    gnll <- numDeriv::grad(nll, x=par)
     mu <- mubar
     stopifnot(beta>0, beta<1)
     G <- diag(initFactor * abs(gnll), ncol=dim)
@@ -130,7 +133,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     }
     res <- list()
     fsg <- function(p, g, l1, l2, h) {
-        if(p==0) {
+        if(abs(p) < .Machine$double.eps) {
             max(abs(g) - l1, 0)
         } else if (p > 0){
             (-g - l1 - l2*p)/(h + l2)
@@ -161,7 +164,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                 j <- parInds[inactive][j]
                 Hd <- H %*% d
                 gr <- gnll[j] + Hd[j]
-                if (par[j] + d[j] > 0 || (par[j] + d[j] == 0 & -gr > 0)){
+                if (par[j] + d[j] > 0 || (abs(par[j] + d[j]) < .Machine$double.eps & -gr > 0)){
                     z <- (-gr - l1penalty[j] - l2penalty[j]*(par[j] + d[j]))/(H[j,j] + l2penalty[j])
                     if (par[j] + d[j] + z < 0){
                         d[j] <- -par[j]
@@ -196,8 +199,9 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                     if (F2 - F1 > r * (Fmod - F1)){
                         if(verbose) cat('backtracking: insufficient decrease', '\n')
                         mu <- mu * beta
-                    } else {
-                        gnll2 <- numDeriv::grad(nll, x=par2, method='simple')
+                    } else {                        
+                        #gnll2 <- numDeriv::grad(nll, x=par2, method='simple')
+                        gnll2 <- numDeriv::grad(nll, x=par2)
                         yvec <- gnll2 - gnll
                         s <- d
                         ys <- yvec %*% s
@@ -229,7 +233,9 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                             cat('F: ', as.numeric(F1), '\n')
                             cat('par: ', signif(par, 3), '\n')
                             cat('grad: ', signif(gnll, 3), '\n')
+                            cat('h: ', signif(diag(H), 3), '\n')
                             cat('nsg: ', signif(nsg, 3), '\n')
+                            cat('mu: ', signif(mu, 3), '\n')
                             cat('\n')
                         }
                     }

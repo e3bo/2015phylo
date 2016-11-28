@@ -213,7 +213,7 @@ obj2 <- function(w, x, y){
 x <- scale(predMat)
 x[is.na(x)] <- 0
 
-preds <- list(asym='log10directedFlowBal', inship='log10destinationInshipments')
+preds <- list(directed='log10directedFlow', undirected='log10undirectedFlow')
 tmpf <- function(preds){
     ret <- as.matrix(x[, preds])
     colnames(ret) <- preds
