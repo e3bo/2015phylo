@@ -88,7 +88,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
 
 gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                   cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
-                  maxit, a=0.1, r=0.01, relStart=0.1, mubar=1, beta=0.9,
+                  maxit, a=0.1, r=0.01, relStart=0.1, mubar=1, beta=0.1,
                   verbose=FALSE, debug=TRUE, initFactor=10, winit){
     maxit <- as.integer(maxit)
     niter <- 0
@@ -108,13 +108,15 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     is_unpenalized <- vp < .Machine$double.eps
     init <- winit[is_unpenalized]
     upper <- rep(4, length(init))
+    lower <- rep(-4, length(init))
     #upper[length(upper)] <- 4
-    ans <- rphast::optim.rphast(ll_no_penalty, init, lower = rep(-30, length(init)), upper=upper,
+    ans <- rphast::optim.rphast(ll_no_penalty, init, lower = lower, upper=upper,
                                         logfile = logfile)
     #ans <- readRDS("ans.rds")
     par <- winit
     par[is_unpenalized] <- ans$par
-    gnll <- numDeriv::grad(nll, x=par, method='simple')
+                                        #gnll <- numDeriv::grad(nll, x=par, method='simple')
+    gnll <- numDeriv::grad(nll, x=par)
     mu <- mubar
     stopifnot(beta>0, beta<1)
     G <- diag(initFactor * abs(gnll), ncol=dim)
@@ -197,8 +199,9 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                     if (F2 - F1 > r * (Fmod - F1)){
                         if(verbose) cat('backtracking: insufficient decrease', '\n')
                         mu <- mu * beta
-                    } else {
-                        gnll2 <- numDeriv::grad(nll, x=par2, method='simple')
+                    } else {                        
+                        #gnll2 <- numDeriv::grad(nll, x=par2, method='simple')
+                        gnll2 <- numDeriv::grad(nll, x=par2)
                         yvec <- gnll2 - gnll
                         s <- d
                         ys <- yvec %*% s
@@ -232,6 +235,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                             cat('grad: ', signif(gnll, 3), '\n')
                             cat('h: ', signif(diag(H), 3), '\n')
                             cat('nsg: ', signif(nsg, 3), '\n')
+                            cat('mu: ', signif(mu, 3), '\n')
                             cat('\n')
                         }
                     }

@@ -59,7 +59,13 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
     } else {
         stop("Invalid parameters")
     }
-    -log(out)
+    ret <- -log(out)
+    if(!is.finite(ret)){
+                                        #browser()
+        740
+    } else {
+        ret
+    }
 }
 
 get_times <- function (tree) {
@@ -157,9 +163,13 @@ solve_lik <- function (init, l, m, psi, times, rtol, atol) {
             list(c(dp, dg))
         })
     }
-    out <- deSolve::lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
-                          atol = atol)[2, -1]
-    out
+    try(out <- deSolve::lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
+                              atol = atol)[2, -1])
+   if (inherits(out, "try-error")){
+        browser()
+    } else {
+        out
+    }
 }
 
 solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
@@ -170,8 +180,12 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
         })
     }
     p <- list(l, m, psi)
-    out <- deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, -1]
-    out
+    try(out <- deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, -1])
+    if (inherits(out, "try-error")){
+         browser()
+    } else {
+         out
+    }
 }
 
 #' Simulate tree according to a multi-type birth-death process
