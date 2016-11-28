@@ -151,7 +151,7 @@ test_that("Score function has mean zero for regression model", {
 test_that("Regularization path computed without error", {
     skip_on_cran()
     skip_if_not_installed("fizzlipuzzli")
-    set.seed(1)
+    set.seed(2)
 
     pm <- gen_param_map(2, 1, .1)
     x1 <- cbind(c(1, 0, 0, 0))
@@ -166,8 +166,8 @@ test_that("Regularization path computed without error", {
     init <- w1
     init[as.logical(pf)] <- 0
     out <- get_gpnet(x=x1, y=trees[1], calc_convex_nll=calc_bd_lm_nll,
-                     param_map=pm, nlambda=100, lambda.min.ratio=0.1,
-                     verbose=TRUE, penalty.factor=pf, thresh=1e-3,
+                     param_map=pm, nlambda=100, lambda.min.ratio=0.5,
+                     verbose=TRUE, penalty.factor=pf, thresh=1e-4,
                      winit=init, alpha=1)
     succeed()
 })

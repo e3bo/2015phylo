@@ -88,7 +88,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
 
 gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                   cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
-                  maxit, a=0.1, r=0.01, relStart=0.1, mubar=1, beta=0.1,
+                  maxit, a=0.1, r=0.01, relStart=0.0, mubar=1, beta=0.9,
                   verbose=FALSE, debug=TRUE, initFactor=10, winit){
     maxit <- as.integer(maxit)
     niter <- 0
@@ -115,8 +115,8 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     #ans <- readRDS("ans.rds")
     par <- winit
     par[is_unpenalized] <- ans$par
-                                        #gnll <- numDeriv::grad(nll, x=par, method='simple')
-    gnll <- numDeriv::grad(nll, x=par)
+    gnll <- numDeriv::grad(nll, x=par, method='simple')
+    #gnll <- numDeriv::grad(nll, x=par)
     mu <- mubar
     stopifnot(beta>0, beta<1)
     G <- diag(initFactor * abs(gnll), ncol=dim)
@@ -199,9 +199,9 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                     if (F2 - F1 > r * (Fmod - F1)){
                         if(verbose) cat('backtracking: insufficient decrease', '\n')
                         mu <- mu * beta
-                    } else {                        
-                        #gnll2 <- numDeriv::grad(nll, x=par2, method='simple')
-                        gnll2 <- numDeriv::grad(nll, x=par2)
+                    } else {
+                        gnll2 <- numDeriv::grad(nll, x=par2, method='simple')
+                        #gnll2 <- numDeriv::grad(nll, x=par2)
                         yvec <- gnll2 - gnll
                         s <- d
                         ys <- yvec %*% s
