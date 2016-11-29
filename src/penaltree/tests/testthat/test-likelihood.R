@@ -171,3 +171,28 @@ test_that("Regularization path computed without error", {
                      winit=init, alpha=1)
     succeed()
 })
+
+test_that("gpnet estimates are reasonable", {
+    skip_on_cran()
+    skip_if_not_installed("fizzlipuzzli")
+    set.seed(2)
+
+    pm <- gen_param_map(2, 1, .1)
+    x1 <- cbind(c(0, 1, 0, 0), c(0, 0, 1, 0), c(0, 0, 0, 1))
+    w1 <- c(0.73, 0.83, 0, -4, 2, 1)
+    pars <- pm(x=x1, w=w1)
+
+    capture.output(trees <- replicate(1, sim_bd_proc(n=80, l=pars$l, m=pars$m,
+                                                      psi=pars$psi, init=1),
+                                      simplify=FALSE))
+
+    pf <- c(0, 0, rep(1, 4))
+    init <- w1
+    init[as.logical(pf)] <- 0
+    out <- get_gpnet(x=x1, y=trees[1], calc_convex_nll=calc_bd_lm_nll,
+                     param_map=pm, nlambda=100, lambda.min.ratio=0.5,
+                     verbose=TRUE, penalty.factor=pf, thresh=1e-4,
+                     winit=init, alpha=1)
+    succeed()
+})
+

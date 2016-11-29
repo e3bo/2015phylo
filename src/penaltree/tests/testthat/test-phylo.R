@@ -23,6 +23,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     raxmlbin <- "/usr/bin/raxmlHPC"
     skip_if_not(file.exists(raxmlbin))
     skip_on_cran()
+    skip_if_not_installed("fizzlipuzzli")
 
     load("testdata.rda")
 
@@ -124,6 +125,7 @@ test_that(paste("Able to estimate parameters given GTR subs model + Gamma4",
     raxmlbin <- "/usr/bin/raxmlHPC"
     skip_if_not(file.exists(raxmlbin))
     skip_on_cran()
+    skip_if_not_installed("fizzlipuzzli")
 
     load("testdata.rda")
 

@@ -2,6 +2,12 @@
 
 export(calc_bd_lm_nll)
 export(calc_bd_nll)
+export(calc_phylo_nll)
+export(calc_phylo_nll_bd)
 export(gen_param_map)
+export(gen_param_map_phylo)
+export(gen_param_map_phylo_bd)
 export(get_gpnet)
+export(get_time_tree_internal_nodeheights)
+export(set_branchlengths)
 export(sim_bd_proc)

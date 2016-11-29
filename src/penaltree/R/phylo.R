@@ -1,3 +1,6 @@
+#' Set branchlengths of tree to satisfy given nodeheights and tipheights
+#'
+#' @export
 set_branchlengths <- function(tree, nodeheights, tipheights){
     tree <- reorder(tree, order="postorder")
     edge <- tree$edge
@@ -30,6 +33,10 @@ set_branchlengths <- function(tree, nodeheights, tipheights){
     list(tree=tree, penalty=penalty)
 }
 
+#' Get heights of internal nodes consistent with the tipheight,
+#' substitution rate, and edge lengths in substitutions per site.
+#'
+#' @export
 get_time_tree_internal_nodeheights <- function(subs_tree, subs_per_time, tipheights) {
     time_tree <- subs_tree
     time_tree$edge.length <- subs_tree$edge.length / subs_per_time
@@ -162,7 +169,7 @@ get_raxml_ests <- function(tr){
                     pattern <- paste0("^rate ", s2, " <-> ", s1, ": [0-9.]*$")
                     iline <- grep(pattern, tr$info)
                 }
-                line <- tr$info[iline]        
+                line <- tr$info[iline]
                 ret[[name]] <- as.numeric(strsplit(line, ": ")[[1]][2])
             }
         }
