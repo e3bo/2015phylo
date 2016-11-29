@@ -1,9 +1,11 @@
+#!/usr/bin/Rscript
 
 raxmlbin <- "/usr/bin/raxmlHPC"
+align <- "nonsIndel-aligned.fasta-gb"
 stopifnot(file.exists(raxmlbin))
+stopifnot(file.exists(align))
 
-nsi <- ape::read.dna("../work-sshd/nonsIndel-aligned.fasta-gb",
-                     format = "fasta")
+nsi <- ape::read.dna(align, format = "fasta")
 
 OH_variant_ind <- grep("OH_14-Jun", dimnames(nsi)[[1]])
 nsi2 <- nsi[-OH_variant_ind, ]
@@ -45,8 +47,9 @@ pf <- c(0, 0, 1, 1, 1, 1)
 
 pars <- pm(x = x2, w = init)
 out <- penaltree::get_gpnet(x = x2, y = list(tree_time),
-                            calc_convex_nll = calc_bd_lm_nll, param_map = pm,
-                            nlambda = 100, lambda.min.ratio = 0.5,
-                            verbose = TRUE, penalty.factor = pf, thresh = 1e-4,
+                            calc_convex_nll = penaltree::calc_bd_lm_nll,
+                            param_map = pm, nlambda = 100,
+                            lambda.min.ratio = 0.5, verbose = TRUE,
+                            penalty.factor = pf, thresh = 1e-4,
                             winit = init, alpha = 1)
 save.image("pedv-wg.RData")
