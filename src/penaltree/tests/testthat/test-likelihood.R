@@ -70,16 +70,13 @@ test_that("Birth-death likelihood runs with >2 types", {
 test_that("Score function has mean zero at the true parameter value", {
     skip_if_not_installed("TreeSim")
     skip_if_not_installed("TreePar")
-    skip_if_not_installed("fizzlipuzzli")
     skip_on_cran()
     set.seed(1)
     l <- rbind(c(15, 3), c(1, 3))
     m <- c(1, 1) / 2
     psi <- c(1, 1) / 2
-    capture.output(trees <- replicate(40, sim_bd_proc(n=40, l=l, m=m, psi=psi,
+    capture.output(trees <- replicate(20, sim_bd_proc(n=40, l=l, m=m, psi=psi,
                                           init=1), simplify=FALSE))
-    tmpf <- function(x) TreePar::addroot(x, x$root.edge)
-    trees <- lapply(trees, tmpf)
     likwrap <- function(x, phylo){
         l[1, 1] <- x[1]
         l[2, 1] <- x[2]
@@ -89,7 +86,7 @@ test_that("Score function has mean zero at the true parameter value", {
         m[2] <- x[6]
         psi[1] <- x[7]
         psi[2] <- x[8]
-        calc_bd_nll(l=l, m=m, psi=psi, freq=c(1), phylo=phylo, survival=FALSE)
+        calc_bd_nll(l=l, m=m, psi=psi, freq=c(1, 0), phylo=phylo, survival=FALSE)
     }
     get_score <- function(phylo){
         numDeriv::grad(likwrap, x=c(as.numeric(l), m, psi), phylo=phylo)
@@ -103,7 +100,6 @@ test_that("Score function has mean zero at the true parameter value", {
 test_that("Score function has mean zero for regression model", {
     skip_if_not_installed("TreeSim")
     skip_if_not_installed("TreePar")
-    skip_if_not_installed("fizzlipuzzli")
     skip_on_cran()
     set.seed(1)
     l <- rbind(c(15, 3), c(1, 3))
