@@ -1,5 +1,28 @@
 #' Run a general purpose optimizer with lasso or elasticnet regularization
 #'
+#' @param x matrix of predictors for linear model
+#' @param y response data that will be used to fit the model
+#' @param calc_convex_nll function that will be used to calculate the likelihood of the data
+#' @param param_map function that maps vector of parameters into named list for likelihood function
+#' @param alpha proportion of penalty function that is L1 instead of L2
+#' @param nlambda number of penalty values to on regularization path
+#' @param lambda.min.ratio ratio of lowest penalty on path to highest
+#' penalty. Used to determine sequence of penalties of lambda argument
+#' is null
+#' @param lambda sequence of penalties to include in regularization path
+#' @param standardize Not currently used
+#' @param thresh threshold for subgradient to determine convergence at each lambda
+#' @param dfmax not currently used
+#' @param pmax not currently used
+#' @param exclude not currently used
+#' @param penalty.factor vector equal in length to the number of
+#' parameters, factor by which lambda is multiplied for each parameter to calculate penalty
+#' @param lower.limits lower limits for penalized parameters
+#' @param upper.limits upper limits for penalized parameters
+#' @param maxit maximum number of iterations in optimization attempt for each lambda
+#' @param verbose whether or not to print out information about the optimization
+#' @param winit parameter values used to initialize optimization
+#'
 #' @export
 get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
                       lambda.min.ratio=0.01, lambda=NULL, standardize=TRUE,
@@ -77,7 +100,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
         ulam <- as.double(rev(sort(lambda)))
         nlam <- as.integer(length(lambda))
     }
-    fit <- gpnet(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
+    fit <- gpnet(x, y, calc_convex_nll, param_map, alpha, nobs=NULL, nvars, jd, vp,
                  cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
                  maxit, verbose = verbose, winit = winit)
     fit$call <- this.call
@@ -288,14 +311,14 @@ plotCoef <- function (beta, norm, lambda, df, dev, label = FALSE, xvar = c("norm
     dotlist = list(...)
     type = dotlist$type
     if (is.null(type))
-        matplot(index, t(beta), lty = 1, xlab = xlab, ylab = ylab,
+        graphics::matplot(index, t(beta), lty = 1, xlab = xlab, ylab = ylab,
             type = "l", ...)
-    else matplot(index, t(beta), lty = 1, xlab = xlab, ylab = ylab,
+    else graphics::matplot(index, t(beta), lty = 1, xlab = xlab, ylab = ylab,
         ...)
     atdf = pretty(index)
-    prettydf = approx(x = index, y = df, xout = atdf, rule = 2,
+    prettydf = stats::approx(x = index, y = df, xout = atdf, rule = 2,
         method = "constant", f = approx.f)$y
-    axis(3, at = atdf, labels = prettydf, tcl = NA)
+    graphics::axis(3, at = atdf, labels = prettydf, tcl = NA)
     if (label) {
         nnz = length(which)
         xpos = max(index)
@@ -306,7 +329,7 @@ plotCoef <- function (beta, norm, lambda, df, dev, label = FALSE, xvar = c("norm
         }
         xpos = rep(xpos, nnz)
         ypos = beta[, ncol(beta)]
-        text(xpos, ypos, paste(which), cex = 0.5, pos = pos)
+        graphics::text(xpos, ypos, paste(which), cex = 0.5, pos = pos)
     }
 }
 

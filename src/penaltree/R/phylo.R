@@ -1,8 +1,16 @@
 #' Set branchlengths of tree to satisfy given nodeheights and tipheights
 #'
+#' @param tree tree of class phylo
+#' @param nodeheights heights of internal node
+#' @param tipheights
+#'
+#' Height is measured as time before the most recent tip. That is, the
+#' tip that is farthest from the root has a height of zero, the next
+#' farthest tip has a positive height, and so on.
+#'
 #' @export
 set_branchlengths <- function(tree, nodeheights, tipheights){
-    tree <- reorder(tree, order="postorder")
+    tree <- stats::reorder(tree, order="postorder")
     edge <- tree$edge
     ntips <- length(tipheights)
     nedge <- nrow(edge)
@@ -36,8 +44,14 @@ set_branchlengths <- function(tree, nodeheights, tipheights){
 #' Get heights of internal nodes consistent with the tipheight,
 #' substitution rate, and edge lengths in substitutions per site.
 #'
+#' @param subs_tree tree with branch lengths measured in expected
+#' substitutions per site
+#' @param subs_per_time expected number of substitutions per unit time
+#' @param tipheights heights of tips in time
+#'
 #' @export
-get_time_tree_internal_nodeheights <- function(subs_tree, subs_per_time, tipheights) {
+get_time_tree_internal_nodeheights <- function(subs_tree, subs_per_time,
+                                               tipheights) {
     time_tree <- subs_tree
     time_tree$edge.length <- subs_tree$edge.length / subs_per_time
     est_nh <- get_nodeheights(time_tree)
@@ -70,11 +84,6 @@ get_hky_Q <- function(kappa=4, pi=c(A=.2, C=.25, G=.3, T=.25)){
     Q / scale
 }
 
-
-
-
-
-
 lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
                          subs_model, alpha, nrates, subs_pars, pi){
     tree_subs <- set_branchlengths(tree_time, node_times, tip_times)
@@ -89,7 +98,7 @@ lmsa_wrapper <- function(tree_time, node_times, tip_times, msa, subs_per_time,
 }
 
 get_nodeheights <- function(tree, dist_from_root = FALSE){
-    tpo <- reorder(tree, "postorder")
+    tpo <- stats::reorder(tree, "postorder")
     edge <- tpo$edge
     ntips <- length(tpo$tip.label)
     nedge <- nrow(edge)
@@ -114,25 +123,33 @@ get_nodeheights <- function(tree, dist_from_root = FALSE){
     list(nodeheights=nh[idx_internal], tipheights=tiph, nh=nh)
 }
 
+#' Evaluate signal of substitutions per unit time
+#'
+#' @param phy rooted tree with branch lengths in substitutions per site
+#' @param tipheights heights of tree tips in time
+#' @param show_plots whether or not to show diagnostic plots for
+#' root-to-tip regression
+#'
+#' @export
 eval_temporal_signal <- function(phy, tipheights, show_plots=FALSE){
     root_tip_dists <- get_nodeheights(phy, dist_from_root=TRUE)$tipheights
     nms <- names(root_tip_dists)
     tip_times <- -tipheights[nms]
-    m <- lm(root_tip_dists ~ tip_times)
+    m <- stats::lm(root_tip_dists ~ tip_times)
     if(show_plots){
-        plot(root_tip_dists ~ tip_times)
-        abline(m)
-        plot(m)
+        graphics::plot(root_tip_dists ~ tip_times)
+        graphics::abline(m)
+        graphics::plot(m)
     }
-    if (coef(m)[1] < 0){
+    if (stats::coef(m)[1] < 0){
         print("Slope is not positive, no strong signal")
     }
     ret <- list()
-    ret$subs_per_time <- coef(m)[2]
-    ret$tmrca <- -coef(m)[1] / coef(m)[2]
+    ret$subs_per_time <- stats::coef(m)[2]
+    ret$tmrca <- -stats::coef(m)[1] / stats::coef(m)[2]
     ret$date_range <- range(tipheights)
     sstot <- sum((root_tip_dists - mean(root_tip_dists))^2)
-    ssres <- sum(residuals(m)^2)
+    ssres <- sum(stats::residuals(m)^2)
     ret$coef_det <- 1 - ssres / sstot
     ret$rmes <- ssres / (length(root_tip_dists) - 2)
     ret$mod <- m
@@ -181,6 +198,9 @@ get_raxml_ests <- function(tr){
 
 #' Generate parameter map for phylogeny nll
 #'
+#' @param tree tree with branchlengths in time units
+#' @param tip_times times of tips of tree
+#'
 #' @export
 gen_param_map_phylo <- function(tree, tip_times){
     function(w){
@@ -198,13 +218,20 @@ gen_param_map_phylo <- function(tree, tip_times){
 
 #' Calculate the negative log likelihood of a time scaled phylogeny
 #'
+#' @param w vector of parameters
+#' @param x matrix of predictors
+#' @param y tree assumed to come from birth-death process
+#' @param param_map function to map w to list with parameters for the
+#' phylogenetic likelihood calculation
+#'
 #' @export
 calc_phylo_nll <- function(w, x, y, param_map){
     pars <- param_map(w)
-    try(nll <- -lmsa_wrapper(pars$tree, node_times = pars$node_times, tip_times = pars$tip_times,
-                 msa = y, subs_per_time = pars$subs_per_time, alpha = pars$alpha,
-                 subs_model = "REV", nrates = 4L, subs_pars = pars$subs_pars,
-                             pi = pars$pi))
+    try(nll <- -lmsa_wrapper(pars$tree, node_times = pars$node_times,
+                             tip_times = pars$tip_times, msa = y,
+                             subs_per_time = pars$subs_per_time,
+                             alpha = pars$alpha, subs_model = "REV", nrates = 4L,
+                             subs_pars = pars$subs_pars, pi = pars$pi))
     if (inherits(nll, "try-error")){
         browser()
     } else {
@@ -212,7 +239,10 @@ calc_phylo_nll <- function(w, x, y, param_map){
     }
 }
 
-#' Generate parameter map for phylogeny nll
+#' Generate parameter map for joint phylogeny and birth-death nll
+#'
+#' @param tree tree with branch lengths in time units
+#' @param tip_times times of tips of tree
 #'
 #' @export
 gen_param_map_phylo_bd <- function(tree, tip_times){
@@ -246,6 +276,12 @@ gen_param_map_phylo_bd <- function(tree, tip_times){
 
 #' Calculate the negative log likelihood of a time scaled phylogeny
 #' assuming it was created by a birth-death process
+#'
+#' @param w vector of parameters
+#' @param x matrix of predictors
+#' @param y tree assumed to come from birth-death process
+#' @param param_map function to map w to list with parameters for the
+#' phylogenetic and birth-death  likelihood calculations
 #'
 #' @export
 calc_phylo_nll_bd <- function(w, x, y, param_map){

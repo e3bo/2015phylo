@@ -191,6 +191,13 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
 
 #' Simulate tree according to a multi-type birth-death process
 #'
+#' @param n number of tips in simulated tree
+#' @param l matrix of birth rates of each type for each type in process
+#' @param m vector of death rates for each type. These deaths are not sampled.
+#' @param psi vector of death rates for each type. These deaths are
+#' followed by sampling.
+#' @param init type of individual that starts the population
+#'
 #' @export
 sim_bd_proc <- function (n, l, m, psi, init = 1){
     if (!requireNamespace("TreeSim", quietly = TRUE)) {
@@ -215,6 +222,11 @@ sim_bd_proc <- function (n, l, m, psi, init = 1){
 }
 
 #' Generate parameter map for linear model interface to birth-death nll
+#'
+#' @param n number of types in birth-death model
+#' @param ntrees number of trees that will be fitted to birth-death model
+#' @param psampled proportion of deaths that are assumed to be
+#' observed in birth-death model
 #'
 #' @export
 gen_param_map <- function(n, ntrees, psampled=0.01){
@@ -244,6 +256,11 @@ gen_param_map <- function(n, ntrees, psampled=0.01){
 
 #' Calculate negative log likelihood of linear model parameterization
 #' of birth-death process
+#'
+#' @param w vector of parameters
+#' @param x matrix of predictors
+#' @param y tree assumed to come from birth-death process
+#' @param param_map function to map w to list with parameters for calc_bd_nll()
 #'
 #' @export
 calc_bd_lm_nll <- function(w, x, y, param_map){

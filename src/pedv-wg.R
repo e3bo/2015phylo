@@ -19,7 +19,7 @@ td <- as.integer(tip_dates - max(tip_dates)) / 365
 names(td) <- bt$tip.label
 
 btr <- ape::rtt(bt, tip.dates = td, objective = "rms")
-temp_ests <- eval_temporal_signal(btr, -td)
+temp_ests <- penaltree::eval_temporal_signal(btr, -td)
 
 metar <- strsplit(btr$tip.label, "_")
 btr$geo_states <- sapply(metar, "[[", 1)
