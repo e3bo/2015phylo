@@ -333,6 +333,7 @@ plotCoef <- function (beta, norm, lambda, df, dev, label = FALSE, xvar = c("norm
     }
 }
 
+#' @export
 plot.gpnet <- function (x, xvar = c("norm", "lambda", "dev"),
                           label = FALSE, ...){
     xvar = match.arg(xvar)
@@ -340,6 +341,7 @@ plot.gpnet <- function (x, xvar = c("norm", "lambda", "dev"),
              label = label, xvar = xvar, ...)
 }
 
+#' @export
 print.gpnet <- function(x, digits = max(3, getOption("digits") - 3), ...){
     cat("\nCall: ", deparse(x$call), "\n\n")
     print(cbind(Df = x$df, `ll` = signif(-x$nll, digits),
