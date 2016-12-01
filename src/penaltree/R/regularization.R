@@ -241,8 +241,8 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                             M <- G - M
                             G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
                             if (any(diag(G) <= 0)) browser()
-                        } else if(verbose){
-                            cat('skipping Hessian update: ys <= 0', '\n')
+                        } else if(make_log){
+                            record('skipping Hessian update: ys <= 0', '\n')
                         }
                         ## update vars
                         k <- k + 1
