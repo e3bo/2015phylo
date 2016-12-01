@@ -69,10 +69,30 @@ out1 <- penaltree::get_gpnet(x = x2, y = tree_timel[1],
 
 sp <- stabpath_gpnet(x = x2, y = tree_timel[1],
                calc_convex_nll = penaltree::calc_bd_lm_nll,
-               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.9,
+               param_map = pm1, nlambda = 2, lambda.min.ratio = 0.5,
                verbose = FALSE, penalty.factor = pf1,
                thresh = 1e-4, winit = init1, alpha = 1,
-               steps=3)
+               steps=3, mc.cores=3)
+
+c060:::plot.stabpath(sp, type="pcer")
+
+## figure out if starting with high lambda leads to malformed hessian
+
+tipnames <- lapply(tree_timel[1], "[[", "tip.label")
+tmpf <- function(tn){
+    sample(tn, ceiling(length(tn) * .1))
+}
+tmpff <- function(){
+    unlist(sapply(tipnames, tmpf))
+}
+subset <- tmpff()
+small_treel <- penaltree:::filter_y(tree_timel[1], subset)
+
+out <- get_gpnet(x = x2, y = small_treel, calc_convex_nll=penaltree::calc_bd_lm_nll,
+                 param_map=pm, lambda=seq(10, 1),
+                 make_log = TRUE, penalty.factor=c(0, 0, rep(1,12)),
+                 thresh=1e-4, winit=init, alpha=1)
+
 
 
 
