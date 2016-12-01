@@ -382,16 +382,16 @@ stabpath_gpnet <- function (y, penalty.factor, size = 0.632, steps = 100, weakne
     }
     subsets <- replicate(steps, tmpff(), simplify=FALSE)
     if (.Platform$OS.type != "windows") {
-        res <- mclapply(1:steps, mc.cores = mc.cores, get_gpnet_subset,
+        res <- parallel::mclapply(1:steps, mc.cores = mc.cores, get_gpnet_subset,
             subsets, penalty.factor, y, lambda = fit$lambda, weakness, p,
             ...)
     }
     else {
-        cl <- makePSOCKcluster(mc.cores)
-        clusterExport(cl, c("glmnet", "drop0"))
-        res <- parLapply(cl, 1:steps, get_gpnet_subset, subsets,
+        cl <- parallel::makePSOCKcluster(mc.cores)
+        parallel::clusterExport(cl, c("penaltree", "drop0"))
+        res <- parallel::parLapply(cl, 1:steps, get_gpnet_subset, subsets,
             penalty.factor, y, lambda = fit$lambda, weakness, p, ...)
-        stopCluster(cl)
+        parallel::stopCluster(cl)
     }
     res <- res[unlist(lapply(lapply(res, dim), function(x) x[2] ==
         dim(res[[1]])[2]))]

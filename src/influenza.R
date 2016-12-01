@@ -69,10 +69,10 @@ out1 <- penaltree::get_gpnet(x = x2, y = tree_timel[1],
 
 sp <- stabpath_gpnet(x = x2, y = tree_timel[1],
                calc_convex_nll = penaltree::calc_bd_lm_nll,
-               param_map = pm1, nlambda = 2, lambda.min.ratio = 0.95,
+               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.9,
                verbose = FALSE, penalty.factor = pf1,
                thresh = 1e-4, winit = init1, alpha = 1,
-               steps=2)
+               steps=3)
 
 
 
