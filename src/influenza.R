@@ -67,6 +67,15 @@ out1 <- penaltree::get_gpnet(x = x2, y = tree_timel[1],
                   verbose = TRUE, penalty.factor = pf1,
                   thresh = 1e-4, winit = init1, alpha = 1)
 
+sp <- stabpath_gpnet(x = x2, y = tree_timel[1],
+               calc_convex_nll = penaltree::calc_bd_lm_nll,
+               param_map = pm1, nlambda = 2, lambda.min.ratio = 0.95,
+               verbose = FALSE, penalty.factor = pf1,
+               thresh = 1e-4, winit = init1, alpha = 1,
+               steps=2)
+
+
+
 save.image("influenza.RData")
 
 q('no')

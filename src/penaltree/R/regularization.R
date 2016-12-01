@@ -347,3 +347,64 @@ print.gpnet <- function(x, digits = max(3, getOption("digits") - 3), ...){
     print(cbind(Df = x$df, `ll` = signif(-x$nll, digits),
         Lambda = signif(x$lambda, digits)))
 }
+
+filter_y <- function(tree_list, keepers){
+  prune <- function(tr){
+    is_keeper<- tr$tip.label %in% keepers
+    to_drop <- tr$tip.label[!is_keeper]
+    names(tr$states) <- tr$tip.label
+    tr <- ape::drop.tip(phy=tr, tip=to_drop)
+    tr$states <- tr$states[tr$tip.label]
+    tr
+  }
+  lapply(tree_list, prune)
+}
+
+get_gpnet_subset <- function (index, subsets, penalty.factor, y, lambda, weakness, p, ...){
+  nms <- subsets[[index]]
+  ysub <- filter_y(y, nms)
+  get_gpnet(ysub, lambda = lambda, penalty.factor = penalty.factor /runif(p, weakness, 1), ...)$beta != 0
+}
+
+#' Calculate the stability path for a gpnet model
+#'
+#' @export
+stabpath_gpnet <- function (y, penalty.factor, size = 0.632, steps = 100, weakness = 1,
+                            mc.cores = getOption("mc.cores", 2L), ...){
+    fit <- get_gpnet(y=y, penalty.factor=penalty.factor, ...)
+    p <- as.integer(sum(penalty.factor > .Machine$double.eps))
+    tipnames <- lapply(y, "[[", "tip.label")
+    tmpf <- function(tn){
+        sample(tn, ceiling(length(tn) * size))
+    }
+    tmpff <- function(){
+        unlist(sapply(tipnames, tmpf))
+    }
+    subsets <- replicate(steps, tmpff(), simplify=FALSE)
+    if (.Platform$OS.type != "windows") {
+        res <- mclapply(1:steps, mc.cores = mc.cores, get_gpnet_subset,
+            subsets, penalty.factor, y, lambda = fit$lambda, weakness, p,
+            ...)
+    }
+    else {
+        cl <- makePSOCKcluster(mc.cores)
+        clusterExport(cl, c("glmnet", "drop0"))
+        res <- parLapply(cl, 1:steps, get_gpnet_subset, subsets,
+            penalty.factor, y, lambda = fit$lambda, weakness, p, ...)
+        stopCluster(cl)
+    }
+    res <- res[unlist(lapply(lapply(res, dim), function(x) x[2] ==
+        dim(res[[1]])[2]))]
+    x <- as.matrix(res[[1]])
+    qmat <- matrix(ncol = ncol(res[[1]]), nrow = length(res))
+    qmat[1, ] <- colSums(as.matrix(res[[1]]))
+    for (i in 2:length(res)) {
+        qmat[i, ] <- colSums(as.matrix(res[[i]]))
+        x <- x + as.matrix(res[[i]])
+    }
+    x <- x/length(res)
+    qs <- colMeans(qmat)
+    out <- list(fit = fit, x = x, qs = qs)
+    class(out) <- "stabpath"
+    return(out)
+}
