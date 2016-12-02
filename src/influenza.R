@@ -61,24 +61,78 @@ pf1 <- c(0, 0, rep(1, 10))
 pars <- pm1(x = x2, w = init1)
 
 tree_timel <- lapply(tree_info, "[[", "tree_time")
+sp <- penaltree:::stabpath_gpnet(x = x2, y = tree_timel[1],
+               calc_convex_nll = penaltree::calc_bd_lm_nll,
+               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.1,
+               verbose = FALSE, penalty.factor = pf1,
+               thresh = 1e-4, winit = init1, alpha = 1,
+               steps=20, mc.cores = 20)
+
+library(c060)
+
+spstats <- plot(sp)
+
+xstable <- x2[, spstats$stable - 2, drop=FALSE]
+
+pf2 <- c(0, 0, 100, 100, 1)
+init2 <- init1[c(seq(1, 4), spstats$stable + 4)]
+selected_fit <- penaltree::get_gpnet(x = xstable, y = tree_timel[1],
+               calc_convex_nll = penaltree::calc_bd_lm_nll,
+               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.01,
+               verbose = FALSE, penalty.factor = pf2,
+               thresh = 1e-4, winit = init2, alpha = 1)
+
+sel_coef <- c(selected_fit$a0[, 10], selected_fit$beta[, 10])
+sel_par <- pm1(xstable, sel_coef)
+nsamples <- floor(length(tree_timel[[1]]$tip.label) / 2)
+
+sim_tree <- penaltree::sim_bd_proc(n = nsamples, l = sel_par$l,
+                                   m = sel_par$m, psi = sel_par$psi, init = 3)
+
+# do stability selection and fitting of simulated tree
+
+sp_sim <- penaltree:::stabpath_gpnet(x = x2, y = list(sim_tree),
+               calc_convex_nll = penaltree::calc_bd_lm_nll,
+               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.1,
+               verbose = FALSE, penalty.factor = pf1,
+               thresh = 1e-4, winit = init1, alpha = 1,
+               steps=20, mc.cores = 20)
+
+spstats_sim <- plot(sp_sim)
+
+
+
+
+init2[c(1,2)] <- c(0.8, 0)
+sim_fit <- penaltree::get_gpnet(x = xstable, y = list(sim_tree),
+               calc_convex_nll = penaltree::calc_bd_lm_nll,
+               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.01,
+               verbose = TRUE, penalty.factor = pf2,
+               thresh = 1e-4, winit = init2, alpha = 1)
+
+obj <- function(x1, x2){
+    w <- init2
+    w[2] <- x1
+    w[5] <- x2
+    penaltree::calc_bd_lm_nll(w=w, x=xstable, y=list(sim_tree), param_map=pm1)
+}
+
+lseq <- seq(-.1, .24, len=4)
+bseq <- seq(2, 3, len=4)
+grid <- expand.grid(l=lseq, b=bseq)
+system.time(surf <- mapply(obj, x1=grid$l, x2=grid$b))
+ll <- matrix(surf, nrow=length(lseq), ncol=length(bseq))
+image(lseq, bseq, ll)
+
+save.image("influenza.RData")
+
+q('no')
+
 out1 <- penaltree::get_gpnet(x = x2, y = tree_timel[1],
                   calc_convex_nll = penaltree::calc_bd_lm_nll,
                   param_map = pm1, nlambda = 50, lambda.min.ratio = 0.5,
                   verbose = TRUE, penalty.factor = pf1,
                   thresh = 1e-4, winit = init1, alpha = 1)
-
-sp <- stabpath_gpnet(x = x2, y = tree_timel[1],
-               calc_convex_nll = penaltree::calc_bd_lm_nll,
-               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.9,
-               verbose = FALSE, penalty.factor = pf1,
-               thresh = 1e-4, winit = init1, alpha = 1,
-               steps=3)
-
-
-
-save.image("influenza.RData")
-
-q('no')
 
 out <- get_gpnet(x = x2, y = tree_timel, calc_convex_nll=penaltree::calc_bd_lm_nll,
                  param_map=pm, nlambda=13, lambda.min.ratio=0.75,

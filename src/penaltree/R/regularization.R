@@ -127,7 +127,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
         w[!pen_ind] <- w_nopen
         -calc_convex_nll(w=w, x=x, y=y, param_map=param_map)
     }
-    (logfile <- tempfile(fileext = ".log"))
+    logfile <- tempfile(fileext = ".log")
     is_unpenalized <- vp < .Machine$double.eps
     init <- winit[is_unpenalized]
     upper <- rep(4, length(init))
@@ -135,6 +135,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     #upper[length(upper)] <- 4
     ans <- rphast::optim.rphast(ll_no_penalty, init, lower = lower, upper=upper,
                                         logfile = logfile)
+    #ans <- optim(init, ll_no_penalty, control=list(reltol=1e-4))
     #ans <- readRDS("ans.rds")
     par <- winit
     par[is_unpenalized] <- ans$par
@@ -143,6 +144,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     mu <- mubar
     stopifnot(beta>0, beta<1)
     G <- diag(initFactor * abs(gnll), ncol=dim)
+    #G <- numDeriv::hessian(nll, x=par)
     if(flmin<1){
         lstart <- max(abs(gnll))
         loglstart <- log10(lstart) + relStart
@@ -228,7 +230,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                         yvec <- gnll2 - gnll
                         s <- d
                         ys <- yvec %*% s
-                        if (ys > 0){
+                        if (ys > .Machine$double.eps){
                             ## Hessian approximation update via BFGS via 8.19 in Nocedal and Wright
                             sColVec <- matrix(s, ncol=1)
                             yColVec <- matrix(yvec, ncol=1)
@@ -238,7 +240,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                             G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
                             if (any(diag(G) <= 0)) browser()
                         } else if(verbose){
-                            cat('skipping Hessian update: ys <= 0', '\n')
+                            cat('skipping Hessian update: ys <= double eps', '\n')
                         }
                         ## update vars
                         k <- k + 1

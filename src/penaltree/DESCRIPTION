@@ -7,7 +7,7 @@ Authors@R: c(person("Eamon", "O\'Dea", email = "odea35@gmail.com", role = c("aut
 	     person("c060", "authors", role="ctb", comment="Some code has been copied from the c060 package."))
 Description: What the package does (one paragraph).
 Depends:
-    R (>= 3.3.1)
+    R (>= 3.2.4)
 Imports:
     ape (>= 3.5),
     deSolve (>= 1.13),
