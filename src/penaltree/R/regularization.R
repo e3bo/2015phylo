@@ -29,7 +29,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
                       thresh=1e-4, dfmax=nvars + 1,
                       pmax=min(dfmax*2 + 20,nvars), exclude,
                       penalty.factor=rep(1, nvars), lower.limits=-Inf,
-                      upper.limits=Inf, maxit=100, verbose=FALSE,
+                      upper.limits=Inf, maxit=100, make_log = FALSE,
                       winit){
     if (alpha > 1) {
         warning("alpha >1; set to 1")
@@ -102,7 +102,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
     }
     fit <- gpnet(x, y, calc_convex_nll, param_map, alpha, nobs=NULL, nvars, jd, vp,
                  cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
-                 maxit, verbose = verbose, winit = winit)
+                 maxit, make_log = make_log, winit = winit)
     fit$call <- this.call
     fit$nrates <- nrates
     class(fit) <- c(class(fit), "gpnet")
@@ -112,7 +112,7 @@ get_gpnet <- function(x, y, calc_convex_nll, param_map, alpha=1, nlambda=100,
 gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                   cl, ne, nx, nlam, flmin, ulam, thresh, isd, intr, vnames,
                   maxit, a=0.1, r=0.01, relStart=0.0, mubar=1, beta=0.9,
-                  verbose=FALSE, debug=TRUE, initFactor=10, winit){
+                  make_log = FALSE, debug = TRUE, initFactor=10, winit){
     maxit <- as.integer(maxit)
     niter <- 0
     dim <- nvars + intr
@@ -127,20 +127,19 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
         w[!pen_ind] <- w_nopen
         -calc_convex_nll(w=w, x=x, y=y, param_map=param_map)
     }
-    logfile <- tempfile(fileext = ".log")
+    logfile <- tempfile(pattern="optim.rphast", fileext = ".log")
     is_unpenalized <- vp < .Machine$double.eps
     init <- winit[is_unpenalized]
     upper <- rep(4, length(init))
     lower <- rep(-4, length(init))
-    #upper[length(upper)] <- 4
     ans <- rphast::optim.rphast(ll_no_penalty, init, lower = lower, upper=upper,
-                                        logfile = logfile)
-    #ans <- optim(init, ll_no_penalty, control=list(reltol=1e-4))
-    #ans <- readRDS("ans.rds")
+    if (make_log) {
+      logfile <- tempfile(pattern="gpnet", fileext = ".log")
+      record <- function(...) cat(..., file = logfile, append = TRUE)
+    }
     par <- winit
     par[is_unpenalized] <- ans$par
     gnll <- numDeriv::grad(nll, x=par, method='simple')
-    #gnll <- numDeriv::grad(nll, x=par)
     mu <- mubar
     stopifnot(beta>0, beta<1)
     G <- diag(initFactor * abs(gnll), ncol=dim)
@@ -210,23 +209,26 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
             if(any(diff(c(F1, unlist(fmlist)))>1e-10)) browser()
             par2 <- par + d
             if (any(par2[!is_unpenalized] > cl[2, ] || any(par2[!is_unpenalized] < cl[1, ]))){
-                if(verbose) cat('backtracking: out of bounds', '\n')
+                if(make_log) record('backtracking: out of bounds', '\n')
                 mu <- mu * beta
             } else {
                 Fmod <- d %*% (H/2) %*% d + gnll %*% d + F1 - penFunc(par) + penFunc(par2)
                 if(Fmod  > F1 && !isTRUE(all.equal(Fmod, F1))) {
                     if (debug) browser()
-                    if(verbose) cat('backtracking: poorly solved model', '\n')
+                    if(make_log) record('backtracking: poorly solved model', '\n')
                     mu <- mu * beta
                 } else {
                     nlp <- nll(par2)
                     F2 <- nlp + penFunc(par2)
                     if (F2 - F1 > r * (Fmod - F1)){
-                        if(verbose) cat('backtracking: insufficient decrease', '\n')
+                        if(make_log) record('backtracking: insufficient decrease', '\n')
                         mu <- mu * beta
-                    } else {
+                      } else {
+                        if (mu < mubar) {
+                          if(make_log) record('increasing step size: sufficient decrease', '\n')
+                          mu <- mu / sqrt(beta)
+                        }
                         gnll2 <- numDeriv::grad(nll, x=par2, method='simple')
-                        #gnll2 <- numDeriv::grad(nll, x=par2)
                         yvec <- gnll2 - gnll
                         s <- d
                         ys <- yvec %*% s
@@ -239,8 +241,8 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                             M <- G - M
                             G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
                             if (any(diag(G) <= 0)) browser()
-                        } else if(verbose){
-                            cat('skipping Hessian update: ys <= double eps', '\n')
+                        } else if(make_log){
+                            record('skipping Hessian update: ys <= double eps', '\n')
                         }
                         ## update vars
                         k <- k + 1
@@ -252,16 +254,16 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                         sg <- mapply(fsg, p=par, g=gnll, l1=l1penalty, l2=l2penalty, h=diag(H))
                         nsg <- max(abs(sg))
                         if (debug && mu < 1e-8 && nsg > thresh) browser()
-                        if (verbose) {
-                            cat('lambda: ', lambda[i], '\n')
-                            cat('k: ', k, '\n')
-                            cat('F: ', as.numeric(F1), '\n')
-                            cat('par: ', signif(par, 3), '\n')
-                            cat('grad: ', signif(gnll, 3), '\n')
-                            cat('h: ', signif(diag(H), 3), '\n')
-                            cat('nsg: ', signif(nsg, 3), '\n')
-                            cat('mu: ', signif(mu, 3), '\n')
-                            cat('\n')
+                        if (make_log) {
+                            record('lambda: ', lambda[i], '\n')
+                            record('k: ', k, '\n')
+                            record('F: ', as.numeric(F1), '\n')
+                            record('par: ', signif(par, 3), '\n')
+                            record('grad: ', signif(gnll, 3), '\n')
+                            record('h: ', signif(diag(H), 3), '\n')
+                            record('nsg: ', signif(nsg, 3), '\n')
+                            record('mu: ', signif(mu, 3), '\n')
+                            record('\n')
                         }
                     }
                 }
@@ -283,7 +285,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     ret$dim <- dim(x)
     ret$niterations <- sum(sapply(res, '[[', 'k'))
     ret$jerr <- paste('convergence: ', sapply(res, '[[', 'convergence'))
-    if(verbose) cat('Completed regularization path', '\n')
+    if(make_log) record('Completed regularization path', '\n')
     ret
 }
 
@@ -373,7 +375,9 @@ get_gpnet_subset <- function (index, subsets, penalty.factor, y, lambda, weaknes
 #' @export
 stabpath_gpnet <- function (y, penalty.factor, size = 0.632, steps = 100, weakness = 1,
                             mc.cores = getOption("mc.cores", 2L), ...){
-    fit <- get_gpnet(y=y, penalty.factor=penalty.factor, ...)
+                                        #fit <- get_gpnet(y=y, penalty.factor=penalty.factor, ...)
+  fit <- list()
+  fit$lambda <- c(8, 4)
     p <- as.integer(sum(penalty.factor > .Machine$double.eps))
     tipnames <- lapply(y, "[[", "tip.label")
     tmpf <- function(tn){

@@ -100,9 +100,6 @@ sp_sim <- penaltree:::stabpath_gpnet(x = x2, y = list(sim_tree),
 
 spstats_sim <- plot(sp_sim)
 
-
-
-
 init2[c(1,2)] <- c(0.8, 0)
 sim_fit <- penaltree::get_gpnet(x = xstable, y = list(sim_tree),
                calc_convex_nll = penaltree::calc_bd_lm_nll,
@@ -165,3 +162,20 @@ p$states[p$states == 3] <- 2
 
 
 calc_bd_lm_nll(foo, x2, tree_timel[1], pm1)
+
+## figure out if starting with high lambda leads to malformed hessian
+
+tipnames <- lapply(tree_timel[1], "[[", "tip.label")
+tmpf <- function(tn){
+    sample(tn, ceiling(length(tn) * .1))
+}
+tmpff <- function(){
+    unlist(sapply(tipnames, tmpf))
+}
+subset <- tmpff()
+small_treel <- penaltree:::filter_y(tree_timel[1], subset)
+
+out <- get_gpnet(x = x2, y = small_treel, calc_convex_nll=penaltree::calc_bd_lm_nll,
+                 param_map=pm, lambda=seq(10, 1),
+                 make_log = TRUE, penalty.factor=c(0, 0, rep(1,12)),
+                 thresh=1e-4, winit=init, alpha=1)
