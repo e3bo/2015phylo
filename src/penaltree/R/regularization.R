@@ -132,7 +132,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     init <- winit[is_unpenalized]
     upper <- rep(4, length(init))
     lower <- rep(-4, length(init))
-    ans <- rphast::optim.rphast(ll_no_penalty, init, lower = lower, upper=upper,
+    ans <- rphast::optim.rphast(ll_no_penalty, init, lower = lower, upper=upper, logfile = logfile)
     if (make_log) {
       logfile <- tempfile(pattern="gpnet", fileext = ".log")
       record <- function(...) cat(..., file = logfile, append = TRUE)
@@ -375,9 +375,7 @@ get_gpnet_subset <- function (index, subsets, penalty.factor, y, lambda, weaknes
 #' @export
 stabpath_gpnet <- function (y, penalty.factor, size = 0.632, steps = 100, weakness = 1,
                             mc.cores = getOption("mc.cores", 2L), ...){
-                                        #fit <- get_gpnet(y=y, penalty.factor=penalty.factor, ...)
-  fit <- list()
-  fit$lambda <- c(8, 4)
+    fit <- get_gpnet(y=y, penalty.factor=penalty.factor, ...)
     p <- as.integer(sum(penalty.factor > .Machine$double.eps))
     tipnames <- lapply(y, "[[", "tip.label")
     tmpf <- function(tn){
