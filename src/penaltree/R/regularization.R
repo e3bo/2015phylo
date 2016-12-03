@@ -242,7 +242,9 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                             G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
                             if (any(diag(G) <= 0)) browser()
                         } else if(make_log){
-                            record('skipping Hessian update: ys <= double eps', '\n')
+                            record('resetting Hessian: ys <= double eps', '\n')
+                            G <- diag(initFactor * abs(gnll2), ncol=dim)
+                            mu <- 1
                         }
                         ## update vars
                         k <- k + 1
@@ -253,7 +255,12 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                         H <- I/(2*mu) + G
                         sg <- mapply(fsg, p=par, g=gnll, l1=l1penalty, l2=l2penalty, h=diag(H))
                         nsg <- max(abs(sg))
-                        if (debug && mu < 1e-8 && nsg > thresh) browser()
+                        if (mu < 1e-8 && nsg > thresh) {
+                            if (make_log) record("bad direction: resetting Hessian")
+                            G <- diag(initFactor * abs(gnll), ncol=dim)
+                            mu <- 1
+                            H <- I / (2 * mu) + G
+                            }
                         if (make_log) {
                             record('lambda: ', lambda[i], '\n')
                             record('k: ', k, '\n')
@@ -367,7 +374,8 @@ filter_y <- function(tree_list, keepers){
 get_gpnet_subset <- function (index, subsets, penalty.factor, y, lambda, weakness, p, ...){
   nms <- subsets[[index]]
   ysub <- filter_y(y, nms)
-  get_gpnet(ysub, lambda = lambda, penalty.factor = penalty.factor /runif(p, weakness, 1), ...)$beta != 0
+  get_gpnet(ysub, lambda = lambda,
+            penalty.factor = penalty.factor / runif(penalty.factor, weakness, 1), ...)$beta != 0
 }
 
 #' Calculate the stability path for a gpnet model

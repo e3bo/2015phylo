@@ -95,17 +95,18 @@ init2 <- init1
 init2[c(1,2)] <- c(0.8, 0)
 sp_sim <- penaltree::stabpath_gpnet(x = x2, y = list(sim_tree),
                calc_convex_nll = penaltree::calc_bd_lm_nll,
-               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.1,
+               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.25,
                make_log = TRUE, penalty.factor = pf1,
                thresh = 1e-4, winit = init2, alpha = 1,
                steps=20, mc.cores = 20)
 
+library(c060)
 spstats_sim <- plot(sp_sim)
 
 sim_fit <- penaltree::get_gpnet(x = xstable, y = list(sim_tree),
                calc_convex_nll = penaltree::calc_bd_lm_nll,
                param_map = pm1, nlambda = 10, lambda.min.ratio = 0.01,
-               verbose = TRUE, penalty.factor = pf2,
+               make_log = TRUE, penalty.factor = pf2,
                thresh = 1e-4, winit = init2, alpha = 1)
 
 obj <- function(x1, x2){
