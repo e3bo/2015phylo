@@ -1,0 +1,56 @@
+% Identifying Correlates of Pathogen Spatial Spread from Phylogenetic Trees Workshop
+% Eamon O'Dea
+% December 7, 2016
+
+# What insights have phylogeographic analyses provided?
+
+\includegraphics[width=\textwidth]{sensitivity-vs-uncertainty.png}
+
+<!---
+
+Goal: After seeing this presentation, viewers will be aware of the
+main types of phylogeographic methods currently available, their
+relative strengths and weaknesses of these methods, and, for my
+proposed method, be familiar with the main steps using it.
+
+Advertisement: For a pathogen that evolves rapidly, the molecular
+sequences of its lineages may become sprinkled with characteristic
+features as they circulate through the host population. Statistical
+methods are being developed to use these features to infer correlates
+of the pathogen's spatial spread. This presentation will review some
+of these methods and demonstrate how to apply one of them to a data
+set consisting of molecular sequences and their collection times and
+places. The demonstration will include steps to assess the likely
+performance of the method on a particular data set.
+
+Target length: 50 min, 6000--8000 words
+--->
+
+<div class="notes">
+# Provides examples of some of the exciting results that
+phylogeographic methods have generated
+
+Sensitivity analysis is a term I often hear people use to mean
+essentially a check that your results do not dramatically change when
+you change your model parameters to account for the fact that you are
+not sure what the best values for them are, but it has a broader
+definition. In fact, you could argue that when used in the sense I
+just described, the goal is to determine the ramifications of
+uncertainty in model parameters on the model output. That type of
+analysis might more accurately be described as uncertainty
+analysis. By contrast, sensitivity analysis can more narrowly be
+defined as determing the relationship between uncertainity in output
+and uncertainty in input. Thus sensitivity analysis could be a
+prerequisite of an uncertainty analysis. However, as the figure shows,
+the outcome of your uncertainty analyis depends on both model
+sensitivity and uncertainty in the inputs. If the range of inputs
+differ, a model with low sensitivity can have greater uncertainty in
+the output than a model with high sensitivity. Sensitivity is a
+property of the model itself and could be used for things besides
+uncertainty analysis such as a powers analysis (if your model output
+is a test statistic) or a model reduction procedure. In this example
+the sensitivity did not depend on the inputs but in general that is of
+course not the case.
+
+</div>
+
