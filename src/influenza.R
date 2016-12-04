@@ -62,12 +62,13 @@ pf1 <- c(0, 0, rep(1, 10))
 pars <- pm1(x = x2, w = init1)
 
 tree_timel <- lapply(tree_info, "[[", "tree_time")
+ncpu <- max(parallel::detectCores() - 1, 20)
 sp <- penaltree:::stabpath_gpnet(x = x2, y = tree_timel[1],
                calc_convex_nll = penaltree::calc_bd_lm_nll,
                param_map = pm1, nlambda = 10, lambda.min.ratio = 0.1,
-               verbose = FALSE, penalty.factor = pf1,
-               thresh = 1e-4, winit = init1, alpha = 1,
-               steps=20, mc.cores = 20)
+               make_log = TRUE, penalty.factor = pf1,
+               thresh = 1e-3, winit = init1, alpha = 1,
+               steps=20, mc.cores = ncpu)
 
 
 
@@ -105,7 +106,7 @@ spstats_sim <- plot(sp_sim)
 
 stopifnot(isTRUE(all.equal(spstats_sim$stable, spstats$stable)))
 
-set.seed(1)
+set.seed(3)
 sim_fit <- penaltree::get_gpnet(x = xstable, y = list(sim_tree),
                calc_convex_nll = penaltree::calc_bd_lm_nll,
                param_map = pm1, nlambda = 100, lambda.min.ratio = 0.01,
