@@ -174,7 +174,6 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
         H <- I/(2*mu) + G
         sg <- mapply(fsg, p=par, g=gnll, l1=l1penalty, l2=l2penalty, h=diag(H))
         nsg <- max(abs(sg))
-        flag <- FALSE
         while (nsg > thresh && k < maxit){
             H <- I/(2*mu) + G
             d <- numeric(dim)
@@ -182,7 +181,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
             fmlist <- list()
             inactive <- par != 0 | sg != 0 ## inactive means not actively fixed to zero in solution
             nInactive <- sum(inactive)
-            ndesc <- (1 + floor(k * a)) * nInactive
+            ndesc <- (i + floor(k * a)) * nInactive
             for (nd in 1:ndesc){
                 j <- sample.int(n=nInactive, size=1)
                 j <- parInds[inactive][j]
@@ -240,19 +239,12 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                             M <- M / as.numeric(t(sColVec) %*% G %*% sColVec)
                             M <- G - M
                             G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
-                            flag <- FALSE
                             if (any(diag(G) <= 0)) browser()
                         } else {
                             if(make_log) record('resetting Hessian: ys <= 0', '\n')
-                            if (ys > -1e-6) browser()
-                            if (flag) {
-                                if(make_log) record("using more accurate derv, second time ys == 0", "\n")                                
+                            if (isTRUE(all.equal(ys, 0))) {
+                                if(make_log) record("using more accurate derv: ys == 0", "\n")
                                 gnll2 <- numDeriv::grad(nll, x=par)
-                            }
-                            if (isTRUE(all.equal(ys, 0))){
-                                flag <- TRUE
-                            } else {
-                                flag <- FALSE
                             }
                             G <- diag(initFactor * abs(gnll2), ncol=dim)
                             mu <- mubar
