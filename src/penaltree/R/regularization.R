@@ -174,6 +174,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
         H <- I/(2*mu) + G
         sg <- mapply(fsg, p=par, g=gnll, l1=l1penalty, l2=l2penalty, h=diag(H))
         nsg <- max(abs(sg))
+        flag <- FALSE
         while (nsg > thresh && k < maxit){
             H <- I/(2*mu) + G
             d <- numeric(dim)
@@ -239,10 +240,20 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                             M <- M / as.numeric(t(sColVec) %*% G %*% sColVec)
                             M <- G - M
                             G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
+                            flag <- FALSE
                             if (any(diag(G) <= 0)) browser()
-                        } else if(make_log){
-                            record('resetting Hessian with more accurate derivative: ys <= 0', '\n')
-                            gnll2 <- numDeriv::grad(nll, x=par2)
+                        } else {
+                            if(make_log) record('resetting Hessian: ys <= 0', '\n')
+                            if (ys > -1e-6) browser()
+                            if (flag) {
+                                if(make_log) record("using more accurate derv, second time ys == 0", "\n")                                
+                                gnll2 <- numDeriv::grad(nll, x=par)
+                            }
+                            if (isTRUE(all.equal(ys, 0))){
+                                flag <- TRUE
+                            } else {
+                                flag <- FALSE
+                            }
                             G <- diag(initFactor * abs(gnll2), ncol=dim)
                             mu <- mubar
                         }
@@ -256,8 +267,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                         sg <- mapply(fsg, p=par, g=gnll, l1=l1penalty, l2=l2penalty, h=diag(H))
                         nsg <- max(abs(sg))
                         if (mu < 1e-8 && nsg > thresh) {
-                            if (make_log) record("resetting Hessian with accurate gradient: bad direction", "\n")
-                            gnll <- numDeriv::grad(nll, x=par)
+                            if (make_log) record("resetting Hessian: bad direction", "\n")
                             G <- diag(initFactor * abs(gnll), ncol=dim)
                             mu <- mubar
                             H <- I / (2 * mu) + G
@@ -281,7 +291,6 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
         res[[i]] <- list(par=par, nll=nlp, k=k, lambda=lambda[i],
                          convergence=convergence, mu=mu, nsg=nsg, sg=sg)
         if (make_log) record("resetting Hessian: new penalty", "\n")
-        gnll <- numDeriv::grad(nll, x=par)
         mu <- mubar
         G <- diag(initFactor * abs(gnll), ncol=dim)
     }
