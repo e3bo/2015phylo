@@ -105,10 +105,10 @@ spstats_sim <- plot(sp_sim)
 
 stopifnot(isTRUE(all.equal(spstats_sim$stable, spstats$stable)))
 
-set.seed(2)
+set.seed(1)
 sim_fit <- penaltree::get_gpnet(x = xstable, y = list(sim_tree),
                calc_convex_nll = penaltree::calc_bd_lm_nll,
-               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.01,
+               param_map = pm1, nlambda = 100, lambda.min.ratio = 0.01,
                make_log = TRUE, penalty.factor = pf2,
                thresh = 1e-3, winit = init2, alpha = 1)
 
