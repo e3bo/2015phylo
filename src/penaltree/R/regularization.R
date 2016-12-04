@@ -139,8 +139,8 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
     }
     par <- winit
     par[is_unpenalized] <- ans$par
-    method <- "simple"
-    gnll <- numDeriv::grad(nll, x = par, method = method)
+    nderv <- function(f, p) numDeriv::grad(f, x = p, method = "simple", method.args=list(eps=1e-3))
+    gnll <- nderv(nll, par)
     mu <- mubar
     stopifnot(beta>0, beta<1)
     G <- diag(initFactor * abs(gnll), ncol=dim)
@@ -220,13 +220,14 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                 } else {
                     nlp <- nll(par2)
                     F2 <- nlp + penFunc(par2)
-                    if (F2 - F1 > r * (Fmod - F1)){
+                    steplen <- sqrt(sum(d^2))
+                    if (F2 - F1 > r * (Fmod - F1) && steplen > 1e-3){
                         if(make_log) record('backtracking: insufficient decrease', '\n')
                         mu <- mu * beta
-                        if (mu < 1e-8 && method == "simple") {
-                            if(make_log) record("using more accurate derv: mu < 1e-8", "\n")
-                            method <- "Richardson"
-                            gnll <- numDeriv::grad(nll, x=par2, method=method)
+                        if (mu < 1e-8) {
+                            if(make_log) record("problem: mu < 1e-8", "\n")
+                            browser()
+                            gnll <- nderv(nll, par2)
                             G <- diag(initFactor * abs(gnll), ncol=dim)
                             mu <- mubar
                         }
@@ -234,57 +235,49 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                         if (mu < mubar) {
                           if(make_log) record('increasing step size: sufficient decrease', '\n')
                           mu <- mu / sqrt(beta)
-                        }
-                        if (mu >= 1e-8 && method == "Richardson") {
-                          if(make_log) record("using less accurate derv: mu >= 1e-8", "\n")
-                          method <- "simple"
-                          gnll <- numDeriv::grad(nll, x=par2, method = method)
-                          G <- diag(initFactor * abs(gnll), ncol = dim)
-                          mu <- mubar
-                        } else {
-                          gnll2 <- numDeriv::grad(nll, x=par2, method = method)
-                          yvec <- gnll2 - gnll
-                          s <- d
-                          ys <- yvec %*% s
-                          if (ys > 0){
-                              ## Hessian approximation update via BFGS via 8.19 in Nocedal and Wright
-                              sColVec <- matrix(s, ncol=1)
-                              yColVec <- matrix(yvec, ncol=1)
-                              M <- G %*% sColVec %*% t(sColVec) %*% G
-                              M <- M / as.numeric(t(sColVec) %*% G %*% sColVec)
-                              M <- G - M
-                              G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
-                              if (any(diag(G) <= 0)) browser()
-                          } else {
-                              if(make_log) record('resetting Hessian: ys <= 0', '\n')
-                              if (isTRUE(all.equal(ys, 0))) {
-                                  if(make_log) record("using more accurate derv: ys == 0", "\n")
-                                  gnll2 <- numDeriv::grad(nll, x=par, method = "Richardson")
-                              }
-                              G <- diag(initFactor * abs(gnll2), ncol=dim)
-                              mu <- mubar
+                      }
+                      gnll2 <- nderv(nll, par2)
+                      yvec <- gnll2 - gnll
+                      s <- d
+                      ys <- yvec %*% s
+                      if (ys > 0){
+                          ## Hessian approximation update via BFGS via 8.19 in Nocedal and Wright
+                          sColVec <- matrix(s, ncol=1)
+                          yColVec <- matrix(yvec, ncol=1)
+                          M <- G %*% sColVec %*% t(sColVec) %*% G
+                          M <- M / as.numeric(t(sColVec) %*% G %*% sColVec)
+                          M <- G - M
+                          G <- M + yColVec %*% t(yColVec) / as.numeric(t(yColVec) %*% sColVec)
+                          if (any(diag(G) <= 0)) browser()
+                      } else {
+                          if(make_log) record('resetting Hessian: ys <= 0', '\n')
+                          if (isTRUE(all.equal(ys, 0))) {
+                              if(make_log) record("problem: ys == 0", "\n")
+                              browser()
                           }
-                        }
-                        ## update vars
-                        k <- k + 1
-                        par <- par2
-                        gnll <- gnll2
-                        dF <- F2 - F1
-                        F1 <- F2
-                        H <- I/(2*mu) + G
-                        sg <- mapply(fsg, p=par, g=gnll, l1=l1penalty, l2=l2penalty, h=diag(H))
-                        nsg <- max(abs(sg))
-                        if (make_log) {
-                          record('lambda: ', lambda[i], '\n')
-                          record('k: ', k, '\n')
-                          record('F: ', as.numeric(F1), '\n')
-                          record('par: ', signif(par, 3), '\n')
-                          record('grad: ', signif(gnll, 3), '\n')
-                          record('h: ', signif(diag(H), 3), '\n')
-                          record('nsg: ', signif(nsg, 3), '\n')
-                          record('mu: ', signif(mu, 3), '\n')
-                          record('\n')
-                        }
+                          G <- diag(initFactor * abs(gnll2), ncol=dim)
+                          mu <- mubar
+                      }
+                      ## update vars
+                      k <- k + 1
+                      par <- par2
+                      gnll <- gnll2
+                      dF <- F2 - F1
+                      F1 <- F2
+                      H <- I/(2*mu) + G
+                      sg <- mapply(fsg, p=par, g=gnll, l1=l1penalty, l2=l2penalty, h=diag(H))
+                      nsg <- max(abs(sg))
+                      if (make_log) {
+                        record('lambda: ', lambda[i], '\n')
+                        record('k: ', k, '\n')
+                        record('F: ', as.numeric(F1), '\n')
+                        record('par: ', signif(par, 3), '\n')
+                        record('grad: ', signif(gnll, 3), '\n')
+                        record('h: ', signif(diag(H), 3), '\n')
+                        record('nsg: ', signif(nsg, 3), '\n')
+                        record('mu: ', signif(mu, 3), '\n')
+                        record('\n')
+                      }
                     }
                 }
             }
@@ -294,8 +287,6 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                          convergence=convergence, mu=mu, nsg=nsg, sg=sg)
         if (make_log) record("resetting Hessian: new penalty", "\n")
         mu <- mubar
-        method <- "simple"
-        gnll <- numDeriv::grad(nll, x = par, method = method)
         G <- diag(initFactor * abs(gnll), ncol=dim)
     }
     path <- sapply(res, '[[', 'par')

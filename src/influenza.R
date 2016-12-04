@@ -105,12 +105,12 @@ spstats_sim <- plot(sp_sim)
 
 stopifnot(isTRUE(all.equal(spstats_sim$stable, spstats$stable)))
 
-set.seed(1)
+set.seed(2)
 sim_fit <- penaltree::get_gpnet(x = xstable, y = list(sim_tree),
                calc_convex_nll = penaltree::calc_bd_lm_nll,
                param_map = pm1, nlambda = 10, lambda.min.ratio = 0.01,
                make_log = TRUE, penalty.factor = pf2,
-               thresh = 1e-5, winit = init2, alpha = 1)
+               thresh = 1e-3, winit = init2, alpha = 1)
 
 
 save.image("influenza.RData")
@@ -151,12 +151,18 @@ out2 <- penaltree::get_gpnet(x = x2, y = tree_timel[2], calc_convex_nll = calc_b
                   verbose = TRUE, penalty.factor = pf1,
                   thresh = 1e-4, winit = init1, alpha = 1)
 
-obj <- function(x) {
-    foo[c(1,2)] <- x
-    l <- calc_bd_lm_nll(w=foo, x=x2, y=tree_timel[1], param_map=pm1)
-    print(paste(c(x, l)))
-    l
+
+
+obj <- function(x, ind=9) {
+    foo <- c(sim_fit$a0[, ind], sim_fit$beta[, ind])
+    foo[5] <- x
+    calc_bd_lm_nll(w=foo, x=xstable, y=list(sim_tree), param_map=pm1)
 }
+prof9 <- sapply(seq(2, 3, .1), obj)
+
+
+
+
 ans <- optim.rphast(obj, c(1, -.1), lower=c(-1,-1), upper=c(1, 0.5), logfile="/tmp/a.log")
 
 
@@ -189,3 +195,29 @@ out <- get_gpnet(x = x2, y = small_treel, calc_convex_nll=penaltree::calc_bd_lm_
                  param_map=pm, lambda=seq(10, 1),
                  make_log = TRUE, penalty.factor=c(0, 0, rep(1,12)),
                  thresh=1e-4, winit=init, alpha=1)
+
+calc_fmod <- function(d){
+    par2 <- d + par
+    d %*% (H/2) %*% d + gnll %*% d + F1 - penFunc(par) + penFunc(par2)   
+}
+
+wrap_mod <- function(x){
+    d <- rep(0, 5)
+    d[2] <- x
+    calc_fmod(d)
+}
+
+d2seq <- seq(1e-4, -1e-4, len=3)
+d2pref <- sapply(d2seq, wrap_mod)
+
+
+wrap_obj <- function(x){
+    d <- rep(0, 5)
+    d[2] <- x
+    par2 <- par + d
+    nll(par2) + penFunc(par2)
+}
+d2true <- sapply(d2seq, wrap_obj)
+
+plot(d2seq, d2true, col=2)
+plot(d2seq, d2pref)
