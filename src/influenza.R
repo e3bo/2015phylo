@@ -45,14 +45,7 @@ process_trees <- function(tree){
 tree_info <- lapply(bt, process_trees)
 save.image("influenza-c1.RData")
 
-
-pm <- penaltree::gen_param_map(3, ntrees=length(tree_info))
-init <- c(0, 0, 0, 0, 0, 0, rep(0, 8))
-
 x2 <- diag(9)[, -1]
-
-pars <- pm(x=x2, w=init)
-
 tree_timel <- lapply(tree_info, "[[", "tree_time")
 
 pm1 <- penaltree::gen_param_map(3, ntrees=1, psampled=.1)
