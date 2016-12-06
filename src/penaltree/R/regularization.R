@@ -383,8 +383,9 @@ filter_y <- function(tree_list, keepers){
 get_gpnet_subset <- function (index, subsets, penalty.factor, y, lambda, weakness, p, ...){
   nms <- subsets[[index]]
   ysub <- filter_y(y, nms)
+  pf <- penalty.factor / stats::runif(penalty.factor, weakness, 1)
   get_gpnet(ysub, lambda = lambda,
-            penalty.factor = penalty.factor / runif(penalty.factor, weakness, 1), ...)$beta != 0
+            penalty.factor = pf, ...)$beta != 0
 }
 
 #' Calculate the stability path for a gpnet model

@@ -65,11 +65,11 @@ sp <- penaltree::stabpath_gpnet(x = x2, y = tree_timel[1],
 save.image("influenza-c2.RData")
 
 spstats <- plot(sp)
-xstable <- x2[, spstats$stable - 2, drop=FALSE]
-stopifnot(ncol(xstable) == 1)
+xstable <- x2[, 4L - 2L, drop=FALSE]
+stopifnot("V4" %in% names(spstats$stable))
 
 pf2 <- c(0, 0, 100, 100, 1)
-init2 <- init1[c(seq(1, 4), spstats$stable + 4)]
+init2 <- init1[c(seq(1, 4), 4L + 4L)]
 selected_fit <- penaltree::get_gpnet(x = xstable, y = tree_timel[1],
                calc_convex_nll = penaltree::calc_bd_lm_nll,
                param_map = pm1, nlambda = 10, lambda.min.ratio = 0.01,
@@ -96,7 +96,7 @@ sp_sim <- penaltree::stabpath_gpnet(x = x2, y = list(sim_tree),
 save.image("influenza-c4.RData")
 spstats_sim <- plot(sp_sim)
 
-stopifnot(isTRUE(all.equal(spstats_sim$stable, spstats$stable)))
+stopifnot(all(as.integer(spstats_sim$stable) == 4L)))
 
 sim_fit <- penaltree::get_gpnet(x = xstable, y = list(sim_tree),
                calc_convex_nll = penaltree::calc_bd_lm_nll,
