@@ -18,6 +18,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Suggests:
+    c060 (>= 0.2.4),
     testthat (>= 1.0.2),
     TreeSim (>= 2.2)
 RoxygenNote: 5.0.1

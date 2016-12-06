@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 
 library(c060)
+set.seed(1)
 raxmlbin <- "/usr/bin/raxmlHPC"
 alignbin <- "../data/swine-influenza-alignments-dnabin.rds"
 
@@ -45,6 +46,8 @@ process_trees <- function(tree){
          tree_time = tree_time)
 }
 tree_info <- lapply(bt, process_trees)
+save.image("influenza-c1.RData")
+
 
 pm <- penaltree::gen_param_map(3, ntrees=length(tree_info))
 init <- c(0, 0, 0, 0, 0, 0, rep(0, 8))
@@ -62,16 +65,16 @@ pf1 <- c(0, 0, rep(1, 10))
 pars <- pm1(x = x2, w = init1)
 
 tree_timel <- lapply(tree_info, "[[", "tree_time")
-ncpu <- min(parallel::detectCores() - 1, 20)
+ncpu <- min(parallel::detectCores() - 1, 30)
 sp <- penaltree::stabpath_gpnet(x = x2, y = tree_timel[1],
                calc_convex_nll = penaltree::calc_bd_lm_nll,
                param_map = pm1, nlambda = 10, lambda.min.ratio = 0.1,
                make_log = TRUE, penalty.factor = pf1,
                thresh = 1e-3, winit = init1, alpha = 1,
-               steps=20, mc.cores = ncpu)
+               steps=30, mc.cores = ncpu)
+save.image("influenza-c2.RData")
 
 spstats <- plot(sp)
-
 xstable <- x2[, spstats$stable - 2, drop=FALSE]
 stopifnot(ncol(xstable) == 1)
 
@@ -82,10 +85,11 @@ selected_fit <- penaltree::get_gpnet(x = xstable, y = tree_timel[1],
                param_map = pm1, nlambda = 10, lambda.min.ratio = 0.01,
                make_log = TRUE, penalty.factor = pf2,
                thresh = 1e-3, winit = init2, alpha = 1)
+save.image("influenza-c3.RData")
 
 sel_coef <- c(selected_fit$a0[, 10], selected_fit$beta[, 10])
 sel_par <- pm1(xstable, sel_coef)
-nsamples <- floor(length(tree_timel[[1]]$tip.label) / 2)
+nsamples <- floor(length(tree_timel[[1]]$tip.label) * 2 / 3)
 
 sim_tree <- penaltree::sim_bd_proc(n = nsamples, l = sel_par$l,
                                    m = sel_par$m, psi = sel_par$psi, init = 3)
@@ -95,11 +99,11 @@ sim_tree <- penaltree::sim_bd_proc(n = nsamples, l = sel_par$l,
 init3 <- init1
 sp_sim <- penaltree::stabpath_gpnet(x = x2, y = list(sim_tree),
                calc_convex_nll = penaltree::calc_bd_lm_nll,
-               param_map = pm1, nlambda = 10, lambda.min.ratio = 0.01,
+               param_map = pm1, nlambda = 20, lambda.min.ratio = 0.1,
                make_log = TRUE, penalty.factor = pf1,
                thresh = 1e-3, winit = init3, alpha = 1,
-               steps = 20, mc.cores = ncpu)
-
+               steps = 30, mc.cores = ncpu)
+save.image("influenza-c4.RData")
 spstats_sim <- plot(sp_sim)
 
 stopifnot(isTRUE(all.equal(spstats_sim$stable, spstats$stable)))
@@ -110,78 +114,5 @@ sim_fit <- penaltree::get_gpnet(x = xstable, y = list(sim_tree),
                make_log = TRUE, penalty.factor = pf2,
                thresh = 1e-3, winit = init2, alpha = 1)
 
-save.image("influenza.RData")
+save.image("influenza-c5.RData")
 q("no")
-
-## plot ll surface
-
-obj <- function(x1, x2){
-    w <- init2
-    w[2] <- x1
-    w[5] <- x2
-    penaltree::calc_bd_lm_nll(w=w, x=xstable, y=list(sim_tree), param_map=pm1)
-}
-
-lseq <- seq(-.1, .24, len=4)
-bseq <- seq(2, 3, len=4)
-grid <- expand.grid(l=lseq, b=bseq)
-system.time(surf <- mapply(obj, x1=grid$l, x2=grid$b))
-ll <- matrix(surf, nrow=length(lseq), ncol=length(bseq))
-image(lseq, bseq, ll)
-
-###
-
-out1 <- penaltree::get_gpnet(x = x2, y = tree_timel[1],
-                  calc_convex_nll = penaltree::calc_bd_lm_nll,
-                  param_map = pm1, nlambda = 50, lambda.min.ratio = 0.5,
-                  verbose = TRUE, penalty.factor = pf1,
-                  thresh = 1e-4, winit = init1, alpha = 1)
-
-out <- get_gpnet(x = x2, y = tree_timel, calc_convex_nll=penaltree::calc_bd_lm_nll,
-                 param_map=pm, nlambda=13, lambda.min.ratio=0.75,
-                 verbose=TRUE, penalty.factor=c(0, 0, rep(1,12)),
-                 thresh=1e-4, winit=init, alpha=1)
-
-out2 <- penaltree::get_gpnet(x = x2, y = tree_timel[2], calc_convex_nll = calc_bd_lm_nll,
-                  param_map = pm1, nlambda = 13, lambda.min.ratio = 0.75,
-                  verbose = TRUE, penalty.factor = pf1,
-                  thresh = 1e-4, winit = init1, alpha = 1)
-
-obj <- function(x) {
-    foo[c(1,2)] <- x
-    l <- calc_bd_lm_nll(w=foo, x=x2, y=tree_timel[1], param_map=pm1)
-    print(paste(c(x, l)))
-    l
-}
-ans <- optim.rphast(obj, c(1, -.1), lower=c(-1,-1), upper=c(1, 0.5), logfile="/tmp/a.log")
-
-
-
-p <- tree_timel[[2]]
-p <- addroot(p, 0)
-p$states[p$states == 3] <- 2
- par <- c(1, 1, 1, 1)
- fix <- rbind(c(1, 6, 7, 8), c(1, -5, 0, 0), c(1, 1, 1, 1))
- tplik <- TreePar::LikTypesSTT(par=par, phylo=p, fix=fix, sampfrac=s,
-                                  survival=0, freq=0.1, posR=0)
-
-
-
-calc_bd_lm_nll(foo, x2, tree_timel[1], pm1)
-
-## figure out if starting with high lambda leads to malformed hessian
-
-tipnames <- lapply(tree_timel[1], "[[", "tip.label")
-tmpf <- function(tn){
-    sample(tn, ceiling(length(tn) * .1))
-}
-tmpff <- function(){
-    unlist(sapply(tipnames, tmpf))
-}
-subset <- tmpff()
-small_treel <- penaltree:::filter_y(tree_timel[1], subset)
-
-out <- get_gpnet(x = x2, y = small_treel, calc_convex_nll=penaltree::calc_bd_lm_nll,
-                 param_map=pm, lambda=seq(10, 1),
-                 make_log = TRUE, penalty.factor=c(0, 0, rep(1,12)),
-                 thresh=1e-4, winit=init, alpha=1)
