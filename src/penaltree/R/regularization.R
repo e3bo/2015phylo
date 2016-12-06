@@ -20,7 +20,7 @@
 #' @param lower.limits lower limits for penalized parameters
 #' @param upper.limits upper limits for penalized parameters
 #' @param maxit maximum number of iterations in optimization attempt for each lambda
-#' @param verbose whether or not to print out information about the optimization
+#' @param make_log whether or not to print out information about the optimization to temporary files
 #' @param winit parameter values used to initialize optimization
 #'
 #' @export
@@ -388,6 +388,14 @@ get_gpnet_subset <- function (index, subsets, penalty.factor, y, lambda, weaknes
 }
 
 #' Calculate the stability path for a gpnet model
+#'
+#' @param y list of trees with state vector (i.e., response for birth-death likelihood)
+#' @param penalty.factor see ?get_gpnet
+#' @param size fraction of original tree tips used in subsamples
+#' @param steps number of subsets to compute stability path
+#' @param weakness parameter controlling random variation in penalty that can further reduce false positives
+#' @param mc.cores number of cores to use to compute regularization paths for subsets
+#' @param ... other arguments needed by get_gpnet
 #'
 #' @export
 stabpath_gpnet <- function (y, penalty.factor, size = 0.632, steps = 100, weakness = 1,

@@ -7,6 +7,21 @@
 stabpath_gpnet(y, penalty.factor, size = 0.632, steps = 100, weakness = 1,
   mc.cores = getOption("mc.cores", 2L), ...)
 }
+\arguments{
+\item{y}{list of trees with state vector (i.e., response for birth-death likelihood)}
+
+\item{penalty.factor}{see ?get_gpnet}
+
+\item{size}{fraction of original tree tips used in subsamples}
+
+\item{steps}{number of subsets to compute stability path}
+
+\item{weakness}{parameter controlling random variation in penalty that can further reduce false positives}
+
+\item{mc.cores}{number of cores to use to compute regularization paths for subsets}
+
+\item{...}{other arguments needed by get_gpnet}
+}
 \description{
 Calculate the stability path for a gpnet model
 }

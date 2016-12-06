@@ -48,9 +48,9 @@ parameters, factor by which lambda is multiplied for each parameter to calculate
 
 \item{maxit}{maximum number of iterations in optimization attempt for each lambda}
 
-\item{winit}{parameter values used to initialize optimization}
+\item{make_log}{whether or not to print out information about the optimization to temporary files}
 
-\item{verbose}{whether or not to print out information about the optimization}
+\item{winit}{parameter values used to initialize optimization}
 }
 \description{
 Run a general purpose optimizer with lasso or elasticnet regularization
