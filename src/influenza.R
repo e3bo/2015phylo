@@ -3,12 +3,9 @@
 library(c060)
 set.seed(1)
 raxmlbin <- "/usr/bin/raxmlHPC"
-alignbin <- "../data/swine-influenza-alignments-dnabin.rds"
-
 stopifnot(file.exists(raxmlbin))
-stopifnot(file.exists(alignbin))
 
-align <- readRDS(alignbin)
+align <- list(H1N1 = penaltree::H1N1_alignment)
 
 get_tr <- function(x) {
   ips::raxml(x, m = "GTRGAMMA", p = 12345, N = 3, f = "a", exec = raxmlbin)
