@@ -4,10 +4,14 @@ load("influenza-c3.RData")
 
 sel_coef <- c(selected_fit$a0[, 10], selected_fit$beta[, 10])
 sel_par <- pm1(xstable, sel_coef)
-nsamples <- floor(length(tree_timel[[1]]$tip.label) * 2 / 3)
+nsamples <- floor(length(tree_timel[[1]]$tip.label) / 1.5)
 
 sim_tree <- penaltree::sim_bd_proc(n = nsamples, l = sel_par$l,
                                    m = sel_par$m, psi = sel_par$psi, init = 3)
+while(max(penaltree:::get_nodeheights(sim_tree)$nh) > 8) {
+  sim_tree <- penaltree::sim_bd_proc(n = nsamples, l = sel_par$l,
+                                     m = sel_par$m, psi = sel_par$psi, init = 3)
+}
 
 init3 <- init1
 sp_sim <- penaltree::stabpath_gpnet(x = x2, y = list(sim_tree),

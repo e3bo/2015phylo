@@ -7,7 +7,7 @@
 #' @param alpha proportion of penalty function that is L1 instead of L2
 #' @param nlambda number of penalty values to on regularization path
 #' @param lambda.min.ratio ratio of lowest penalty on path to highest
-#' penalty. Used to determine sequence of penalties of lambda argument
+#' penalty. Used to determine sequence of penalties if lambda argument
 #' is null
 #' @param lambda sequence of penalties to include in regularization path
 #' @param standardize Not currently used
@@ -235,7 +235,7 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
                         if (mu < mubar) {
                           if(make_log) record('increasing step size: sufficient decrease', '\n')
                           mu <- mu / sqrt(beta)
-                      }
+                        }
                       gnll2 <- nderv(nll, par2)
                       yvec <- gnll2 - gnll
                       s <- d
@@ -285,9 +285,9 @@ gpnet <- function(x, y, calc_convex_nll, param_map, alpha, nobs, nvars, jd, vp,
         convergence <- ifelse(k == maxit, 'no', 'yes')
         res[[i]] <- list(par=par, nll=nlp, k=k, lambda=lambda[i],
                          convergence=convergence, mu=mu, nsg=nsg, sg=sg)
-        #if (make_log) record("resetting Hessian: new penalty", "\n")
+        if (make_log) record("resetting Hessian: new penalty", "\n")
         mu <- mubar
-        #G <- diag(initFactor * abs(gnll), ncol=dim)
+        G <- diag(initFactor * abs(gnll), ncol=dim)
     }
     path <- sapply(res, '[[', 'par')
     ret <- list(a0=path[is_unpenalized,])
