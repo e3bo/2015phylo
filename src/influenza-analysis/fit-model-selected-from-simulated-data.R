@@ -4,6 +4,7 @@ library(c060)
 load("influenza-c4.RData")
 spstats_sim <- plot(sp_sim)
 
+stopifnot(length(spstats_sim$stable) > 0)
 stopifnot(all(as.integer(spstats_sim$stable) == 4L))
 
 sim_fit <- penaltree::get_gpnet(x = xstable, y = list(sim_tree),
