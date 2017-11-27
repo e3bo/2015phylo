@@ -30,17 +30,28 @@ layered_lik <- function(init, l, m, psi, times) {
     a <- -(sum(l) + m + psi)
     C0 <- -m / a
     C1 <- 1 - C0
-    p <- C1 * exp(a * times) + C0
+    num_eval <- function(expr) {
+        ret <- sympy("(", expr, ").subs(l, ",  as.numeric(l), ").subs(a,", a, ").subs(C0,", C0, ").subs(C1,", C1, ").subs(t,", times, ").evalf()")
+        as.numeric(ret)
+    }
     Var("xi, t, C1, C0, a, l")
-    f <- Sym("integrate( (C1 * exp(a * xi) + C0)**2, (xi, 1, t)) * l * exp(-a * t)")
-    p2 <- sympy("(", f, ").subs(l, ",  as.numeric(l), ").subs(a,", a, ").subs(C0,", C0, ").subs(C1,", C1, ").subs(t,", times, ").evalf()")
-    p + as.numeric(p2)
+    p <- sympy("C1 * exp(a * t) + C0")
+    get_tdf <- function(f1, f2) {
+        sympy("((", f1, ")*(", f2, ")).subs(t, xi)")
+    }
+    tdf <- get_tdf(p, p)
+    p2 <- Sym("integrate(exp(-a * xi) * ", tdf, ", (xi, 1, t)) * l * exp(a * t)")
+    tdf <- get_tdf(p2, p)
+    p3 <- Sym("integrate(exp(-a * xi) * ", tdf, ", (xi, 1, t)) * l * exp(a * t)")
+    tdf <- get_tdf(p2, p2)
+    p4 <- Sym("integrate(exp(-a * xi) * ", tdf, ", (xi, 1, t)) * l * exp(a * t)")
+    num_eval(psym) + num_eval(p2) + num_eval(p3) * 2 + num_eval(p4)
 }
 
 ans2 <- layered_lik(init = init, l = l, m = m, psi = psi, times = times)
 all.equal(ans1, ans2, check.attributes = FALSE)
 
-l <- matrix(.001, ncol=1)
+l <- matrix(.01, ncol=1)
 ans1 <- solve_lik_unsampled(init = init, l = l, m = m, psi = psi, times = times, rtol = rtol, atol = atol)
-ans2 <- layered_lik(init = init, l = l, m = m, psi = psi, times = times)
+system.time(ans2 <- layered_lik(init = init, l = l, m = m, psi = psi, times = times))
 all.equal(ans1, ans2, check.attributes = FALSE)
