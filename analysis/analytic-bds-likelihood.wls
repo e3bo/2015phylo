@@ -33,3 +33,18 @@ Print[foo /. repAlpha //FullSimplify //Expand]
 
 (* ::Section:: *)
 (*Calculation of expected area under population size curve*)
+
+
+-D[Hnoi/. repAlpha /.{v->1, s->1, u->1}, w]/.{w->0}//FullSimplify
+
+
+Print[prob = Hnoi /. repAlpha /. {v->1,s->1,u->1} //FullSimplify]
+
+
+prob /. {\[Lambda]->1, \[Mu]->.2, t->3}
+
+
+D[prob, t] + (\[Lambda] + \[Mu] + w) * prob - \[Lambda] * prob^2 -\[Mu]// FullSimplify
+
+
+(* agrees with differential equation (2) in Kuhnert et al. *)

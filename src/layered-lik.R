@@ -16,12 +16,28 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
 }
 
 init <- c(1)
-l <- matrix(0, ncol=1)
-m <- 0.1
+l <- matrix(1, ncol=1)
+m <- 0.2
 psi <- 0.1
 rtol <- atol <- 1e-12
-times <- c(0, 2)
-ans1 <- solve_lik_unsampled(init = init, l = l, m = m, psi = psi, times = times, rtol = rtol, atol = atol)
+times <- c(0, 3)
+(ans1 <- solve_lik_unsampled(init = init, l = l, m = m, psi = psi, times = times, rtol = rtol, atol = atol))
+
+
+ana <- function(lambda, mu, psi, t){
+  (sqrt(-4*lambda*mu + (psi +
+lambda + mu)^2)*cosh((t*sqrt(-4*lambda*mu + (psi + lambda + mu)^2))/2)
+- (psi + lambda - mu)*sinh((t*sqrt(-4*lambda*mu + (psi + lambda +
+mu)^2))/2))/(sqrt(-4*lambda*mu + (psi + lambda +
+mu)^2)*cosh((t*sqrt(-4*lambda*mu + (psi + lambda + mu)^2))/2) + (psi -
+lambda + mu)*sinh((t*sqrt(-4*lambda*mu + (psi + lambda + mu)^2))/2)) }
+
+ans2 <- ana(l[1,1], m, psi, times[2])
+
+stopifnot(isTRUE(all.equal(ans1, ans2, check.attributes = FALSE)))
+
+
+
 
 library(rSymPy)
 
