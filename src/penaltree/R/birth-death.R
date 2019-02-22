@@ -163,14 +163,19 @@ solve_lik <- function (init, l, m, psi, times, rtol, atol) {
             dg <- - (rowSums(l) + m + psi) * g + (l * p) %*% g + (l * g) %*% p
             list(c(dp, dg))
         })
-    }
-    try(out <- deSolve::lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
-                              atol = atol)[2, -1])
-   if (inherits(out, "try-error")){
-        browser()
+      }
+    if (isTRUE(all.equal(times[2], times[1]))){
+      out <- init
     } else {
-        out
+      out <- try(deSolve::lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
+                                atol = atol)[2, -1])
     }
+    if (inherits(out, "try-error")){
+      browser()
+    } else {
+      out
+    }
+    return(out)
 }
 
 solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
@@ -181,7 +186,7 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
         })
     }
     p <- list(l, m, psi)
-    try(out <- deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, -1])
+    out <- try(deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, -1])
     if (inherits(out, "try-error")){
          browser()
     } else {
