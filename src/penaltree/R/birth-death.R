@@ -22,6 +22,7 @@
 #' @export
 calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
                         unknown_states = FALSE, rtol = 1e-12, atol = 1e-12,
+                        maxsteps = 1e4, 
                         cutoff = 10 ^ 12){
     maxpar <- 100
 
@@ -42,7 +43,7 @@ calc_bd_nll <- function (l, m, psi, freq, phylo, survival = FALSE,
         #rootid <- length(phylor$tip.label) + 1
         #rootedge <- which (phylor$edge[, 1] == rootid)
         lik <- try(get_subtree_lik(phylor, 1L, l, m, psi, summary, unknown_states,
-                                   rtol, atol, cutoff))
+                                   rtol, atol, cutoff, maxsteps))
         if (class(lik) != "try-error") {
             pinds <- seq(1, ntypes)
             p <- lik[pinds]
@@ -93,7 +94,7 @@ get_times <- function (tree) {
 }
 
 get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
-                             unknown_states, rtol, atol, cutoff) {
+                             unknown_states, rtol, atol, cutoff, maxsteps) {
     ntypes <- length(m)
     newroot <- phylo$edge[rootedge, 2]
     newtrees <- which(phylo$edge[, 1] == newroot)
@@ -102,32 +103,32 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
     if (length(newtrees) == 0) {
         if (unknown_states == FALSE && phylo$states[newroot] > 0) {
             state <- phylo$states[newroot]
-            initpsi <- numeric(ntypes)
+            initpsi <- numeric(ntypes) + 1e-8
             initpsi[state] <- psi[state]
         }
         else {
             initpsi <- psi
         }
         init <- rep_len(1, ntypes)
-        inity1 <- solve_lik_unsampled(init, l, m, psi, c(0, tyoung), rtol, atol)
+        inity1 <- solve_lik_unsampled(init, l, m, psi, c(0, tyoung), rtol, atol, maxsteps)
         if (told < cutoff) {
             res <- solve_lik(init = c(inity1, initpsi), l, m, psi,
-                             c(tyoung, told), rtol, atol)
+                             c(tyoung, told), rtol, atol, maxsteps)
         }
         else {
             inity2 <- solve_lik(init = c(inity1, initpsi), l, m, psi,
-                                c(tyoung, cutoff), rtol, atol)
+                                c(tyoung, cutoff), rtol, atol, maxsteps)
             m <- m + psi
             psi <- rep_len(0, ntypes)
             res <- solve_lik(init = inity2, l, m, psi, c(cutoff, told), rtol,
-                             atol)
+                             atol, maxsteps)
         }
     }
     else {
         likleft <- get_subtree_lik(phylo, newtrees[1], l, m, psi, summary,
-                                   unknown_states, rtol, atol, cutoff)
+                                   unknown_states, rtol, atol, cutoff, maxsteps)
         likright <- get_subtree_lik(phylo, newtrees[2], l, m, psi, summary,
-                                    unknown_states, rtol, atol, cutoff)
+                                    unknown_states, rtol, atol, cutoff, maxsteps)
         pinds <- seq_along(m)
         ginds <- pinds + length(pinds)
         gleft <- likleft[ginds]
@@ -141,56 +142,60 @@ get_subtree_lik <- function (phylo, rootedge, l, m, psi, summary,
             psi <- rep_len(0, ntypes)
         } else if (told > cutoff) {
             init1 <- solve_lik(init = init1, l, m, psi, c(tyoung, cutoff),
-                               rtol, atol)
+                               rtol, atol, maxsteps)
             tyoung <- cutoff
             m <- m + psi
             psi <- rep_len(0, ntypes)
         }
         res <- solve_lik(init = init1, l, m, psi, c(tyoung, told), rtol,
-                         atol)
+                         atol, maxsteps)
     }
     res
 }
 
-solve_lik <- function (init, l, m, psi, times, rtol, atol) {
+solve_lik <- function (init, l, m, psi, times, rtol, atol, maxsteps) {
     pinds <- seq_along(m)
     ginds <- pinds + length(pinds)
     ode <- function(times, y, p) {
         with(as.list(c(y, p)), {
-            p <- y[pinds]
-            g <- y[ginds]
-            dp <- - (rowSums(l) + m + psi) * p + (l * p) %*% p +  m
-            dg <- - (rowSums(l) + m + psi) * g + (l * p) %*% g + (l * g) %*% p
+            pexp <- exp(y[pinds])
+            gexp <- exp(y[ginds])
+            dexpp <- - (rowSums(l) + m + psi) * pexp + (l * pexp) %*% pexp +  m
+            dexpg <- - (rowSums(l) + m + psi) * gexp + (l * pexp) %*% gexp + (l * gexp) %*% pexp
+            dp <- dexpp / pexp
+            dg <- dexpg / gexp
             list(c(dp, dg))
         })
       }
     if (isTRUE(all.equal(times[2], times[1]))){
-      out <- init
+      return(init)
     } else {
-      out <- try(deSolve::lsoda(init, times, ode, c(l, m, psi), rtol = rtol,
-                                atol = atol)[2, -1])
+      
+      out <- try(deSolve::lsoda(log(init), times, ode, c(l, m, psi), rtol = rtol,
+                                atol = atol, maxsteps = maxsteps)[2, -1])
     }
     if (inherits(out, "try-error")){
       browser()
     } else {
-      out
+      exp(out)
     }
-    return(out)
+    return(exp(out))
 }
 
-solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
+solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol, maxsteps) {
     ode <- function(times, y, p) {
         with(as.list(c(y, p)), {
-            dy <- - (rowSums(l) + m + psi) * y + (l * y) %*% y +  m
-            list(dy)
+             yexp <- exp(y)
+            dyexp <- - (rowSums(l) + m + psi) * yexp + (l * yexp) %*% yexp +  m
+            list(dyexp / yexp)
         })
     }
     p <- list(l, m, psi)
-    out <- try(deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, -1])
+    out <- try(deSolve::lsoda(log(init), times, ode, p, rtol = rtol, atol = atol, maxsteps = maxsteps)[2, -1])
     if (inherits(out, "try-error")){
          browser()
     } else {
-         out
+         exp(out)
     }
 }
 
