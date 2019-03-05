@@ -39,8 +39,8 @@ all.equal(ans1, as.numeric(p0), check.attributes = FALSE)
 
 r <- (rowSums(l) + m + psi)
 tau <- max(mesh)
-expM0 <- diag(exp(-tau * r), rnow = d)
-p0exact <- diag(exp(-tau * r), nrow = d) %*% init + diag((1 - exp(-r * tau)) / r, nrow= d) %*% m
+expM0 <- diag(exp(-tau * r), nrow = d)
+p0exact <- expM0 %*% init + diag((1 - exp(-r * tau)) / r, nrow= d) %*% m
 all.equal(ans1, as.numeric(p0exact), check.attributes = FALSE)
 
 p0exactint <- diag((1 - exp(-r * tau)) / r, nrow = d) %*% init + diag(tau / r - (1 - exp(-r * tau)) / r^2, nrow = d) %*% m
@@ -54,7 +54,7 @@ x <- solve_lik_unsampled(init = init, l = l, m = m, psi = psi, times = mesh, rto
 all.equal(sum(x[,2] * dt), as.numeric(p0exactint))
 
 expM1 <- diag(exp(l[1,1] * p0exactint))
-
+expA1 <- expM1 %*% expM0
 
 
 phit0inverseex
