@@ -44,34 +44,59 @@ p0exact <- expM0 %*% init + diag((1 - exp(-r * tau)) / r, nrow= d) %*% m
 all.equal(ans1, as.numeric(p0exact), check.attributes = FALSE)
 
 p0exactint <- diag((1 - exp(-r * tau)) / r, nrow = d) %*% init + diag(tau / r - (1 - exp(-r * tau)) / r^2, nrow = d) %*% m
-
-
-
-
-
 x <- solve_lik_unsampled(init = init, l = l, m = m, psi = psi, times = mesh, rtol = rtol, atol = atol)
-
 all.equal(sum(x[,2] * dt), as.numeric(p0exactint))
 
-expM1 <- diag(exp(l[1,1] * p0exactint))
-expA1 <- expM1 %*% expM0
 
+# now for 2 layers
 
-phit0inverseex
-
-input <- phitau
-
-phitau <- phit0[length(mesh)]
-
-
-
-for (i in seq(2, B + 1)){
-
-
-
-
+solve_lik2 <- function (init, l, m, psi, times, rtol, atol) {
+    ode <- function(times, y, p) {
+      with(as.list(c(y, p)), {
+            y0 <- y[1]
+            y1 <- y[2]
+            dy0 <- - (rowSums(l) + m + psi) * y0 + m
+            dy1 <- - (rowSums(l) + m + psi) * y1 + (l * y0) %*% y1 + m
+            list(c(dy0, dy1))
+        })
+    }
+    p <- list(l, m, psi)
+    deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)
 }
 
+l2 <- matrix(1, ncol = 1, nrow = 1)
+r2 <- (rowSums(l2) + m + psi)
+dt <- 1e-2
+mesh <- seq(0, 10, by = dt)
+npoints <- length(mesh)
+tau <- max(mesh)
+
+ans2 <- solve_lik2(init = rep(1, ncol(l) * 2), l = l2,
+                   m = m, psi = psi, times = c(0, tau), rtol = rtol, atol = atol)
+
+expM0 <- diag(exp(-tau * r2), nrow = d)
+p0exact <- expM0 %*% init + diag((1 - exp(-r2 * tau)) / r2, nrow= d) %*% m
+all.equal(ans2[2, "1"], as.numeric(p0exact), check.attributes = FALSE)
+
+p0exactint <- diag((1 - exp(-r2 * tau)) / r2, nrow = d) %*% init + diag(tau / r2 - (1 - exp(-r2 * tau)) / r2 ^ 2, nrow = d) %*% m
+
+funA1 <- function(tau) {
+  expM0 <- diag(exp(-tau * r2), nrow = d)
+  p0exactint <- diag((1 - exp(-r2 * tau)) / r2, nrow = d) %*% init + diag(tau / r2 - (1 - exp(-r2 * tau)) / r2 ^ 2, nrow = d) %*% m
+  expM1 <- diag(exp(l2 * p0exactint))
+  expA1 <- expM1 %*% expM0
+  expA1
+}
+
+expA1t <- lapply(mesh, funA1)
+expA1tau <- lapply(expA1t, function(x) expA1t[[npoints]] %*%  (1/ x))
+input_integrand <- sum (sapply(expA1tau, function(x) x %*% m)) * dt
+p1approx <- expA1t[[npoints]] %*% init + input_integrand
+
+all.equal(as.numeric(p1approx), as.numeric(ans2[2,"2"]), tol = 1e-2)
+
+
+## scraps
 
 
 ana <- function(lambda, mu, psi, t){
