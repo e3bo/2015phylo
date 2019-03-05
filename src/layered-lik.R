@@ -7,12 +7,7 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
         })
     }
     p <- list(l, m, psi)
-    out <- try(deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, -1])
-    if (inherits(out, "try-error")){
-         browser()
-    } else {
-         out
-    }
+    deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)
 }
 
 init <- c(1)
@@ -42,7 +37,27 @@ input_integrand <- sapply(phitau, function(x) x %*%  m)
 p0 <- phit0[[npoints]] %*% init + sum(input_integrand * dt)
 all.equal(ans1, as.numeric(p0), check.attributes = FALSE)
 
+r <- (rowSums(l) + m + psi)
+tau <- max(mesh)
+expM0 <- diag(exp(-tau * r), rnow = d)
+p0exact <- diag(exp(-tau * r), nrow = d) %*% init + diag((1 - exp(-r * tau)) / r, nrow= d) %*% m
+all.equal(ans1, as.numeric(p0exact), check.attributes = FALSE)
 
+p0exactint <- diag((1 - exp(-r * tau)) / r, nrow = d) %*% init + diag(tau / r - (1 - exp(-r * tau)) / r^2, nrow = d) %*% m
+
+
+
+
+
+x <- solve_lik_unsampled(init = init, l = l, m = m, psi = psi, times = mesh, rtol = rtol, atol = atol)
+
+all.equal(sum(x[,2] * dt), as.numeric(p0exactint))
+
+expM1 <- diag(exp(l[1,1] * p0exactint))
+
+
+
+phit0inverseex
 
 input <- phitau
 
