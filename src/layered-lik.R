@@ -7,7 +7,7 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
         })
     }
     p <- list(l, m, psi)
-    try(out <- deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, -1])
+    out <- try(deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)[2, -1])
     if (inherits(out, "try-error")){
          browser()
     } else {
@@ -16,12 +16,47 @@ solve_lik_unsampled <- function (init, l, m, psi, times, rtol, atol) {
 }
 
 init <- c(1)
-l <- matrix(1, ncol=1)
+l <- matrix(0, ncol=1)
 m <- 0.2
 psi <- 0.1
 rtol <- atol <- 1e-12
 times <- c(0, 3)
 (ans1 <- solve_lik_unsampled(init = init, l = l, m = m, psi = psi, times = times, rtol = rtol, atol = atol))
+
+d <- nrow(l)
+dt <- 1e-4
+tau <- max(times)
+t0 <- 0
+mesh <- seq(0, tau, by = dt)
+npoints <- length(mesh)
+
+B <- 10
+
+phis <- list()
+
+phit0_func1  <- function(t) diag(exp(-t * (rowSums(l) + m + psi)), nrow = d)
+phit0 <- lapply(mesh, phit0_func1)
+phit0inverse <- lapply(phit0, solve)
+phitau <- lapply(phit0inverse, function(x) phit0[[npoints]] %*% x)
+input_integrand <- sapply(phitau, function(x) x %*%  m)
+p0 <- phit0[[npoints]] %*% init + sum(input_integrand * dt)
+all.equal(ans1, as.numeric(p0), check.attributes = FALSE)
+
+
+
+input <- phitau
+
+phitau <- phit0[length(mesh)]
+
+
+
+for (i in seq(2, B + 1)){
+
+
+
+
+}
+
 
 
 ana <- function(lambda, mu, psi, t){
