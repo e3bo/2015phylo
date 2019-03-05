@@ -96,6 +96,65 @@ p1approx <- expA1t[[npoints]] %*% init + input_integrand
 all.equal(as.numeric(p1approx), as.numeric(ans2[2,"2"]), tol = 1e-2)
 
 
+# now for 3 layers
+
+solve_lik3 <- function (init, l, m, psi, times, rtol, atol) {
+    ode <- function(times, y, p) {
+      with(as.list(c(y, p)), {
+            y0 <- y[1]
+            y1 <- y[2]
+            y2 <- y[3]
+            dy0 <- - (rowSums(l) + m + psi) * y0 + m
+            dy1 <- - (rowSums(l) + m + psi) * y1 + (l * y0) %*% y1 + m
+            dy2 <- - (rowSums(l) + m + psi) * y2 + (l * y1) %*% y2 + m
+            list(c(dy0, dy1, dy2))
+        })
+    }
+    p <- list(l, m, psi)
+    deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)
+}
+
+l3 <- matrix(2, ncol = 1, nrow = 1)
+r3 <- (rowSums(l3) + m + psi)
+dt <- 1e-3
+mesh <- seq(0, 10, by = dt)
+npoints <- length(mesh)
+tau <- max(mesh)
+
+ans3 <- solve_lik3(init = rep(1, ncol(l3) * 3), l = l3,
+                   m = m, psi = psi, times = c(0, tau), rtol = rtol, atol = atol)
+
+expM0 <- diag(exp(-tau * r3), nrow = d)
+p0exact <- expM0 %*% init + diag((1 - exp(-r3 * tau)) / r3, nrow= d) %*% m
+all.equal(ans3[2, "1"], as.numeric(p0exact), check.attributes = FALSE)
+
+funA1 <- function(tau) {
+  expM0 <- diag(exp(-tau * r3), nrow = d)
+  p0exactint <- diag((1 - exp(-r3 * tau)) / r3, nrow = d) %*% init + diag(tau / r3 - (1 - exp(-r3 * tau)) / r3 ^ 2, nrow = d) %*% m
+  expM1 <- diag(exp(l3 * p0exactint))
+  expA1 <- expM1 %*% expM0
+  expA1
+}
+
+expA1t <- lapply(mesh, funA1)
+expA1tau <- lapply(expA1t, function(x) expA1t[[npoints]] %*%  (1 / x))
+input_integrand <- sum (sapply(expA1tau, function(x) x %*% m)) * dt
+p1approx <- expA1t[[npoints]] %*% init + input_integrand
+
+all.equal(as.numeric(p1approx), as.numeric(ans3[2,"2"]), tol = 1e-2)
+
+funA2 <- function(tau) {
+  expM0 <- diag(exp(-tau * r3), nrow = d)
+  p1approxint <- diag((1 - exp(-r3 * tau)) / r3, nrow = d) %*% init + diag(tau / r3 - (1 - exp(-r3 * tau)) / r3 ^ 2, nrow = d) %*% m
+  expM1 <- diag(exp(l3 * p0exactint))
+  expA1 <- expM1 %*% expM0
+  expA1
+}
+
+
+
+
+
 ## scraps
 
 
