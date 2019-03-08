@@ -124,7 +124,6 @@ tau <- max(mesh)
 ans3 <- solve_lik3(init = rep(1, ncol(l3) * 3), l = l3,
                    m = m, psi = psi, times = mesh, rtol = rtol, atol = atol)
 ansInf <- solve_lik_unsampled(init = 1, l = l3, m = m , psi =psi, times =c(0, tau), rtol = rtol, atol = atol)
-## 3 layers has a relative difference of less than 1e-3 with the infinite layer calculation
 
 expM0 <- diag(exp(-tau * r3), nrow = d)
 p0exact <- expM0 %*% init + diag((1 - exp(-r3 * tau)) / r3, nrow= d) %*% m
@@ -171,7 +170,31 @@ p2approxv <- Map(function(x, y) x %*% init + y, expA2t, input_integrand2)
 p2rmse <- sqrt(mean((ans3[,"3"] - unlist(p2approxv))^2))
 
 
+# now for 3+ layers
 
+solve_likmore <- function (init, l, m, psi, times, rtol, atol) {
+    ode <- function(times, y, p) {
+      with(as.list(c(y, p)), {
+            n <- length(y)
+            dy <- numeric(n)
+            r <- - (rowSums(l) + m + psi)
+            dy[1] <- r * y[1] + m
+            for (i in seq(2, n)){
+              dy[i] <- r * y[i] + (l * y[i - 1]) * y[i]  + m
+            }
+            list(dy)
+        })
+    }
+    p <- list(l, m, psi)
+    deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)
+}
+
+ansmore <- solve_likmore(init = rep(1, ncol(l3) * 20), l = l3,
+                   m = m, psi = psi, times = mesh, rtol = rtol, atol = atol)
+
+plot(diff(tail(ansmore, n = 1)[-1]))
+tail(ansmore)
+ansInf
 
 ## scraps
 
