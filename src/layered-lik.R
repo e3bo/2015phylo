@@ -35,17 +35,17 @@ phit0inverse <- lapply(phit0, solve)
 phitau <- lapply(phit0inverse, function(x) phit0[[npoints]] %*% x)
 input_integrand <- sapply(phitau, function(x) x %*%  m)
 p0 <- phit0[[npoints]] %*% init + sum(input_integrand * dt)
-all.equal(ans1, as.numeric(p0), check.attributes = FALSE)
+all.equal(ans1[2,2], as.numeric(p0), check.attributes = FALSE, tol = 1e-4)
 
 r <- (rowSums(l) + m + psi)
 tau <- max(mesh)
 expM0 <- diag(exp(-tau * r), nrow = d)
 p0exact <- expM0 %*% init + diag((1 - exp(-r * tau)) / r, nrow= d) %*% m
-all.equal(ans1, as.numeric(p0exact), check.attributes = FALSE)
+all.equal(ans1[2,2], as.numeric(p0exact), check.attributes = FALSE)
 
 p0exactint <- diag((1 - exp(-r * tau)) / r, nrow = d) %*% init + diag(tau / r - (1 - exp(-r * tau)) / r^2, nrow = d) %*% m
 x <- solve_lik_unsampled(init = init, l = l, m = m, psi = psi, times = mesh, rtol = rtol, atol = atol)
-all.equal(sum(x[,2] * dt), as.numeric(p0exactint))
+all.equal(sum(x[,2] * dt), as.numeric(p0exactint), tol = 1e-4)
 
 
 # now for 2 layers
@@ -117,12 +117,14 @@ solve_lik3 <- function (init, l, m, psi, times, rtol, atol) {
 l3 <- matrix(2, ncol = 1, nrow = 1)
 r3 <- (rowSums(l3) + m + psi)
 dt <- 1e-3
-mesh <- seq(0, 10, by = dt)
+mesh <- seq(0, 2, by = dt)
 npoints <- length(mesh)
 tau <- max(mesh)
 
 ans3 <- solve_lik3(init = rep(1, ncol(l3) * 3), l = l3,
-                   m = m, psi = psi, times = c(0, tau), rtol = rtol, atol = atol)
+                   m = m, psi = psi, times = mesh, rtol = rtol, atol = atol)
+ansInf <- solve_lik_unsampled(init = 1, l = l3, m = m , psi =psi, times =c(0, tau), rtol = rtol, atol = atol)
+## 3 layers has a relative difference of less than 1e-3 with the infinite layer calculation
 
 expM0 <- diag(exp(-tau * r3), nrow = d)
 p0exact <- expM0 %*% init + diag((1 - exp(-r3 * tau)) / r3, nrow= d) %*% m
@@ -137,20 +139,36 @@ funA1 <- function(tau) {
 }
 
 expA1t <- lapply(mesh, funA1)
-expA1tau <- lapply(expA1t, function(x) expA1t[[npoints]] %*%  (1 / x))
-input_integrand <- sum (sapply(expA1tau, function(x) x %*% m)) * dt
-p1approx <- expA1t[[npoints]] %*% init + input_integrand
+input_integrand <- list()
+for (i in 1:npoints) {
+  expA1taui <- lapply(expA1t[1:i], function(x) expA1t[[i]] %*%  (1 / x))
+  print(i)
+  input_integrand[[i]] <- sum (sapply(expA1taui, function(x) x %*% m)) * dt
+}
 
-all.equal(as.numeric(p1approx), as.numeric(ans3[2,"2"]), tol = 1e-2)
+p1approxv <- Map(function(x, y) x %*% init + y, expA1t, input_integrand)
 
-funA2 <- function(tau) {
-  expM0 <- diag(exp(-tau * r3), nrow = d)
-  p1approxint <- diag((1 - exp(-r3 * tau)) / r3, nrow = d) %*% init + diag(tau / r3 - (1 - exp(-r3 * tau)) / r3 ^ 2, nrow = d) %*% m
-  expM1 <- diag(exp(l3 * p0exactint))
+p1_approx_rmse <- sqrt(mean((unlist(p1approxv) -  ans3[, "2"])^2))
+
+funA2 <- function(pointno) {
+  expM0 <- diag(exp(-dt * (pointno - 1) * r3), nrow = d)
+  p1approxint <- sum(unlist(p1approxv)[1:pointno]) * dt
+  expM1 <- diag(exp(l3 * p1approxint))
   expA1 <- expM1 %*% expM0
   expA1
 }
 
+expA2t <- lapply(seq_along(mesh), funA2)
+
+input_integrand2 <- list()
+for (i in 1:npoints) {
+  expA2taui <- lapply(expA2t[1:i], function(x) expA2t[[i]] %*%  (1 / x))
+  print(i)
+  input_integrand2[[i]] <- sum (sapply(expA2taui, function(x) x %*% m)) * dt
+}
+
+p2approxv <- Map(function(x, y) x %*% init + y, expA2t, input_integrand2)
+p2rmse <- sqrt(mean((ans3[,"3"] - unlist(p2approxv))^2))
 
 
 
