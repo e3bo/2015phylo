@@ -88,8 +88,19 @@ funA1 <- function(tau) {
   expA1
 }
 
-expA1t <- lapply(mesh, funA1)
-expA1tau <- lapply(expA1t, function(x) expA1t[[npoints]] %*%  (1/ x))
+funA1tau <- function(tau, t0) {
+  expM0 <- diag(exp(-(tau - t0)* r2), nrow = d)
+  p0exactinttau <- diag((1 - exp(-r2 * tau)) / r2, nrow = d) %*% init + diag(tau / r2 - (1 - exp(-r2 * tau)) / r2 ^ 2, nrow = d) %*% m
+  p0exactintt0 <- diag((1 - exp(-r2 * t0)) / r2, nrow = d) %*% init + diag(t0 / r2 - (1 - exp(-r2 * t0)) / r2 ^ 2, nrow = d) %*% m
+  expM1 <- diag(exp(l2 * (p0exactinttau - p0exactintt0)))
+  expA1 <- expM1 %*% expM0
+  expA1
+}
+
+system.time({expA1t <- lapply(mesh, funA1)
+expA1tau <- lapply(expA1t, function(x) expA1t[[npoints]] %*%  (1/ x))})
+system.time(expA1taunew <- lapply(mesh, function(x) funA1tau(max(mesh), x)))
+
 input_integrand <- sum (sapply(expA1tau, function(x) x %*% m)) * dt
 p1approx <- expA1t[[npoints]] %*% init + input_integrand
 
@@ -189,8 +200,13 @@ solve_likmore <- function (init, l, m, psi, times, rtol, atol) {
     deSolve::lsoda(init, times, ode, p, rtol = rtol, atol = atol)
 }
 
-ansmore <- solve_likmore(init = rep(1, ncol(l3) * 20), l = l3,
-                   m = m, psi = psi, times = mesh, rtol = rtol, atol = atol)
+
+meshbig <- seq(0, 10, dt)
+system.time(ansmore <- solve_likmore(init = rep(1, ncol(l3) * 20), l = l3,
+                   m = m, psi = psi, times = meshbig, rtol = rtol, atol = atol))
+
+system.time(ansInf <- solve_lik_unsampled(init = 1, l = l3, m = m , psi =psi, times = meshbig, rtol = rtol, atol = atol))
+
 
 plot(diff(tail(ansmore, n = 1)[-1]))
 tail(ansmore)
