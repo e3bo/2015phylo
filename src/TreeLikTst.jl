@@ -5,11 +5,8 @@ using Test
 using ApproxFun
 using LinearAlgebra
 
-uexact = Fun(x->exp(-x),  0..10)
-@test norm(TreeLik.u - uexact) < 1e-14
-
-
-
-
+uexact = Fun(x->exp(-2x),  0..10)
+exptest = @test norm(TreeLik.u - uexact, Inf) < 1e-14
+dexptest = @test TreeLik.dudr(10)  ≈ -10 * exp(-2 * 10)
 
 end
