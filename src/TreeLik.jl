@@ -21,6 +21,7 @@ u = [Evaluation(0); L] \ [1, 0]
 
 dLdr = Conversion(Chebyshev(0..tau), Ultraspherical(1,0..tau))
 dudr = [Evaluation(0); L] \ (-[0 * Evaluation(0); dLdr] * u)
+dudmu = [Evaluation(0); L] \ [0, 1]
 
 mu = 0.2
 
