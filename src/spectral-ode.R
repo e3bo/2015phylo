@@ -1,7 +1,7 @@
 
 # R port of functions in "Spectral methods in Matlab" by Lloyd Trefethen
 
-cheb <- function(N) {
+cheb <- function(N, limits = c(-1, 1)) {
   ## Computes differention matrix based on grid of Chebysev points
   ##
   ## Args:
@@ -13,7 +13,8 @@ cheb <- function(N) {
   if (N == 0) {
     return(list(D = 0, x = 1))
   }
-  x <- cos(pi * (0:N) / N)
+  scale <- max(limits) - min(limits)
+  x <- (cos(pi * (0:N) / N) + (min(scale) - 1) )* scale / 2
   c <- matrix(c(2, rep(1, N-1), 2), N + 1, 1) * (-1)^(0:N)
   X <- matrix(x, nrow = length(x), ncol = N + 1)
   dX <- X - t(X)
