@@ -1,2 +1,5 @@
 -(s*w) - s*λ + s^2*u*λ - s*μ + v*μ
 (Sqrt[-4*λ*μ + (w + λ + μ)^2]*Cosh[(t*Sqrt[-4*λ*μ + (w + λ + μ)^2])/2] - (w + λ - μ)*Sinh[(t*Sqrt[-4*λ*μ + (w + λ + μ)^2])/2])/(Sqrt[-4*λ*μ + (w + λ + μ)^2]*Cosh[(t*Sqrt[-4*λ*μ + (w + λ + μ)^2])/2] + (w - λ + μ)*Sinh[(t*Sqrt[-4*λ*μ + (w + λ + μ)^2])/2])
+
+Part::partd: Part specification altAns[[1]] is longer than depth of object.
+altAns

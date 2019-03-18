@@ -48,3 +48,16 @@ D[prob, t] + (\[Lambda] + \[Mu] + w) * prob - \[Lambda] * prob^2 -\[Mu]// FullSi
 
 
 (* agrees with differential equation (2) in Kuhnert et al. *)
+
+
+(* ::Input:: *)
+(*altAns = DSolve[{p'[t]== -(\[Lambda] + \[Mu] + w) * p[t] - \[Lambda] p[t]^2 + mu, p[0]==1}, p[t],t]*)
+
+
+Print[altAns[[1]][[1]]//FullSimplify]
+
+
+eqs = {p1'[t] == -(\[Lambda]11 + \[Lambda]12 + m12 + \[Mu]1 + w1) * p1[t] + \[Lambda]11 * p1[t] * p1[t] + \[Lambda]12 * p1[t] * p2[t] + m21 * p2[t] + \[Mu]1,p2'[t] == -(\[Lambda]21 + \[Lambda]22 + m21 + \[Mu]2 + w2) * p2[t] + \[Lambda]21 * p1[t] * p2[t] + \[Lambda]22 * p2[t] * p2[t] + m12 * p1[t] + \[Mu]2}
+
+
+DSolve[eqs, {p1[t], p2[t]}, t]

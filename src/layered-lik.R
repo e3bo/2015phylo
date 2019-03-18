@@ -101,6 +101,9 @@ system.time({expA1t <- lapply(mesh, funA1)
 expA1tau <- lapply(expA1t, function(x) expA1t[[npoints]] %*%  (1/ x))})
 system.time(expA1taunew <- lapply(mesh, function(x) funA1tau(max(mesh), x)))
 
+f <- function(x) funA1tau(tau = 1, t0 = x)[1,1]
+quadcc(f = Vectorize(f), a=0, b=1)
+
 input_integrand <- sum (sapply(expA1tau, function(x) x %*% m)) * dt
 p1approx <- expA1t[[npoints]] %*% init + input_integrand
 
