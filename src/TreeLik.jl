@@ -4,7 +4,7 @@ using LinearAlgebra
 
 export r, λ, ψ, μ, τ
 
-τ = 10
+τ = 3
 a,b = 0,τ
 x = Fun(identity, a..b)
 
@@ -34,5 +34,20 @@ dL1dμ = dLdψ - λ * du1dμ
 du2dμ = [Evaluation(0); L1] \ (-[0 * Evaluation(0); dL1dμ] * u2 + [0, 1])
 dL1dλ = dL1dψ - u1
 du2dλ = [Evaluation(0); L1] \ (-[0 * Evaluation(0); dL1dλ] * u2)
+
+itercount = 0
+ui = u2
+objnorm = norm(ui' + r * ui - λ * ui ^ 2 - μ)
+while objnorm > 1e-10 && itercount < 100
+    global itercount
+    global objnorm
+    global ui
+    global Lnext
+    Lnext = L - λ * ui
+    ui = [Evaluation(0); Lnext] \ [1, μ]
+    objnorm = norm(ui' + r * ui - λ * ui ^ 2 - μ)
+    println(objnorm)
+    itercount += 1
+end
 
 end
